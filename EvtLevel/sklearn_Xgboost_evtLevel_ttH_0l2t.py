@@ -65,7 +65,7 @@ parser.add_option("--HypOpt", action="store_true", dest="HypOpt", help="If you c
 parser.add_option("--doXML", action="store_true", dest="doXML", help="Do save not write the xml file", default=False)
 parser.add_option("--doPlots", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
 parser.add_option("--oldNtuple", action="store_true", dest="oldNtuple", help="use Matthias", default=False)
-parser.add_option("--ntrees ", type="int", dest="ntrees", help="hyp", default=2000)
+parser.add_option("--ntrees ", type="int", dest="ntrees", help="hyp", default=1000)
 parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=2)
 parser.add_option("--lr", type="float", dest="lr", help="hyp", default=0.01)
 parser.add_option("--mcw", type="int", dest="mcw", help="hyp", default=1)
@@ -81,7 +81,7 @@ channel=options.channel
 
 if channel=='0l_2tau':
 	channelInTree='0l_2tau_OS_forBDTtraining'
-	inputPath='/hdfs/local/arun/ttHAnalysis/2017/2018Jul06_BDT/histograms/0l_2tau/forBDTtraining_OS/'
+	inputPath='/hdfs/local/arun/ttHAnalysis/2017/2018Aug03/histograms/0l_2tau/forBDTtraining_OS/'
 	criteria=[]
 	testtruth1="bWj1Wj2_isGenMatchedWithKinFit_top1"
 	testtruth2="bWj1Wj2_isGenMatchedWithKinFit_top2"
@@ -110,17 +110,17 @@ def trainVars(all):
 		"mT_tau2",
 		"mTauTauVis",
 		"HTT_wKinFit_top1",
-		"dr_HadTop1_tau_lead_top1",
-		"dr_HadTop1_tau_sublead_top1",
-		"dr_HadTop1_tautau_top1",
-		"HadTop1_pt_top1",
-		"HadTop1_eta_top1",
+		"dr_HadTop1_tau_lead",
+		"dr_HadTop1_tau_sublead",
+		"dr_HadTop1_tautau",
+		"HadTop1_pt",
+		"HadTop1_eta",
 		"HTT_wKinFit_top2",
-		"dr_HadTop1_tau_lead_top2",
-		"dr_HadTop1_tau_sublead_top2",
-		"dr_HadTop1_tautau_top2",
-		"HadTop1_pt_top2",
-		"HadTop1_eta_top2",
+		"dr_HadTop2_tau_lead",
+		"dr_HadTop2_tau_sublead",
+		"dr_HadTop2_tautau",
+		"HadTop2_pt",
+		"HadTop2_eta",
 		"ncombo_top1",
 		"ncombo_top2",
 		"nJet" ,
@@ -142,17 +142,17 @@ def trainVars(all):
                 "mT_tau2",
                 "mTauTauVis",
                 "HTT_wKinFit_top1",
-                "dr_HadTop1_tau_lead_top1",
-                "dr_HadTop1_tau_sublead_top1",
-                "dr_HadTop1_tautau_top1",
-                "HadTop1_pt_top1",
-                "HadTop1_eta_top1",
+                "dr_HadTop1_tau_lead",
+                "dr_HadTop1_tau_sublead",
+                "dr_HadTop1_tautau",
+                "HadTop1_pt",
+                "HadTop1_eta",
                 "HTT_wKinFit_top2",
-                "dr_HadTop1_tau_lead_top2",
-                "dr_HadTop1_tau_sublead_top2",
-                "dr_HadTop1_tautau_top2",
-                "HadTop1_pt_top2",
-                "HadTop1_eta_top2",
+                "dr_HadTop2_tau_lead",
+                "dr_HadTop2_tau_sublead",
+                "dr_HadTop2_tautau",
+                "HadTop2_pt",
+                "HadTop2_eta",
                 "ncombo_top1",
                 "ncombo_top2",
                 "nJet" ,
@@ -173,10 +173,10 @@ def trainVars(all):
                 "mT_tau2",
                 "mTauTauVis",
                 "HTT_wKinFit_top1",
-                "HadTop1_pt_top1",
-                "HadTop1_eta_top1",
+                "HadTop1_pt",
+                "HadTop1_eta",
                 "HTT_wKinFit_top2",
-                "HadTop1_pt_top2",
+                "HadTop2_pt",
                 "nJet"
                 ]
         if channel=="0l_2tau" and bdtType=="evtLevelTT_TTH" and trainvar=="Reduced" and all==False :return [
@@ -228,17 +228,17 @@ def trainVars(all):
                 "mT_tau2",
                 "mTauTauVis",
                 "HTT_wKinFit_top1",
-                "dr_HadTop1_tau_lead_top1",
-                "dr_HadTop1_tau_sublead_top1",
-                "dr_HadTop1_tautau_top1",
-                "HadTop1_pt_top1",
-                "HadTop1_eta_top1",
+                "dr_HadTop1_tau_lead",
+                "dr_HadTop1_tau_sublead",
+                "dr_HadTop1_tautau",
+                "HadTop1_pt",
+                "HadTop1_eta",
                 "HTT_wKinFit_top2",
-                "dr_HadTop1_tau_lead_top2",
-                "dr_HadTop1_tau_sublead_top2",
-                "dr_HadTop1_tautau_top2",
-                "HadTop1_pt_top2",
-                "HadTop1_eta_top2",
+                "dr_HadTop2_tau_lead",
+                "dr_HadTop2_tau_sublead",
+                "dr_HadTop2_tautau",
+                "HadTop2_pt",
+                "HadTop2_eta",
                 "ncombo_top1",
                 "ncombo_top2",
                 "nJet" ,
@@ -312,17 +312,17 @@ def trainVars(all):
                 "mT_tau2",
                 "mTauTauVis",
                 "HTT_wKinFit_top1",
-                "dr_HadTop1_tau_lead_top1",
-                "dr_HadTop1_tau_sublead_top1",
-                "dr_HadTop1_tautau_top1",
-                "HadTop1_pt_top1",
-                "HadTop1_eta_top1",
+                "dr_HadTop1_tau_lead",
+                "dr_HadTop1_tau_sublead",
+                "dr_HadTop1_tautau",
+                "HadTop1_pt",
+                "HadTop1_eta",
                 "HTT_wKinFit_top2",
-                "dr_HadTop1_tau_lead_top2",
-                "dr_HadTop1_tau_sublead_top2",
-                "dr_HadTop1_tautau_top2",
-                "HadTop1_pt_top2",
-                "HadTop1_eta_top2",
+                "dr_HadTop2_tau_lead",
+                "dr_HadTop2_tau_sublead",
+                "dr_HadTop2_tautau",
+                "HadTop2_pt",
+                "HadTop2_eta",
                 "ncombo_top1",
                 "ncombo_top2",
                 "nJet" ,
@@ -343,10 +343,10 @@ def trainVars(all):
                 "mT_tau2",
                 "mTauTauVis",
                 "HTT_wKinFit_top1",
-                "HadTop1_pt_top1",
-                "HadTop1_eta_top1",
+                "HadTop1_pt",
+                "HadTop1_eta",
                 "HTT_wKinFit_top2",
-                "HadTop1_pt_top2",
+                "HadTop2_pt",
                 "nJet"
                 ]
         if channel=="0l_2tau"  and bdtType=="evtLevelSUM_TTH" and trainvar=="Reduced" and all==False :return [
@@ -464,7 +464,7 @@ traindataset, valdataset  = train_test_split(data[trainVars(False)+["target","to
 if options.HypOpt==True :
 	# http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
 	param_grid = {
-    			'n_estimators': [200,500,800,1000,2500],
+    			'n_estimators': [500,800,1000,2000],
     			'min_child_weight': [1,100],
     			'max_depth': [1,2,3,4],
     			'learning_rate': [0.01,0.02,0.03]
@@ -474,13 +474,13 @@ if options.HypOpt==True :
 	cv=3
 	cls = xgb.XGBClassifier()
 	fit_params = { "eval_set" : [(valdataset[trainVars(False)].values,valdataset[target])],
-                           "eval_metric" : "auc",
-                           "early_stopping_rounds" : early_stopping_rounds,
-						   'sample_weight': valdataset[weights].values }
+		       "eval_metric" : "auc",
+		       "early_stopping_rounds" : early_stopping_rounds,
+		       'sample_weight': valdataset[weights].values }
 	gs = GridSearchCV(cls, param_grid, scoring, fit_params, cv = cv, verbose = 0)
 	gs.fit(traindataset[trainVars(False)].values,
-	traindataset.target.astype(np.bool)
-	)
+	       traindataset.target.astype(np.bool)
+	       )
 	for i, param in enumerate(gs.cv_results_["params"]):
 		print("params : {} \n    cv auc = {}  +- {} ".format(param,gs.cv_results_["mean_test_score"][i],gs.cv_results_["std_test_score"][i]))
 	print("best parameters",gs.best_params_)
