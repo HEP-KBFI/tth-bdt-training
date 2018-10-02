@@ -120,13 +120,16 @@ def load_dataGen(inputPath,channelInTree,variables,criteria,testtruth,folderName
 
 
 def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
-    print variables
-    my_cols_list=variables+['key','target',"totalWeight"]
+    #print variables
+    print bdtType
+    my_cols_list=variables+['proces', 'key', 'target', "totalWeight"]
     data = pandas.DataFrame(columns=my_cols_list)
-    if bdtType=="evtLevelTT_TTH" : keys=['ttHToNonbb','TTTo2L2Nu','TTTo2L2Nu_PSweights','TTToHadronic','TTToHadronic_PSweights','TTToSemiLeptonic','TTToSemiLeptonic_PSweights']
+    if bdtType=="evtLevelTT_TTH" : keys=['ttHToNonbb','TTTo2L2Nu', 'TTToHadronic','TTToSemiLeptonic']
     if bdtType=="evtLevelTTV_TTH" : keys=['ttHToNonbb','TTWJets','TTZJets']
-    if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTTo2L2Nu_PSweights','TTToHadronic','TTToHadronic_PSweights','TTToSemiLeptonic','TTToSemiLeptonic_PSweights']
-    if bdtType=="all" : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTTo2L2Nu_PSweights','TTToHadronic','TTToHadronic_PSweights','TTToSemiLeptonic','TTToSemiLeptonic_PSweights']
+    if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToHadronic','TTToSemiLeptonic']
+    if channel == "0l_2tau" : keys = keys + ["DYJetsToLL"]
+    if bdtType=="all" : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu', 'TTToHadronic', 'TTToSemiLeptonic']
+    print keys
     for folderName in keys :
         print (folderName, channelInTree)
         if 'TTT' in folderName :
@@ -141,17 +144,24 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
         if 'TTZ' in folderName :
                 sampleName='TTZ'
                 target=0
+        if 'DY' in folderName :
+                sampleName='EWK'
+                target=0
         inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
         if folderName=='ttHToNonbb' :
             procP1=glob.glob(inputPath+"/"+folderName+"_M125_powheg/"+folderName+"*.root")
             list=procP1
         elif ('TTT' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"/"+folderName+"*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
         elif ('TTW' in folderName) or ('TTZ' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"_LO/"+folderName+"*.root")
             list=procP1
+        elif ('DY' in folderName) :
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
         for ii in range(0, len(list)) :
+            #print (list[ii], inputTree)
             try: tfile = ROOT.TFile(list[ii])
             except : continue
             try: tree = tfile.Get(inputTree)
@@ -160,18 +170,19 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
                 try: chunk_arr = tree2array(tree) #,  start=start, stop = stop)
                 except : continue
                 else :
-                    chunk_df = pandas.DataFrame(chunk_arr)
+                    chunk_df = pandas.DataFrame(chunk_arr, columns=variables)
                     #print (len(chunk_df))
                     #print (chunk_df.columns.tolist())
                     chunk_df['proces']=sampleName
                     chunk_df['key']=folderName
                     chunk_df['target']=target
-                    chunk_df["totalWeight"] = chunk_df["evtWeight"]
-                    if channel=="0l_2tau" :
-                        chunk_df["tau1_eta"]=abs(chunk_df["tau1_eta"])
-                        chunk_df["tau2_eta"]=abs(chunk_df["tau2_eta"])
-                        chunk_df["HadTop1_eta"]=abs(chunk_df["HadTop1_eta"])
-                        chunk_df["HadTop2_eta"]=abs(chunk_df["HadTop2_eta"])
+                    if channel=="2los_1tau": chunk_df["totalWeight"] = 1
+                    else : chunk_df["totalWeight"] = chunk_df["evtWeight"]
+                    #if channel=="0l_2tau" :
+                    #    chunk_df["tau1_eta"]=abs(chunk_df["tau1_eta"])
+                    #    chunk_df["tau2_eta"]=abs(chunk_df["tau2_eta"])
+                    #    chunk_df["HadTop1_eta"]=abs(chunk_df["HadTop1_eta"])
+                    #    chunk_df["HadTop2_eta"]=abs(chunk_df["HadTop2_eta"])
                     data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
@@ -179,8 +190,8 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
         nS = len(data.ix[(data.target.values == 1) & (data.key.values==folderName) ])
         nB = len(data.ix[(data.target.values == 0) & (data.key.values==folderName) ])
         print folderName,"length of sig, bkg: ", nS, nB , data.ix[ (data.key.values==folderName)]["totalWeight"].sum(), data.ix[(data.key.values==folderName)]["totalWeight"].sum()
-        nNW = len(data.ix[(data.evtWeight.values < 0) & (data.key.values==folderName) ]) 
-        print folderName, "events with -ve weights", nNW 
+        nNW = len(data.ix[(data["totalWeight"].values < 0) & (data.key.values==folderName) ])
+        print folderName, "events with -ve weights", nNW
     print (data.columns.values.tolist())
     n = len(data)
     nS = len(data.ix[data.target.values == 1])
@@ -1503,3 +1514,30 @@ def PrintTables_Tau(cmb, uargs, filey, blinded, labels, type, ColapseCat = []):
     filey.write(bottom)
     filey.write(r"""\hline
     \end{tabular}"""+"\n")
+
+def val_tune_rf(estimator,x_train,y_train,x_val,y_val,params, fileToWrite):
+    from sklearn.model_selection import ParameterGrid
+    from sklearn.metrics import roc_auc_score
+    params_list = list(ParameterGrid(params))
+    #print params_list
+    #print y_val
+    results = []
+    for param in params_list:
+        print ("Date: ", time.asctime( time.localtime(time.time()) ))
+        print '=========  ',param
+        estimator.set_params(**param)
+        estimator.fit(x_train,y_train)
+        preds_prob = estimator.predict_proba(x_val)
+        preds_prob_train = estimator.predict_proba(x_train)
+        # print preds_prob[:,1]
+        result = roc_auc_score(y_val,preds_prob[:,1])
+        print 'roc_auc_score : %f'%result
+        results.append((param,result))
+        fileToWrite.write(str(param)+"\n")
+        fileToWrite.write(str(roc_auc_score(y_val,preds_prob[:,1]))+" "+str(roc_auc_score(y_train,preds_prob_train[:,1])))
+        fileToWrite.write("\n")
+        print ("Date: ", time.asctime( time.localtime(time.time()) ))
+    results.sort(key=lambda k: k[1])
+    #print results
+    #print results[-1]
+    return results
