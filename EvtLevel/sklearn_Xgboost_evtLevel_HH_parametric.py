@@ -40,7 +40,7 @@ from collections import OrderedDict
 #dm = imp.load_module("dm_name", "tth-bdt-training-test/data_manager.py")
 
 execfile("../python/data_manager.py")
-# run: python sklearn_Xgboost_evtLevel_HH_parametric.py --channel '2l_2tau' --variables "noTopness" --bdtType "evtLevelSUM_HH_res" 
+# run: python sklearn_Xgboost_evtLevel_HH_parametric.py --channel '2l_2tau' --variables "noTopness" --bdtType "evtLevelSUM_HH_res"
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -120,7 +120,7 @@ BDTvariables=trainVars(plotAll)
 make_plots(BDTvariables,nbins,
     data.ix[data.target.values == 0],labelBKG, colorFast,
     data.ix[data.target.values == 1],'Signal', colorFastT,
-    channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT_"+FastsimWP+".pdf",
+    channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT.pdf",
     printmin,
 	plotResiduals
     )
@@ -259,7 +259,7 @@ if options.HypOpt==False :
 		else :
 			datad=traindataset.loc[traindataset[target].values == 0]
 			label="BKG"
-		datacorr = datad[trainVars(False)] #.loc[:,trainVars(False)] #dataHToNobbCSV[[trainVars(True)]]
+		datacorr = datad[trainVars(False)].astype(float)  #.loc[:,trainVars(False)] #dataHToNobbCSV[[trainVars(True)]]
 		correlations = datacorr.corr()
 		fig = plt.figure(figsize=(10, 10))
 		ax = fig.add_subplot(111)
