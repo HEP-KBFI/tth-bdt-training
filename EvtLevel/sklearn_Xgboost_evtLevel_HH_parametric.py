@@ -40,7 +40,7 @@ from collections import OrderedDict
 #dm = imp.load_module("dm_name", "tth-bdt-training-test/data_manager.py")
 
 execfile("../python/data_manager.py")
-# run: python sklearn_Xgboost_evtLevel_HH_parametric.py --channel '2l_2tau' --variables "noTopness" --bdtType "evtLevelSUM_HH_res" --ntrees  --treeDeph --lr  >/dev/null 2>&1
+# run: python sklearn_Xgboost_evtLevel_HH_parametric.py --channel '2l_2tau' --variables "noTopness" --bdtType "evtLevelSUM_HH_res" 
 
 from optparse import OptionParser
 parser = OptionParser()
