@@ -33,12 +33,6 @@ import glob
 
 from collections import OrderedDict
 
-#from tth-bdt-training-test.data_manager import load_data
-#dm = __import__("tth-bdt-training-test.data_manager.py")
-
-#import imp
-#dm = imp.load_module("dm_name", "tth-bdt-training-test/data_manager.py")
-
 execfile("../python/data_manager.py")
 # run: python sklearn_Xgboost_evtLevel_HH_parametric.py --channel '2l_2tau' --variables "noTopness" --bdtType "evtLevelSUM_HH_res"
 
