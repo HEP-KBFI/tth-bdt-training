@@ -125,8 +125,9 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
     data = pandas.DataFrame(columns=my_cols_list)
     if bdtType=="evtLevelTT_TTH" : keys=['ttHToNonbb','TTTo2L2Nu','TTTo2L2Nu_PSweights','TTToHadronic','TTToHadronic_PSweights','TTToSemiLeptonic','TTToSemiLeptonic_PSweights']
     if bdtType=="evtLevelTTV_TTH" : keys=['ttHToNonbb','TTWJets','TTZJets']
+    if bdtType=="evtLevelDY_TTH" : keys=['ttHToNonbb','DYJetsToLL', 'DY1JetsToLL', 'DY2JetsToLL', 'DY3JetsToLL', 'DY4JetsToLL']
     if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTTo2L2Nu_PSweights','TTToHadronic','TTToHadronic_PSweights','TTToSemiLeptonic','TTToSemiLeptonic_PSweights']
-    if bdtType=="all" : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTTo2L2Nu_PSweights','TTToHadronic','TTToHadronic_PSweights','TTToSemiLeptonic','TTToSemiLeptonic_PSweights']
+    if bdtType=="all" : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTTo2L2Nu_PSweights','TTToHadronic','TTToHadronic_PSweights','TTToSemiLeptonic','TTToSemiLeptonic_PSweights', 'DYJetsToLL', 'DY1JetsToLL', 'DY2JetsToLL', 'DY3JetsToLL', 'DY4JetsToLL']
     for folderName in keys :
         print (folderName, channelInTree)
         if 'TTT' in folderName :
@@ -141,6 +142,9 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
         if 'TTZ' in folderName :
                 sampleName='TTZ'
                 target=0
+        if 'DY' in folderName :
+                sampleName='EWK'
+                target=0        
         inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
         if folderName=='ttHToNonbb' :
             procP1=glob.glob(inputPath+"/"+folderName+"_M125_powheg/"+folderName+"*.root")
@@ -151,6 +155,10 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
         elif ('TTW' in folderName) or ('TTZ' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"_LO/"+folderName+"*.root")
             list=procP1
+        elif ('DY' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+            
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
             except : continue
