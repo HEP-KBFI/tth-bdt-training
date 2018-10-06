@@ -6,6 +6,7 @@ from itertools import product
 from ROOT.Math import PtEtaPhiEVector,VectorUtil
 import ROOT
 import math , array
+from random import randint
 
 def load_ttHGen() :
     procP1=glob.glob("/hdfs/cms/store/user/atiko/VHBBHeppyV25tthtautau/MC/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/VHBB_HEPPY_V25tthtautau_ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_Py8_mWCutfix__RunIISummer16MAv2-PUMoriond17_80r2as_2016_TrancheIV_v6_ext1-v1/170207_122849/0000/tree_*.root")
@@ -120,20 +121,40 @@ def load_dataGen(inputPath,channelInTree,variables,criteria,testtruth,folderName
 
 
 def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
-    print variables
-    my_cols_list=variables+['key','target',"totalWeight"]
+    #print variables
+    print bdtType
+    my_cols_list=variables+['proces', 'key', 'target', "totalWeight"]
     data = pandas.DataFrame(columns=my_cols_list)
-    if bdtType=="evtLevelTT_TTH" : keys=['ttHToNonbb','TTTo2L2Nu','TTTo2L2Nu_PSweights','TTToHadronic','TTToHadronic_PSweights','TTToSemiLeptonic','TTToSemiLeptonic_PSweights']
+    if bdtType=="evtLevelTT_TTH" : keys=['ttHToNonbb','TTTo2L2Nu', 'TTToHadronic','TTToSemiLeptonic']
     if bdtType=="evtLevelTTV_TTH" : keys=['ttHToNonbb','TTWJets','TTZJets']
     if bdtType=="evtLevelDY_TTH" : keys=['ttHToNonbb','DYJetsToLL', 'DY1JetsToLL', 'DY2JetsToLL', 'DY3JetsToLL', 'DY4JetsToLL']
-    if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTTo2L2Nu_PSweights','TTToHadronic','TTToHadronic_PSweights','TTToSemiLeptonic','TTToSemiLeptonic_PSweights']
-    if bdtType=="all" : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTTo2L2Nu_PSweights','TTToHadronic','TTToHadronic_PSweights','TTToSemiLeptonic','TTToSemiLeptonic_PSweights', 'DYJetsToLL', 'DY1JetsToLL', 'DY2JetsToLL', 'DY3JetsToLL', 'DY4JetsToLL']
+    if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic'] # 'TTToHadronic',
+    if "evtLevelSUM_HH" in bdtType :
+        keys=[
+    'TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic', 'TTToHadronic',
+    'signal_ggf_spin0_400_hh_2v2t', 'signal_ggf_spin0_400_hh_4t',  'signal_ggf_spin0_400_hh_4v',
+    'signal_ggf_spin0_700_hh_2v2t', 'signal_ggf_spin0_700_hh_4t',   'signal_ggf_spin0_700_hh_4v',
+    ## missing: diboson/ singleH
+        ]
+        masses = [400, 700]
+    if channel in ["0l_2tau"] : keys = keys + ["DYJetsToLL"] ## list of channels to process DY for training
+    if bdtType=="all" : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu', 'TTToHadronic', 'TTToSemiLeptonic']
+    print keys
     for folderName in keys :
         print (folderName, channelInTree)
         if 'TTT' in folderName :
                 sampleName='TT'
                 target=0
-        if folderName=='ttHToNonbb' :
+        if "evtLevelSUM_HH" in bdtType :
+            if 'signal_ggf_spin0' in folderName :
+                sampleName='signal_ggf_spin0_'
+                for mass in masses :
+                    if str(mass) in folderName : sampleName=sampleName+str(mass)
+                if '_4t' in folderName : sampleName=sampleName+'_hh_tttt'
+                if '_4v' in folderName : sampleName=sampleName+'_hh_wwww'
+                if '_2v2t' in folderName : sampleName=sampleName+'_hh_wwtt'
+                target=1
+        elif folderName=='ttHToNonbb' :
                 sampleName='signal'
                 target=1
         if 'TTW' in folderName :
@@ -144,13 +165,16 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
                 target=0
         if 'DY' in folderName :
                 sampleName='EWK'
-                target=0        
+                target=0
         inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
         if folderName=='ttHToNonbb' :
             procP1=glob.glob(inputPath+"/"+folderName+"_M125_powheg/"+folderName+"*.root")
             list=procP1
+        elif 'signal_ggf_spin0' in folderName :
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
         elif ('TTT' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"/"+folderName+"*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
         elif ('TTW' in folderName) or ('TTZ' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"_LO/"+folderName+"*.root")
@@ -158,8 +182,8 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
         elif ('DY' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
-            
         for ii in range(0, len(list)) :
+            #print (list[ii], inputTree)
             try: tfile = ROOT.TFile(list[ii])
             except : continue
             try: tree = tfile.Get(inputTree)
@@ -168,18 +192,39 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
                 try: chunk_arr = tree2array(tree) #,  start=start, stop = stop)
                 except : continue
                 else :
-                    chunk_df = pandas.DataFrame(chunk_arr)
+                    chunk_df = pandas.DataFrame(chunk_arr, columns=variables)
                     #print (len(chunk_df))
                     #print (chunk_df.columns.tolist())
                     chunk_df['proces']=sampleName
                     chunk_df['key']=folderName
                     chunk_df['target']=target
-                    chunk_df["totalWeight"] = chunk_df["evtWeight"]
-                    if channel=="0l_2tau" :
+                    if channel=="2los_1tau": chunk_df["totalWeight"] = 1
+                    else : chunk_df["totalWeight"] = chunk_df["evtWeight"]
+                    #if channel=="0l_2tau" :
+                    #    chunk_df["tau1_eta"]=abs(chunk_df["tau1_eta"])
+                    #    chunk_df["tau2_eta"]=abs(chunk_df["tau2_eta"])
+                    #    chunk_df["HadTop1_eta"]=abs(chunk_df["HadTop1_eta"])
+                    #    chunk_df["HadTop2_eta"]=abs(chunk_df["HadTop2_eta"])
+                    if channel=="2l_2tau_HH" :
                         chunk_df["tau1_eta"]=abs(chunk_df["tau1_eta"])
                         chunk_df["tau2_eta"]=abs(chunk_df["tau2_eta"])
-                        chunk_df["HadTop1_eta"]=abs(chunk_df["HadTop1_eta"])
-                        chunk_df["HadTop2_eta"]=abs(chunk_df["HadTop2_eta"])
+                    if channel == "3l_0tau" :
+                        chunk_df["lep1_eta"] = abs(chunk_df["lep1_eta"])
+                        chunk_df["lep2_eta"] = abs(chunk_df["lep2_eta"])
+                        chunk_df["lep3_eta"] = abs(chunk_df["lep3_eta"])
+                        chunk_df["max_lep_eta"]=chunk_df[["lep1_eta","lep2_eta","lep3_eta"]].max(axis=1)
+                        chunk_df["max_lep_mT"]=chunk_df[["mT_lep1", "mT_lep2", "mT_lep3"]].max(axis=1)
+                        chunk_df["min_lep_mT"]=chunk_df[["mT_lep1", "mT_lep2", "mT_lep3"]].min(axis=1)
+                        chunk_df["max_lep_dr_os"]=chunk_df[["dr_los1","dr_los2"]].max(axis=1)
+                        chunk_df["min_lep_dr_os"]=chunk_df[["dr_los1","dr_los2"]].min(axis=1)
+                    ### gen- level info
+                    if "evtLevelSUM_HH_res" in bdtType :
+                        foundMass = False
+                        for mass in masses :
+                            if str(mass) in folderName :
+                                chunk_df["gen_mHH"]=mass
+                                foundMass = True
+                        if not foundMass : chunk_df["gen_mHH"]=masses[randint(0, len(masses)-1)]
                     data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
@@ -187,8 +232,8 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
         nS = len(data.ix[(data.target.values == 1) & (data.key.values==folderName) ])
         nB = len(data.ix[(data.target.values == 0) & (data.key.values==folderName) ])
         print folderName,"length of sig, bkg: ", nS, nB , data.ix[ (data.key.values==folderName)]["totalWeight"].sum(), data.ix[(data.key.values==folderName)]["totalWeight"].sum()
-        nNW = len(data.ix[(data.evtWeight.values < 0) & (data.key.values==folderName) ]) 
-        print folderName, "events with -ve weights", nNW 
+        nNW = len(data.ix[(data["totalWeight"].values < 0) & (data.key.values==folderName) ])
+        print folderName, "events with -ve weights", nNW
     print (data.columns.values.tolist())
     n = len(data)
     nS = len(data.ix[data.target.values == 1])
@@ -487,6 +532,7 @@ def make_plots(
     printmin,
     plotResiduals
     ) :
+    print (len(featuresToPlot), featuresToPlot)
     hist_params = {'normed': True, 'histtype': 'bar', 'fill': True , 'lw':3}
     sizeArray=int(math.sqrt(len(featuresToPlot))) if math.sqrt(len(featuresToPlot)) % int(math.sqrt(len(featuresToPlot))) == 0 else int(math.sqrt(len(featuresToPlot)))+1
     drawStatErr=True
@@ -500,8 +546,8 @@ def make_plots(
         min_value2, max_value2 = np.percentile(data2[feature], [0.0, 99])
         if printmin : print (min_value, max_value,feature)
         values1, bins, _ = plt.hist(data1[feature].values, weights= data1[weights].values.astype(np.float64) ,
-                                   range=(max(min(min_value,min_value2),0),  max(max_value,max_value2)), #  0.5 ),#
-                                   #range=(min(min_value,min_value2),  max(max_value,max_value2)), #  0.5 ),#
+                                   #range=(max(min(min_value,min_value2),0),  max(max_value,max_value2)), #  0.5 ),#
+                                   range=(min(min_value,min_value2),  max(max_value,max_value2)), #  0.5 ),#
                                    bins=nbin, edgecolor=color1, color=color1, alpha = 0.4,
                                    label=label1, **hist_params )
         if drawStatErr:
@@ -511,8 +557,8 @@ def make_plots(
             plt.errorbar(mid, values1, yerr=err, fmt='none', color= color1, ecolor= color1, edgecolor=color1, lw=2)
         if 1>0 : #'gen' not in feature:
             values2, bins, _ = plt.hist(data2[feature].values, weights= data2[weights].values.astype(np.float64) ,
-                                   range=(max(min(min_value,min_value2),0),  max(max_value,max_value2)), # 0.5 ),#
-                                   #range=(min(min_value,min_value2),  max(max_value,max_value2)), # 0.5 ),#
+                                   #range=(max(min(min_value,min_value2),0),  max(max_value,max_value2)), # 0.5 ),#
+                                   range=(min(min_value,min_value2),  max(max_value,max_value2)), # 0.5 ),#
                                    bins=nbin, edgecolor=color2, color=color2, alpha = 0.3,
                                    label=label2, **hist_params)
         if drawStatErr :
@@ -1511,3 +1557,30 @@ def PrintTables_Tau(cmb, uargs, filey, blinded, labels, type, ColapseCat = []):
     filey.write(bottom)
     filey.write(r"""\hline
     \end{tabular}"""+"\n")
+
+def val_tune_rf(estimator,x_train,y_train,x_val,y_val,params, fileToWrite):
+    from sklearn.model_selection import ParameterGrid
+    from sklearn.metrics import roc_auc_score
+    params_list = list(ParameterGrid(params))
+    #print params_list
+    #print y_val
+    results = []
+    for param in params_list:
+        print ("Date: ", time.asctime( time.localtime(time.time()) ))
+        print '=========  ',param
+        estimator.set_params(**param)
+        estimator.fit(x_train,y_train)
+        preds_prob = estimator.predict_proba(x_val)
+        preds_prob_train = estimator.predict_proba(x_train)
+        # print preds_prob[:,1]
+        result = roc_auc_score(y_val,preds_prob[:,1])
+        print 'roc_auc_score : %f'%result
+        results.append((param,result))
+        fileToWrite.write(str(param)+"\n")
+        fileToWrite.write(str(roc_auc_score(y_val,preds_prob[:,1]))+" "+str(roc_auc_score(y_train,preds_prob_train[:,1])))
+        fileToWrite.write("\n")
+        print ("Date: ", time.asctime( time.localtime(time.time()) ))
+    results.sort(key=lambda k: k[1])
+    #print results
+    #print results[-1]
+    return results
