@@ -81,7 +81,7 @@ channel=options.channel
 
 if channel=='0l_2tau':
 	channelInTree='0l_2tau_OS_forBDTtraining'
-	inputPath='/hdfs/local/arun/ttHAnalysis/2017/2018Aug03/histograms/0l_2tau/forBDTtraining_OS/'
+	inputPath='/hdfs/local/arun/ttHAnalysis/2017/2018Sep30_BDT/histograms/0l_2tau/forBDTtraining_OS/'
 	criteria=[]
 	testtruth1="bWj1Wj2_isGenMatchedWithKinFit_top1"
 	testtruth2="bWj1Wj2_isGenMatchedWithKinFit_top2"
@@ -109,6 +109,7 @@ def trainVars(all):
 		"mT_tau1",
 		"mT_tau2",
 		"mTauTauVis",
+		"mTauTau",
 		"HTT_wKinFit_top1",
 		"dr_HadTop1_tau_lead",
 		"dr_HadTop1_tau_sublead",
@@ -141,6 +142,7 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "HTT_wKinFit_top1",
                 "dr_HadTop1_tau_lead",
                 "dr_HadTop1_tau_sublead",
@@ -172,6 +174,7 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "HTT_wKinFit_top1",
                 "HadTop1_pt",
                 "HadTop1_eta",
@@ -193,6 +196,7 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "nJet"
                 ]	
 	if channel=="0l_2tau" and bdtType=="evtLevelTT_TTH" and all==False :return [
@@ -209,6 +213,7 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "nJet" ,
                 "nBJetLoose", 
 		"nBJetMedium"
@@ -227,6 +232,7 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "HTT_wKinFit_top1",
                 "dr_HadTop1_tau_lead",
                 "dr_HadTop1_tau_sublead",
@@ -259,6 +265,7 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "HTT_wKinFit_top1",
                 "HTT_wKinFit_top2",
                 "nJet"
@@ -277,6 +284,7 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "nJet"
                 ]
         if channel=="0l_2tau"  and bdtType=="evtLevelTTV_TTH" and all==False :return [
@@ -293,6 +301,7 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "nJet" ,
                 "nBJetLoose", 
 		"nBJetMedium"
@@ -311,6 +320,7 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "HTT_wKinFit_top1",
                 "dr_HadTop1_tau_lead",
                 "dr_HadTop1_tau_sublead",
@@ -342,12 +352,15 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "HTT_wKinFit_top1",
                 "HadTop1_pt",
                 "HadTop1_eta",
                 "HTT_wKinFit_top2",
                 "HadTop2_pt",
                 "nJet"
+		#"nBJetLoose",
+		#"nBJetMedium"
                 ]
         if channel=="0l_2tau"  and bdtType=="evtLevelSUM_TTH" and trainvar=="Reduced" and all==False :return [
                 "mindr_tau1_jet",
@@ -363,6 +376,7 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "nJet"
                 ]
         if channel=="0l_2tau"  and bdtType=="evtLevelSUM_TTH" and all==False :return [
@@ -379,10 +393,34 @@ def trainVars(all):
                 "mT_tau1",
                 "mT_tau2",
                 "mTauTauVis",
+		"mTauTau",
                 "nJet" ,
                 "nBJetLoose" , "nBJetMedium"
                 ]
-	
+	if channel=="0l_2tau" and bdtType=="evtLevelDY_TTH" and trainvar=="HTTWithKinFitReduced" and all==False :return [
+                "mindr_tau1_jet",
+                "mindr_tau2_jet",
+                "avg_dr_jet",
+                "ptmiss",
+                "htmiss",
+                "tau1_pt",
+                "tau2_pt",
+                "tau1_eta",
+                "tau2_eta",
+                "dr_taus",
+                "mT_tau1",
+                "mT_tau2",
+		"mTauTauVis",
+                "mTauTau",
+                "HTT_wKinFit_top1",
+                "HadTop1_pt",
+                "HadTop1_eta",
+                "HTT_wKinFit_top2",
+                "HadTop2_pt",
+                "nJet",
+                "nBJetLoose",
+                "nBJetMedium"
+                ]
 
 ####################################################################################################
 ## Load data
@@ -398,14 +436,10 @@ data.loc[data['target']==1, ['totalWeight']] *= 100000/data.loc[data['target']==
 
 print ("norm", data.loc[data[target]==0][weights].sum(),data.loc[data[target]==1][weights].sum())
 ### TT-sample is usually much more than fakes
-TTdatacard=1.0
+TTdatacard=197.762+348.568
 TTVdatacard=1.0
-TTfullsim=1.0
-TTVfullsim=1.0
-fastsimTT=1.0
-fastsimTTtight=1.0
+fastsimTT=418.63
 fastsimTTV=1.0
-fastsimTTVtight=1.0
 data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton'), [weights]]*=TTdatacard/fastsimTT
 data.loc[(data['key']=='TTWJetsToLNu') | (data['key']=='TTZToLLNuNu'), [weights]]*=TTVdatacard/fastsimTTV
 data.loc[data[target]==0, [weights]] *= 100000/data.loc[data[target]==0][weights].sum()
@@ -434,6 +468,7 @@ hist_params = {'normed': True, 'histtype': 'bar', 'fill': False , 'lw':5}
 if 'evtLevelSUM_TTH' in bdtType : labelBKG = "tt+ttV"
 if bdtType=='evtLevelTT_TTH' : labelBKG = "tt"
 if bdtType=='evtLevelTTV_TTH' : labelBKG = "ttV"
+if bdtType=='evtLevelDY_TTH' : labelBKG = "DY"
 printmin=True
 plotResiduals=False
 plotAll=False
