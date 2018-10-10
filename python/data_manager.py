@@ -1,6 +1,6 @@
 import itertools as it
 import numpy as np
-from root_numpy import root2array, stretch
+#from root_numpy import root2array, stretch
 from numpy.lib.recfunctions import append_fields
 from itertools import product
 from ROOT.Math import PtEtaPhiEVector,VectorUtil
