@@ -14,7 +14,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 # cd /home/acaan/VHbbNtuples_8_0_x/CMSSW_7_4_7/src/ ; cmsenv ; cd -
-# python do_limits.py --channel "2lss_1tau" --uni "Tallinn"
+# python do_limits_fixedBin.py --channel "2lss_1tau" --uni "Tallinn"
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--channel ", type="string", dest="channel", help="The ones whose variables implemented now are:\n   - 1l_2tau\n   - 2lss_1tau\n It will create a local folder and store the report*/xml", default="none")
@@ -23,9 +23,9 @@ parser.add_option("--uni", type="string", dest="uni", help="  Set of variables t
 
 doLimits = True
 doImpacts = False
-doYields = False
+doYields =  False
 doGOF = False
-doPlots = False
+doPlots = True
 readLimits = False
 
 blinded=True
@@ -147,6 +147,7 @@ if university == "Tallinn":
     autoMCstats = "true"
     useSyst = "true" # use shape syst
     mom = "/home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/2018jun09/"
+
     local = "Tallinn/"
     card_prefix = "prepareDatacards_"
     cards = [
@@ -160,7 +161,9 @@ if university == "Tallinn":
     "1l_2tau_SS_mTauTauVis_x",
     "1l_2tau_SS_mvaOutput_final_x",
     "1l_2tau_SS_EventCounter_x",
-    "1l_2tau_SS_EventCounter"
+    "1l_2tau_SS_EventCounter",
+
+
     ]
 
     channels = [
@@ -174,7 +177,9 @@ if university == "Tallinn":
     "1l_2tau",
     "1l_2tau",
     "1l_2tau",
-    "1l_2tau"
+    "1l_2tau",
+
+
     ]
 
     folders = [
@@ -188,7 +193,38 @@ if university == "Tallinn":
     "ttH_1l_2tau/",
     "ttH_1l_2tau/",
     "ttH_1l_2tau/",
+
+
     ]
+
+##################
+
+
+if university == "TIFR":
+    typeFit = "postfit"
+    takeRebinedFolder=False
+    add_x_prefix=False
+    doRebin = True
+    doKeepBlinded = "true"
+    autoMCstats = "true"
+    useSyst = "false" # use shape syst
+
+    mom = "/home/mmaurya/VHbbNtuples_8_0_x/CMSSW_8_0_21/src/"
+    local = "Oct2018/"
+    card_prefix = "prepareDatacards_"
+    cards = [
+    "2los_1tau_mvaOutput_2los_1tau_evtLevelSUM_TTH_19Var"
+    ]
+
+    channels = [
+    "2los_1tau"
+    ]
+
+    folders = [
+    "ttH_2los_1tau",
+    ]
+
+
 
 elif university == "Cornell":
     takeRebinedFolder=False
@@ -219,9 +255,8 @@ print ("to run this script your CMSSW_base should be the one that CombineHaveste
 
 if not readLimits :
     for nn, card in enumerate(cards) :
-        if not channel == "none" and not channels[nn] == channel : continue
-        elif not nn < 4 and channel == "none" : continue
-         #
+        if not nn < 4 and channel == "none" : continue
+        elif not channel == "none" not channels[nn] == channel : continue
         #####################################################################
         wdata = "" # to append to WriteDatacard_$channel
         hasConversions = "true"
@@ -269,12 +304,22 @@ if not readLimits :
             minimim = 0.1
             dolog = "true"
             divideByBinWidth = "false"
+
+        if channels[nn] == "2los_1tau" :
+            wdata = ""
+            hasFlips = "false"
+            isSplit = "false"
+            max = 15.0
+            minimim = 0.0
+            dolog = "false"
+            divideByBinWidth = "false"
+
         #####################################################################
         my_file = mom+local+card_prefix+card+'.root'
         file = TFile(my_file,"READ");
         if os.path.exists(my_file) :
             print ("testing ", my_file)
-            my_file = mom+local+card_prefix+card+'_noNeg.root' # remove the negatives
+            my_file = mom+local+card_prefix+card+'Rebin4_noNeg.root' # remove the negatives
             file2 = TFile(my_file,"RECREATE");
             file2.cd()
             h2 = TH1F()
@@ -289,21 +334,30 @@ if not readLimits :
                else :
                    h2 = file.Get(folders[nn]+"rebinned/"+str(keyO.GetName())+"_rebinned")
                if doRebin :
-                   if channel[nn] == "2l_2tau" : h2.Rebin(5)
-                   if channel[nn] == "3l_1tau" : h2.Rebin(4)
+                   #if channel[nn] == "2l_2tau" : h2.Rebin(5)
+                   #if channel[nn] == "3l_1tau" : h2.Rebin(4)
+                   #######
+		   ###Rebinning for 2los_1tau:
+                   #if channel[nn] == "2los_1tau" : h2.Rebin(2)
+                   if channel[nn] == "2los_1tau" : h2.Rebin(4)
+		   #if channel[nn] == "2los_1tau" : h2.Rebin(1)
+                   #if channel[nn] == "2los_1tau" : h2.Rebin(5)
+                   #if channel[nn] == "2los_1tau" : h2.Rebin(10)
+		   print("HI")
                for bin in range (0, h2.GetXaxis().GetNbins()) :
                    if h2.GetBinContent(bin) < 0 :
                        h2.AddBinContent(bin, abs(h2.GetBinContent(bin))+0.01)
                    h2.SetBinError(bin, min(h2.GetBinContent(bin), h2.GetBinError(bin)) ) # crop all uncertainties to 100% to avoid negative variations
-                   if add_x_prefix : h2.SetName("x_"+str(keyO.GetName()))
+               #print(h2.GetSize,h2.GetBinContent(bin))
+	       if add_x_prefix : h2.SetName("x_"+str(keyO.GetName()))
                h2.Write()
             file2.Close()
             print ("did ", my_file)
-
             # make txt datacard
             datacard_file=my_file
-            datacardFile_output = mom+local+"ttH_"+card
-            run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s --use_autoMCstats=%s' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst, autoMCstats))
+            datacardFile_output = mom+local+"ttH_Rebin4"+card
+            #run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s --use_autoMCstats=%s' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst, autoMCstats))
+            run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s ' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst))
             txtFile = datacardFile_output + ".txt"
             logFile = datacardFile_output + ".log"
             logFileNoS = datacardFile_output +  "_noSyst.log"
@@ -318,6 +372,13 @@ if not readLimits :
                 rootFile = mom+local+"ttH_"+card+"_shapes.root"
                 run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s --use_autoMCstats=%s' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst, autoMCstats))
                 run_cmd('cd '+mom+local+' ; combine -M FitDiagnostics -d %s   --expectSignal 1' % (txtFile)) #  -t -1
+                """
+                rootFile = mom+local+"ttH_Rebin4"+card+"_shapes.root"
+                #run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s --use_autoMCstats=%s' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst, autoMCstats))
+                run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s'  % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst))
+
+                run_cmd('cd '+mom+local+' combine -M FitDiagnostics -d %s  -t -1  --expectSignal 1' % (txtFile))
+                """
                 run_cmd('cd '+mom+local+' PostFitShapes -d %s -o %s -m 125 -f fitDiagnostics.root:fit_s --postfit --sampling --print' % (txtFile, rootFile)) # --postfit
                 makeplots_prefit=('root -l -b -n -q /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/macros/makePostFitPlots.C++(\\"'
                 +str(card)+'\\",\\"'+str(local)+'\\",\\"'+str(channels[nn])+'\\",\\"'+str(mom)+'\\",'+str(dolog)+','+str(hasFlips)+','+hasConversions+',\\"BDT\\",\\"\\",'+str(minimim)+','+str(max)+','+isSplit+',\\"prefit\\",'+divideByBinWidth+','+doKeepBlinded+')')
@@ -339,7 +400,8 @@ if not readLimits :
                 run_cmd('cd '+mom+local+' ; mv impacts.pdf '+mom+local+'impacts_'+channels[nn]+"_"+cards[nn]+'_'+university+'.pdf')
 
             if doGOF :
-                run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s --use_autoMCstats=%s' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst, autoMCstats))
+                #run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s --use_autoMCstats=%s' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst, autoMCstats))
+                run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s ' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst))
                 run_cmd('cd '+mom+local+' ;  combine -M GoodnessOfFit --algo=saturated --fixedSignalStrength=1 %s' % (txtFile))
                 run_cmd('combine -M GoodnessOfFit --algo=saturated --fixedSignalStrength=1 -t 1000 -s 12345  %s --saveToys --toysFreq' % (txtFile))
                 run_cmd('cd '+mom+local+'combineTool.py -M CollectGoodnessOfFit --input higgsCombineTest.GoodnessOfFit.mH120.root higgsCombineTest.GoodnessOfFit.mH120.12345.root -o GoF_saturated.json')
@@ -350,7 +412,8 @@ if not readLimits :
                 run_cmd('cd '+mom+local+' ; rm GoF_saturated.json')
 
             if doYields :
-                run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s --use_autoMCstats=%s' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst, autoMCstats))
+                #run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s --use_autoMCstats=%s' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst, autoMCstats))
+                run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s ' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst))
                 run_cmd('combine -M FitDiagnostics -d %s  -t -1 --expectSignal 1' % (txtFile))
                 run_cmd('python $CMSSW_BASE/src/HiggsAnalysis/CombinedLimit/test/diffNuisances.py -a fitDiagnostics.root -g plots.root')
                 run_cmd('combineTool.py  -M T2W -i %s' % (txtFile))

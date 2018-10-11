@@ -1,6 +1,6 @@
 import itertools as it
 import numpy as np
-from root_numpy import root2array, stretch
+#from root_numpy import root2array, stretch
 from numpy.lib.recfunctions import append_fields
 from itertools import product
 from ROOT.Math import PtEtaPhiEVector,VectorUtil
@@ -127,7 +127,12 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
     data = pandas.DataFrame(columns=my_cols_list)
     if bdtType=="evtLevelTT_TTH" : keys=['ttHToNonbb','TTTo2L2Nu', 'TTToHadronic','TTToSemiLeptonic']
     if bdtType=="evtLevelTTV_TTH" : keys=['ttHToNonbb','TTWJets','TTZJets']
+<<<<<<< HEAD
     if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic', 'TTToHadronic'] #
+=======
+    if bdtType=="evtLevelDY_TTH" : keys=['ttHToNonbb','DYJetsToLL', 'DY1JetsToLL', 'DY2JetsToLL', 'DY3JetsToLL', 'DY4JetsToLL']
+    if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic'] # 'TTToHadronic',
+>>>>>>> c7e4a6406e012b3233f62ab6a92be77dbba53181
     if "evtLevelSUM_HH" in bdtType :
         keys=[
     'TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic', 'TTToHadronic',
@@ -178,8 +183,8 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
         elif ('TTW' in folderName) or ('TTZ' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"_LO/"+folderName+"*.root")
             list=procP1
-        elif ('DY' in folderName) :
-            procP1=glob.glob(inputPath+"/"+folderName+"*HT*/"+folderName+"*.root")
+        elif ('DY' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
         for ii in range(0, len(list)) :
             #print (list[ii], inputTree)
