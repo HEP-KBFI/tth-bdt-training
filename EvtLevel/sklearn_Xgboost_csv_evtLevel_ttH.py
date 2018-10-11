@@ -9,9 +9,6 @@ import matplotlib.mlab as mlab
 from scipy.stats import norm
 #from pandas import HDFStore,DataFrame
 import math
-import sklearn_to_tmva
-import xgboost2tmva
-import skTMVA
 import matplotlib
 matplotlib.use('agg')
 #matplotlib.use('PS')   # generate postscript output by default
@@ -20,14 +17,9 @@ from matplotlib import cm as cm
 import numpy as np
 import psutil
 import os
-from rep.estimators import TMVAClassifier
-
 import pickle
-
-from sklearn.externals import joblib
 import root_numpy
 from root_numpy import root2array, rec2array, array2root, tree2array
-
 import xgboost as xgb
 #import catboost as catboost #import CatBoostRegressor
 
@@ -37,9 +29,6 @@ from sklearn.metrics import roc_curve, auc
 import ROOT
 from tqdm import trange
 import glob
-
-from keras.models import Sequential, model_from_json
-import json
 
 from collections import OrderedDict
 
@@ -64,10 +53,10 @@ parser.add_option("--HypOpt", action="store_true", dest="HypOpt", help="If you c
 parser.add_option("--doXML", action="store_true", dest="doXML", help="Do save not write the xml file", default=False)
 parser.add_option("--doPlots", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
 parser.add_option("--oldNtuple", action="store_true", dest="oldNtuple", help="use Matthias", default=False)
-parser.add_option("--ntrees ", type="int", dest="ntrees", help="hyp", default=2000)
-parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=2)
+parser.add_option("--ntrees ", type="int", dest="ntrees", help="hyp", default=1000)
+parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=3)
 parser.add_option("--lr", type="float", dest="lr", help="hyp", default=0.01)
-parser.add_option("--mcw", type="int", dest="mcw", help="hyp", default=1)
+parser.add_option("--mcw", type="int", dest="mcw", help="hyp", default=10)
 (options, args) = parser.parse_args()
 #""" bdtType=="evtLevelTTV_TTH"
 
@@ -84,6 +73,7 @@ if channel=='2los_1tau' : execfile("../cards/info_2los_1tau.py")
 if channel=='2lss_1tau' : execfile("../cards/info_2lss_1tau.py")
 if channel=="2l_2tau" : execfile("../cards/info_2l_2tau.py")
 if channel=="3l_1tau" : execfile("../cards/info_3l_1tau.py")
+if channel=="3l_0tau" : execfile("../cards/info_3l_0tau.py")
 
 ### wheather to compare with other samples
 doTight=False
@@ -167,10 +157,11 @@ printmin=True
 plotResiduals=False
 plotAll=False
 BDTvariables=trainVars(plotAll)
+print (BDTvariables)
 make_plots(BDTvariables,nbins,
     data.ix[data.target.values == 0],labelBKG, colorFast,
     data.ix[data.target.values == 1],'Signal', colorFastT,
-    channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT_fastsim"+FastsimWP+".pdf",
+    channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT_"+FastsimWP+".pdf",
     printmin,
 	plotResiduals
     )
@@ -181,7 +172,7 @@ if hasHTT : # channel=="1l_2tau" :
 	make_plots(BDTvariables,nbins,
     data.ix[data.target.values == 0],labelBKG, colorFast,
     data.ix[data.target.values == 1],'Signal', colorFastT,
-    channel+"/"+bdtType+"_"+trainvar+"_BDTVariables_fastsim"+FastsimWP+".pdf",
+    channel+"/"+bdtType+"_"+trainvar+"_BDTVariables_"+FastsimWP+".pdf",
     printmin,
 	plotResiduals
     )
@@ -318,13 +309,14 @@ traindataset, valdataset  = train_test_split(data[trainVars(False)+["target","to
 ## to final BDT fit test_size can go down to 0.1 without sign of overtraining
 #############################################################################################
 ## Training parameters
+"""
 if options.HypOpt==True :
 	# http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
 	param_grid = {
-    			'n_estimators': [200,500,800, 1000,2500],
+    			'n_estimators': [500,800, 1000,2500],
     			'min_child_weight': [1,100],
-    			'max_depth': [1,2,3,4],
-    			'learning_rate': [0.01,0.02,0.03]
+    			'max_depth': [2,3,4],
+    			'learning_rate': [0.01,0.05, 0.1]
 				}
 	scoring = "roc_auc"
 	early_stopping_rounds = 200 # Will train until validation_0-auc hasn't improved in 100 rounds.
@@ -355,6 +347,33 @@ if options.HypOpt==True :
 	for i, param in enumerate(gs.cv_results_["params"]):
 		file.write("params : {} \n    cv auc = {}  +- {} {}".format(param,gs.cv_results_["mean_test_score"][i],gs.cv_results_["std_test_score"][i]," \n"))
 	file.close()
+"""
+
+if options.HypOpt==True :
+	# http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
+	param_grid = {
+				'n_estimators': [ 500, 1000, 2500],
+				'min_child_weight': [10, 100, 1000],
+				'max_depth': [ 1, 2, 3, 4],
+				'learning_rate': [0.01, 0.05, 0.1]
+	            #'n_estimators': [ 500 ]
+				}
+	scoring = "roc_auc"
+	early_stopping_rounds = 150 # Will train until validation_0-auc hasn't improved in 100 rounds.
+	cv=3
+	cls = xgb.XGBClassifier()
+	saveopt = "{}/{}_{}_nvar_{}_GSCV.log".format(channel,bdtType,trainvar,str(len(trainVars(False))) )
+	file = open(saveopt,"w")
+	print ("opt being saved on ", saveopt)
+	#file.write("Date: "+ str(time.asctime( time.localtime(time.time()) ))+"\n")
+	file.write(str(trainVars(False))+"\n")
+	result_grid = val_tune_rf(cls,
+	    traindataset[trainVars(False)].values, traindataset[target].astype(np.bool),
+	    valdataset[trainVars(False)].values, valdataset[target].astype(np.bool), param_grid, file)
+	#file.write(result_grid)
+	#file.write("Date: "+ str(time.asctime( time.localtime(time.time()) ))+"\n")
+	file.close()
+	print ("opt saved on ", saveopt)
 
 cls = xgb.XGBClassifier(
 			n_estimators = options.ntrees,
@@ -471,7 +490,7 @@ if options.HypOpt==False :
 		else :
 			datad=traindataset.loc[traindataset[target].values == 0]
 			label="BKG"
-		datacorr = datad[trainVars(False)] #.loc[:,trainVars(False)] #dataHToNobbCSV[[trainVars(True)]]
+		datacorr = datad[trainVars(False)].astype(float) #.loc[:,trainVars(False)] #dataHToNobbCSV[[trainVars(True)]]
 		correlations = datacorr.corr()
 		fig = plt.figure(figsize=(10, 10))
 		ax = fig.add_subplot(111)
