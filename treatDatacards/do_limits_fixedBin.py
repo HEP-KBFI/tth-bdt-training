@@ -214,7 +214,7 @@ if university == "TIFR":
     useSyst = "false" # use shape syst
     
     mom = "/home/mmaurya/VHbbNtuples_8_0_x/CMSSW_8_0_21/src/"
-    local = "Oct2018/4/"
+    local = "Oct2018/"
     card_prefix = "prepareDatacards_"
     cards = [
     "2los_1tau_mvaOutput_2los_1tau_evtLevelSUM_TTH_19Var"
@@ -324,7 +324,7 @@ if not readLimits :
         file = TFile(my_file,"READ");
         if os.path.exists(my_file) :
             print ("testing ", my_file)
-            my_file = mom+local+card_prefix+card+'_noNeg.root' # remove the negatives
+            my_file = mom+local+card_prefix+card+'Rebin4_noNeg.root' # remove the negatives
             file2 = TFile(my_file,"RECREATE");
             file2.cd()
             h2 = TH1F()
@@ -355,7 +355,7 @@ if not readLimits :
 	    
             # make txt datacard
             datacard_file=my_file
-            datacardFile_output = mom+local+"ttH_"+card
+            datacardFile_output = mom+local+"ttH_Rebin4"+card
             #run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s --use_autoMCstats=%s' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst, autoMCstats))
             run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s ' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst))
             txtFile = datacardFile_output + ".txt"
@@ -369,7 +369,7 @@ if not readLimits :
             if doPlots :
                 filesh = open(mom+local+"execute_plots"+channels[nn]+"_"+university+".sh","w")
                 filesh.write("#!/bin/bash\n")
-                rootFile = mom+local+"ttH_"+card+"_shapes.root"
+                rootFile = mom+local+"ttH_Rebin4"+card+"_shapes.root"
                 #run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s --use_autoMCstats=%s' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst, autoMCstats))
                 run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s'  % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst))
 
