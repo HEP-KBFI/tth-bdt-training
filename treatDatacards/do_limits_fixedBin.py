@@ -34,7 +34,6 @@ channel = options.channel
 university = options.uni
 
 if university == "Tallinn_alternative":
-    typeFit = "postfit"
     takeRebinedFolder=False
     add_x_prefix=False
     doRebin = True
@@ -70,7 +69,6 @@ if university == "Tallinn_alternative":
     ]
 
 if university == "Tallinn_CR":
-    typeFit = "postfit"
     takeRebinedFolder=False
     add_x_prefix=False
     doRebin = False
@@ -103,15 +101,14 @@ if university == "Tallinn_CR":
     "ttZctrl",
     ]
 
-if university == "Tallinn_HH_autoMCstats":
-    typeFit = "postfit"
+if university == "Tallinn_HH":
     takeRebinedFolder=False
     add_x_prefix=False
     doRebin = False
     doKeepBlinded = "true"
     autoMCstats = "true"
     useSyst = "true" # use shape syst
-    mom = "/home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/2018jun26/"
+    mom = "/home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/2018jun28/"
     local = "Tallinn/"
     card_prefix = "addSystFakeRates_"
     cards = [
@@ -143,7 +140,6 @@ if university == "Tallinn_HH_autoMCstats":
     ]
 
 if university == "Tallinn":
-    typeFit = "postfit"
     takeRebinedFolder=False
     add_x_prefix=False
     doRebin = False
@@ -195,7 +191,6 @@ if university == "Tallinn":
     ]
 
 elif university == "Cornell":
-    typeFit = "postfit"
     takeRebinedFolder=False
     add_x_prefix=False
     doRebin = False
@@ -224,8 +219,9 @@ print ("to run this script your CMSSW_base should be the one that CombineHaveste
 
 if not readLimits :
     for nn, card in enumerate(cards) :
-        if not nn < 4 and channel == "none" : continue
-        elif not channel == "none" not channels[nn] == channel : continue #
+        if not channel == "none" and not channels[nn] == channel : continue
+        elif not nn < 4 and channel == "none" : continue
+         #
         #####################################################################
         wdata = "" # to append to WriteDatacard_$channel
         hasConversions = "true"
@@ -284,9 +280,14 @@ if not readLimits :
             h2 = TH1F()
             for keyO in file.GetListOfKeys() :
                obj =  keyO.ReadObj()
-               if type(obj) is not TH1F : continue
-               if not takeRebinedFolder :  h2=obj.Clone()
-               else : h2 = file.Get(folders[nn]+"rebinned/"+str(keyO.GetName())+"_rebinned")
+               if (type(obj) is not TH1F) :
+                   if  (type(obj) is not TH1D) :
+                       if (type(obj) is not TH1) :
+                           if (type(obj) is not TH1I) : continue
+               if not takeRebinedFolder :
+                   h2=obj.Clone()
+               else :
+                   h2 = file.Get(folders[nn]+"rebinned/"+str(keyO.GetName())+"_rebinned")
                if doRebin :
                    if channel[nn] == "2l_2tau" : h2.Rebin(5)
                    if channel[nn] == "3l_1tau" : h2.Rebin(4)
@@ -297,6 +298,7 @@ if not readLimits :
                    if add_x_prefix : h2.SetName("x_"+str(keyO.GetName()))
                h2.Write()
             file2.Close()
+            print ("did ", my_file)
 
             # make txt datacard
             datacard_file=my_file
@@ -306,8 +308,8 @@ if not readLimits :
             logFile = datacardFile_output + ".log"
             logFileNoS = datacardFile_output +  "_noSyst.log"
             if doLimits :
-                run_cmd('cd '+mom+local+' ; combine -M AsymptoticLimits -m %s -t -1 --run blind -S 0 %s &> %s' % (str(125), txtFile, logFileNoS))
-                run_cmd('cd '+mom+local+' ; combine -M AsymptoticLimits -m %s -t -1 --run blind %s &> %s' % (str(125), txtFile, logFile))
+                run_cmd('cd '+mom+local+' ; combine -M AsymptoticLimits -m %s  --run blind -S 0 %s &> %s' % (str(125), txtFile, logFileNoS)) # -t -1
+                run_cmd('cd '+mom+local+' ; combine -M AsymptoticLimits -m %s  --run blind %s &> %s' % (str(125), txtFile, logFile)) # -t -1
                 run_cmd('cd '+mom+local+' ;  rm higgsCombineTest.AsymptoticLimits.mH125.root')
 
             if doPlots :
@@ -315,18 +317,21 @@ if not readLimits :
                 filesh.write("#!/bin/bash\n")
                 rootFile = mom+local+"ttH_"+card+"_shapes.root"
                 run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=%s --use_autoMCstats=%s' % ('WriteDatacards_'+channels[nn]+wdata, my_file, datacardFile_output, useSyst, autoMCstats))
-                run_cmd('cd '+mom+local+' combine -M FitDiagnostics -d %s  -t -1  --expectSignal 1' % (txtFile))
+                run_cmd('cd '+mom+local+' ; combine -M FitDiagnostics -d %s   --expectSignal 1' % (txtFile)) #  -t -1
                 run_cmd('cd '+mom+local+' PostFitShapes -d %s -o %s -m 125 -f fitDiagnostics.root:fit_s --postfit --sampling --print' % (txtFile, rootFile)) # --postfit
-                makeplots=('root -l -b -n -q /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/macros/makePostFitPlots.C++(\\"'
-                +str(card)+'\\",\\"'+str(local)+'\\",\\"'+str(channels[nn])+'\\",\\"'+str(mom)+'\\",'+str(dolog)+','+str(hasFlips)+','+hasConversions+',\\"BDT\\",\\"\\",'+str(minimim)+','+str(max)+','+isSplit+',\\"'+typeFit+'\\",'+divideByBinWidth+','+doKeepBlinded+')')
+                makeplots_prefit=('root -l -b -n -q /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/macros/makePostFitPlots.C++(\\"'
+                +str(card)+'\\",\\"'+str(local)+'\\",\\"'+str(channels[nn])+'\\",\\"'+str(mom)+'\\",'+str(dolog)+','+str(hasFlips)+','+hasConversions+',\\"BDT\\",\\"\\",'+str(minimim)+','+str(max)+','+isSplit+',\\"prefit\\",'+divideByBinWidth+','+doKeepBlinded+')')
+                makeplots_postfit=('root -l -b -n -q /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/macros/makePostFitPlots.C++(\\"'
+                +str(card)+'\\",\\"'+str(local)+'\\",\\"'+str(channels[nn])+'\\",\\"'+str(mom)+'\\",'+str(dolog)+','+str(hasFlips)+','+hasConversions+',\\"BDT\\",\\"\\",'+str(minimim)+','+str(max)+','+isSplit+',\\"postfit\\",'+divideByBinWidth+','+doKeepBlinded+')')
                 #root -l -b -n -q /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/macros/makePostFitPlots.C++(\"2lss_1tau_sumOS_mvaOutput_2lss_1tau_HTT_SUM_M_11bins_quantiles\",\"2018jun02/\",\"2lss_1tau\",\"/home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/\",false,false,\"BDT\",\"\",0.0,10.0)
-                filesh.write(makeplots+ "\n")
+                filesh.write(makeplots_prefit+ "\n\n")
+                filesh.write(makeplots_postfit+ "\n\n")
                 print ("to have the plots take the makePlots command from: ",mom+local+"execute_plots"+channels[nn]+"_"+cards[nn]+"_"+university+".sh")
 
             if doImpacts :
                 run_cmd('cd '+mom+local+' ; combineTool.py  -M T2W -i %s' % (txtFile))
-                run_cmd('cd '+mom+local+' ; combineTool.py -M Impacts -m 125 -d %s.root  --expectSignal 1 --allPars --parallel 8 -t -1 --doInitialFit' % (datacardFile_output))
-                run_cmd('cd '+mom+local+' ; combineTool.py -M Impacts -m 125 -d %s.root --expectSignal 1 --allPars --parallel 8 -t -1 --robustFit 1 --doFits' % (datacardFile_output))
+                run_cmd('cd '+mom+local+' ; combineTool.py -M Impacts -m 125 -d %s.root  --expectSignal 1 --allPars --parallel 8 --doInitialFit' % (datacardFile_output)) #  -t -1
+                run_cmd('cd '+mom+local+' ; combineTool.py -M Impacts -m 125 -d %s.root --expectSignal 1 --allPars --parallel 8  --robustFit 1 --doFits' % (datacardFile_output)) # -t -1
                 run_cmd('cd '+mom+local+' ; combineTool.py -M Impacts -m 125 -d %s.root -o impacts.json' % (datacardFile_output))
                 run_cmd('cd '+mom+local+' ; rm higgsCombineTest*.root')
                 run_cmd('cd '+mom+local+' ; rm higgsCombine*root')
