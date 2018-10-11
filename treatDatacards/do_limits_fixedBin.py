@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 # python do_limits_fixedBin.py --channel "2lss_1tau" --uni "Tallinn"
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--channel ", type="string", dest="channel", help="The ones whose variables implemented now are:\n   - 1l_2tau\n   - 2lss_1tau\n It will create a local folder and store the report*/xml", default="none")
+parser.add_option("--channel", type="string", dest="channel", help="The ones whose variables implemented now are:\n   - 1l_2tau\n   - 2lss_1tau\n It will create a local folder and store the report*/xml", default="none")
 parser.add_option("--uni", type="string", dest="uni", help="  Set of variables to use -- it shall be put by hand in the code", default="Tallinn")
 (options, args) = parser.parse_args()
 
@@ -209,8 +209,10 @@ if university == "TIFR":
     autoMCstats = "true"
     useSyst = "false" # use shape syst
 
-    mom = "/home/mmaurya/VHbbNtuples_8_0_x/CMSSW_8_0_21/src/"
-    local = "Oct2018/"
+    mom = "/home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/"
+    mom_original = "/home/mmaurya/VHbbNtuples_8_0_x/CMSSW_8_0_21/src/"
+    local = "to_delete_soon/"
+    local_original = "Oct2018/"
     card_prefix = "prepareDatacards_"
     cards = [
     "2los_1tau_mvaOutput_2los_1tau_evtLevelSUM_TTH_19Var"
@@ -256,7 +258,7 @@ print ("to run this script your CMSSW_base should be the one that CombineHaveste
 if not readLimits :
     for nn, card in enumerate(cards) :
         if not nn < 4 and channel == "none" : continue
-        elif not channel == "none" not channels[nn] == channel : continue
+        elif not channel == "none" and not channels[nn] == channel : continue
         #####################################################################
         wdata = "" # to append to WriteDatacard_$channel
         hasConversions = "true"
@@ -315,7 +317,7 @@ if not readLimits :
             divideByBinWidth = "false"
 
         #####################################################################
-        my_file = mom+local+card_prefix+card+'.root'
+        my_file = mom_original+local_original+card_prefix+card+'.root'
         file = TFile(my_file,"READ");
         if os.path.exists(my_file) :
             print ("testing ", my_file)
@@ -334,16 +336,13 @@ if not readLimits :
                else :
                    h2 = file.Get(folders[nn]+"rebinned/"+str(keyO.GetName())+"_rebinned")
                if doRebin :
-                   #if channel[nn] == "2l_2tau" : h2.Rebin(5)
-                   #if channel[nn] == "3l_1tau" : h2.Rebin(4)
-                   #######
-		   ###Rebinning for 2los_1tau:
-                   #if channel[nn] == "2los_1tau" : h2.Rebin(2)
-                   if channel[nn] == "2los_1tau" : h2.Rebin(4)
-		   #if channel[nn] == "2los_1tau" : h2.Rebin(1)
-                   #if channel[nn] == "2los_1tau" : h2.Rebin(5)
-                   #if channel[nn] == "2los_1tau" : h2.Rebin(10)
-		   print("HI")
+                   #print("passed do rebin", channels[nn])
+                   if channels[nn] == "2l_2tau" : h2.Rebin(5)
+                   if channels[nn] == "3l_1tau" : h2.Rebin(4)
+                   ###Rebinning for 2los_1tau:
+                   if channels[nn] == "2los_1tau" :
+                       h2.Rebin(4)
+                       #print("HI")
                for bin in range (0, h2.GetXaxis().GetNbins()) :
                    if h2.GetBinContent(bin) < 0 :
                        h2.AddBinContent(bin, abs(h2.GetBinContent(bin))+0.01)
