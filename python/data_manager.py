@@ -127,7 +127,7 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
     data = pandas.DataFrame(columns=my_cols_list)
     if bdtType=="evtLevelTT_TTH" : keys=['ttHToNonbb','TTTo2L2Nu', 'TTToHadronic','TTToSemiLeptonic']
     if bdtType=="evtLevelTTV_TTH" : keys=['ttHToNonbb','TTWJets','TTZJets']
-    if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic'] # 'TTToHadronic',
+    if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic', 'TTToHadronic'] #
     if "evtLevelSUM_HH" in bdtType :
         keys=[
     'TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic', 'TTToHadronic',
@@ -179,7 +179,7 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
             procP1=glob.glob(inputPath+"/"+folderName+"_LO/"+folderName+"*.root")
             list=procP1
         elif ('DY' in folderName) :
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"*HT*/"+folderName+"*.root")
             list=procP1
         for ii in range(0, len(list)) :
             #print (list[ii], inputTree)
@@ -204,9 +204,10 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
                     #    chunk_df["tau2_eta"]=abs(chunk_df["tau2_eta"])
                     #    chunk_df["HadTop1_eta"]=abs(chunk_df["HadTop1_eta"])
                     #    chunk_df["HadTop2_eta"]=abs(chunk_df["HadTop2_eta"])
-                    if channel=="2l_2tau_HH" :
+                    if channel in ["2l_2tau_HH", "0l_2tau"] :
                         chunk_df["tau1_eta"]=abs(chunk_df["tau1_eta"])
                         chunk_df["tau2_eta"]=abs(chunk_df["tau2_eta"])
+                        chunk_df["max_tau_eta"]=chunk_df[["tau1_eta", "tau2_eta"]].max(axis=1)
                     if channel == "3l_0tau" :
                         chunk_df["lep1_eta"] = abs(chunk_df["lep1_eta"])
                         chunk_df["lep2_eta"] = abs(chunk_df["lep2_eta"])
