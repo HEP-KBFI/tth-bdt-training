@@ -11,11 +11,11 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 # cd /home/acaan/VHbbNtuples_8_0_x/CMSSW_7_4_7/src/ ; cmsenv ; cd -
-# python do_limits.py --channel "2lss_1tau" --variables "oldVarA"  --BINtype "quantiles"
+# python do_limits_rebining.py --channel "0l_2tau" --variables "oldVarA"  --BINtype "regular"
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--channel ", type="string", dest="channel", help="The ones whose variables implemented now are:\n   - 1l_2tau\n   - 2lss_1tau\n It will create a local folder and store the report*/xml", default="2lss_1tau")
-parser.add_option("--variables", type="string", dest="variables", help="  Set of variables to use -- it shall be put by hand in the code", default=1000)
+parser.add_option("--variables", type="string", dest="variables", help="  Set of variables to use -- it shall be put by hand in the code", default="none")
 parser.add_option("--BDTtype", type="string", dest="BDTtype", help="Variable set", default="1B")
 parser.add_option("--BINtype", type="string", dest="BINtype", help="regular / ranged / quantiles", default="regular")
 (options, args) = parser.parse_args()
@@ -26,29 +26,41 @@ channel=options.channel
 
 if channel == "2lss_1tau" :
     label='2lss_1tau_2018Feb28_VHbb_TLepMTau_shape'
-    bdtTypes=["tt","ttV","SUM_T","SUM_M","1B_T","1B_M"] #,"1B"] #,"2MEM","2HTT"]
+    bdtTypes=["tt","ttV","SUM_T","SUM_M","1B_T","1B_M"]
 if channel == "1l_2tau" :
-    label= "1l_2tau_2018Mar02_VHbb_TLepTTau_shape" #"1l_2tau_2018Feb08_VHbb_TightTau" # "1l_2tau_2018Feb02_VHbb_VTightTau" #  "1l_2tau_2018Jan30_VHbb_VVTightTau" # "1l_2tau_2018Jan30_VHbb" # "1l_2tau_2018Jan30_VHbb_VTightTau" #
-    bdtTypes=["ttbar","ttV","SUM_T","SUM_VT","1B_T","1B_VT"] #"1B"] #
+    label= "1l_2tau_2018Mar02_VHbb_TLepTTau_shape"
+    bdtTypes=["ttbar","ttV","SUM_T","SUM_VT","1B_T","1B_VT"]
 if channel == "2l_2tau" :
-    label= "2l_2tau_2018Feb20_VHbb_TLepMTau" #
-    bdtTypes= ["tt","ttV","SUM_M","SUM_T","SUM_VT","1B_M","1B_T","1B_VT"] #
+    label= "2l_2tau_2018Feb20_VHbb_TLepMTau"
+    bdtTypes= ["tt","ttV","SUM_M","SUM_T","SUM_VT","1B_M","1B_T","1B_VT"]
 if channel == "3l_1tau" :
-    label= "3l_1tau_2018Mar12_VHbb_TLepMTau_shape" #
-    bdtTypes= ["tt","ttV","SUM_M","SUM_T","SUM_VT","1B_M","1B_T","1B_VT"] #[] #,,
+    label= "3l_1tau_2018Mar12_VHbb_TLepMTau_shape"
+    bdtTypes= ["tt","ttV","SUM_M","SUM_T","SUM_VT","1B_M","1B_T","1B_VT"]
 if channel == "2017" :
     label="datacards_ICHEP"
-    #bdtTypes= ["HTT_SUM_VT", "plainKin_SUM_M", "plainKin_SUM_VT",  "plainKin_SUM_VT"]
-    #channelsTypes= ["1l_2tau", "3l_1tau", "1l_2tau", "2l_2tau"]
     bdtTypes= ["plainKin_SUM_VT"] #, "HTT_SUM_M", "plainKin_SUM_M"]
     channelsTypes= [ "2l_2tau"] #, "2lss_1tau", "2lss_1tau"]
-    #
-    #bdtTypes= ["plainKin_SUM_VT", "HTT_SUM_VT"]
-    #channelsTypes= ["1l_2tau", "1l_2tau"]
-    #
-    #bdtTypes= ["plainKin_SUM_M"]
-    #channelsTypes= ["3l_1tau"]
-    # prepareDatacards_2lss_1tau_sumOS_mvaOutput_2lss_1tau_HTT_SUM_M_noRebin.root
+if channel == "0l_2tau" :
+    year="2017"
+    #label='0l_2tau_datacards_2018Oct07_withBoost'
+    label='0l_2tau_datacards_2018Oct07_withBoost_looseTau'
+    bdtTypes=[
+    #"mvaOutput_0l_2tau_HTT_sum",
+    "mva_Updated", "mva_oldVar", "mTauTauVis", "mTauTau",
+    "mva_Boosted_AK12", "mva_Boosted_AK12_basic","mva_Boosted_AK12_noISO",
+    "mva_Boosted_AK8", "mva_Boosted_AK8_basic","mva_Boosted_AK8_noISO"
+    ]
+    channelsTypes= [ "0l_2tau" ]
+if channel == "3l_0tau" :
+    year="2017"
+    label='3l_0tau_datacards_2018Oct07_withBoost_multilepCat'
+    #label='0l_2tau_datacards_2018Oct07_withBoost_looseTau'
+    bdtTypes=[
+    "mva_AK12", "mva_Boosted_AK12_basic", "mva_Boosted_AK12_noISO", "mva_Boosted_AK12",
+    "mva_Boosted_AK8_noISO", "mva_Boosted_AK8",
+    "mva_oldVar", "mva_Updated"
+    ] # "mvaOutput_0l_2tau_HTT_sum",
+    channelsTypes= [ "3l_0tau" ]
 
 sources=[]
 bdtTypesToDo=[]
@@ -65,8 +77,17 @@ def run_cmd(command):
   print stderr
   return stdout
 
-nbinRegular=np.arange(3,10) #list(divisorGenerator(originalBinning))
-nbinQuant= np.arange(1,13)
+nbinRegular=np.arange(1, 20) #list(divisorGenerator(originalBinning))
+nbinQuant= np.arange(10,29)
+#
+"""
+python do_limits_rebining.py --channel "0l_2tau"  --BINtype "quantiles" --variables "teste" &
+python do_limits_rebining.py --channel "0l_2tau"  --BINtype "regular" --variables "teste" &
+
+python do_limits_rebining.py --channel "3l_0tau"  --BINtype "quantiles" --variables "teste" &
+python do_limits_rebining.py --channel "3l_0tau"  --BINtype "regular" --variables "teste" &
+
+"""
 
 counter=0
 if channel == "2lss_1tau" :
@@ -141,6 +162,34 @@ if channel=="2017" :
             print (sources[counter],"rebinning ")
             counter=counter+1
         else : print (source+options.variables+".root","does not exist ")
+if channel == "0l_2tau" :
+    local="/home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/"+label+"/"
+    for ii, bdtType in enumerate(bdtTypes) :
+        source=local+"/prepareDatacards_0l_2tau_"+bdtTypes[ii]
+        my_file = source+".root"
+        if os.path.exists(my_file) :
+            sources = sources + [source]
+            bdtTypesToDo = bdtTypesToDo +["0l_2tau_"+bdtTypes[ii]]
+            bdtTypesToDoFile=bdtTypesToDoFile+["0l_2tau_"+bdtTypes[ii]]
+            channelToDo=channelToDo+["0l_2tau"]
+            print (sources[counter],"rebinning ")
+            counter=counter+1
+        else : print (source+" "+my_file, "does not exist ")
+if channel == "3l_0tau" :
+    local="/home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/"+label+"/"
+    for ii, bdtType in enumerate(bdtTypes) :
+        source=local+"/prepareDatacards_3l_"+bdtTypes[ii]
+        my_file = source+".root"
+        if os.path.exists(my_file) :
+            sources = sources + [source]
+            bdtTypesToDo = bdtTypesToDo +["3l_0tau_"+bdtTypes[ii]]
+            bdtTypesToDoFile=bdtTypesToDoFile+["3l_0tau_"+bdtTypes[ii]]
+            channelToDo=channelToDo+["3l"]
+            print (sources[counter],"rebinning ")
+            counter=counter+1
+        else : print (source+" "+my_file, "does not exist ")
+
+
 
 if options.BINtype == "regular" or options.BINtype == "ranged" : binstoDo=nbinRegular
 if options.BINtype == "quantiles" : binstoDo=nbinQuant
@@ -173,10 +222,12 @@ combineTool.py -M Impacts -m 125 -d ../ttH_noHTT_noHTT_SUM_M_nbin_5_quantiles.ro
 combineTool.py -M Impacts -m 125 -d ../ttH_noHTT_noHTT_SUM_M_nbin_5_quantiles.root --expectSignal 1 --allPars --parallel 8 -t -1 --robustFit 1 --doFits
 combineTool.py -M Impacts -m 125 -d ../ttH_noHTT_noHTT_SUM_M_nbin_5_quantiles.root -o impacts.json
 plotImpacts.py -i impacts.json -o  impacts
+
+python /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/test/makePostFitPlots_FromCombine.py --channel "ttH_0l_2tau" --input /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/0l_2tau_datacards_2018Oct07_withBoost/ttH_teste_0l_2tau_mva_Boosted_AK8_noISO_nbin_3_shapes.root  --odir /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/0l_2tau_datacards_2018Oct07_withBoost/ --minY 0.01 --maxY 90 --notFlips --notConversions --fromHavester --useLogPlot
 """
 
-file = open("execute_plots"+options.channel+"_"+options.variables+".sh","w")
-file.write("#!/bin/bash\n")
+#file = open("execute_plots"+options.channel+"_"+options.variables+".sh","w")
+#file.write("#!/bin/bash\n")
 for ns,source in enumerate(sources) :
     for nn,nbins in enumerate(binstoDo) :
         if options.BINtype=="regular" :
@@ -192,18 +243,25 @@ for ns,source in enumerate(sources) :
         shapeVariable=options.variables+'_'+bdtTypesToDoFile[ns]+'_nbin_'+str(nbins)
         if options.BINtype=="ranged" : shapeVariable=shapeVariable+"_ranged"
         if options.BINtype=="quantiles" : shapeVariable=shapeVariable+"_quantiles"
-        datacardFile_output = os.path.join(workingDir, local, "ttH_%s.root" % shapeVariable)
+        datacardFile_output = os.path.join(workingDir, local, "ttH_%s" % shapeVariable)
         #run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=false' % ('WriteDatacards_'+channel, name, datacardFile_output))
         run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=false' % ('WriteDatacards_'+channelToDo[ns], name, datacardFile_output))
 
-        txtFile = datacardFile_output.replace(".root", ".txt")
-        logFile = datacardFile_output.replace(".root", ".log")
+        txtFile = datacardFile_output + ".txt" #.replace(".root", ".txt")
+        logFile = datacardFile_output + ".log" #.replace(".root", ".log")
         run_cmd('combine -M Asymptotic -m %s -t -1 %s &> %s' % (str(125), txtFile, logFile))
         run_cmd('rm higgsCombineTest.Asymptotic.mH125.root')
         rootFile = os.path.join(workingDir, local, "ttH_%s_shapes.root" % (shapeVariable))
         run_cmd('PostFitShapes -d %s -o %s -m 125 ' % (txtFile, rootFile))
         ##### 2lss_1taumvaOutput_2lss_1tau_ttV_nbin_6
+        if (channel == "0l_2tau" and (options.BINtype == "quantiles" and nbins > 18 and nbins <20) or (options.BINtype == "quantiles" and nbins > 5 and nbins < 15)) :
+            run_cmd('python /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/test/makePostFitPlots_FromCombine.py --channel "ttH_0l_2tau" --input %s --odir %s --minY 0.1 --maxY 50000 --notFlips --notConversions --fromHavester --useLogPlot --nameOut %s' % (rootFile, local, shapeVariable))
 
-        makeplots='root -l -b -n -q /home/acaan/VHbbNtuples_8_0_x/CMSSW_7_4_7/src/CombineHarvester/ttH_htt/macros/makePostFitPlots.C++(\\"'+shapeVariable+'\\",\\"'+local+'\\",\\"'+options.channel+'\\",\\"'+local+'\\")'
-        file.write(makeplots+ "\n")
-file.close()
+        if (channel == "3l_0tau" and (options.BINtype == "quantiles" and nbins > 15 and nbins <20) or (options.BINtype == "quantiles" and nbins > 3 and nbins < 8)) :
+            run_cmd('python /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/test/makePostFitPlots_FromCombine.py --channel "ttH_3l" --input %s --odir %s --minY 0 --maxY 100 --notFlips  --notConversions  --fromHavester --nameOut %s' % (rootFile, local, shapeVariable))
+
+
+        #makeplots='root -l -b -n -q /home/acaan/VHbbNtuples_8_0_x/CMSSW_7_4_7/src/CombineHarvester/ttH_htt/macros/makePostFitPlots.C++(\\"'+shapeVariable+'\\",\\"'+local+'\\",\\"'+options.channel+'\\",\\"'+local+'\\")'
+        #file.write(makeplots+ "\n")
+#file.close()
+# python /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/test/makePostFitPlots_FromCombine.py --channel "ttH_3l" --input /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/3l_0tau_datacards_2018Oct07_withBoost_multilepCat/ttH_teste_3l_0tau_mva_AK12_nbin_6_shapes.root --odir /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/3l_0tau_datacards_2018Oct07_withBoost_multilepCat/ --minY 0 --maxY 20 --notFlips  --notConversions  --fromHavester --nameOut teste_3l_0tau_mva_AK12_nbin_6

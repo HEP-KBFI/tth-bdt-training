@@ -127,12 +127,8 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
     data = pandas.DataFrame(columns=my_cols_list)
     if bdtType=="evtLevelTT_TTH" : keys=['ttHToNonbb','TTTo2L2Nu', 'TTToHadronic','TTToSemiLeptonic']
     if bdtType=="evtLevelTTV_TTH" : keys=['ttHToNonbb','TTWJets','TTZJets']
-<<<<<<< HEAD
-    if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic', 'TTToHadronic'] #
-=======
     if bdtType=="evtLevelDY_TTH" : keys=['ttHToNonbb','DYJetsToLL', 'DY1JetsToLL', 'DY2JetsToLL', 'DY3JetsToLL', 'DY4JetsToLL']
     if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic'] # 'TTToHadronic',
->>>>>>> c7e4a6406e012b3233f62ab6a92be77dbba53181
     if "evtLevelSUM_HH" in bdtType :
         keys=[
     'TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic', 'TTToHadronic',
@@ -946,7 +942,7 @@ def GetRatio(histSource,namepdf) :
     return [ratio,ratioP,ratiohSum,ratiohSumP]
 
 
-def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtType) :
+def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtType, withFolder=False) :
     minmax = finMaxMin(histSource)
     errOcontTTLast=[]
     errOcontTTPLast=[]
@@ -973,7 +969,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
         xmindef=minmax[1][0]
         xmaxdef=minmax[1][1]
     else :
-        if minmax[1][0] < 0 : xmin=-1.0
+        if minmax[1][0] < 0 and not withFolder: xmin=-1.0
         else : xmin=0.0
         xmax=1.0
         xmaxdef=minmax[1][1]
@@ -989,147 +985,168 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
         hSumAll = TH1F()
         ratiohSum=1.
         ratiohSumP=1.
-        for nkey, keyO in enumerate(file.GetListOfKeys()) :
-           #print keyO
-           obj =  keyO.ReadObj()
-           if type(obj) is not TH1F : continue
-           h2 = obj.Clone();
-           factor=1.
-           if  not h2.GetSumw2N() : h2.Sumw2()
-           if  not hSum.GetSumw2N() : hSum.Sumw2()
-           histograms.append(h2.Clone()) # [nkey]=h2.Clone()  #=histograms+[h2]
-           #if keyO.GetName() == "fakes_data" or keyO.GetName() =="TTZ" or keyO.GetName() =="TTW" or keyO.GetName() =="TTWW" or keyO.GetName() == "EWK" :
-            #   hSumDumb = obj # h2_rebin #
-            #   if not hSum.Integral()>0 : hSum=hSumDumb.Clone()
-            #   else : hSum.Add(hSumDumb)
-           if keyO.GetName() == "fakes_data" : hFakes=obj.Clone()
-           if keyO.GetName() == "fakes_data" or keyO.GetName() =="TTZ" or keyO.GetName() =="TTW" or keyO.GetName() =="TTWW" or keyO.GetName() == "EWK" or keyO.GetName() == "tH" or keyO.GetName() == "Rares" :
-               hSumDumb2 = obj # h2_rebin #
-               if not hSumAll.Integral()>0 : hSumAll=hSumDumb2.Clone()
-               else : hSumAll.Add(hSumDumb2)
-        #################################################
+        ###///
         ### rebin and  write the histograms
         if BINtype=="none" : name=histSource+"_"+str(nbins)+"bins_none.root"
         if BINtype=="regular" or options.BINtype == "mTauTauVis": name=histSource+"_"+str(nbins)+"bins.root"
         if BINtype=="ranged" : name=histSource+"_"+str(nbins)+"bins_ranged.root"
         if BINtype=="quantiles" :
             name=histSource+"_"+str(nbins)+"bins_quantiles.root"
-            nbinsQuant= getQuantiles(hFakes,nbins,xmax) # getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero
-            print ("Bins by quantiles",nbins,nbinsQuant)
-            xmaxLbin=xmaxLbin+[nbinsQuant[nbins-2]]
+
         fileOut  = TFile(name, "recreate");
-        hTTi = TH1F()
-        hTTHi = TH1F()
-        hEWKi = TH1F()
-        hTTWi = TH1F()
-        hRaresi = TH1F()
-        histo = TH1F()
-        for nn, histogram in enumerate(histograms) :
-            histogramCopy=histogram.Clone()
-            nameHisto=histogramCopy.GetName()
-            histogram.SetName(histogramCopy.GetName()+"_"+str(nn)+BINtype)
-            histogramCopy.SetName(histogramCopy.GetName()+"Copy_"+str(nn)+BINtype)
-            #histogramCopy.SetBit(ROOT.TH1F.kCanRebin)
-            #if histogramCopy.GetName() == "fakes_data" or histogramCopy.GetName() =="TTZ" or histogramCopy.GetName() =="TTW" or histogramCopy.GetName() =="TTWW" or histogramCopy.GetName() == "EWK" :
-            #print ("not rebinned",histogramCopy.GetName(),histogramCopy.Integral())
-            if BINtype=="none" :
-                histo=histogramCopy.Clone()
-                histo.SetName(nameHisto)
-            elif BINtype=="ranged" or BINtype=="regular" :
-                histo= TH1F( nameHisto, nameHisto , nbins , xmin , xmax)
-            elif BINtype=="quantiles" :
-                histo=TH1F( nameHisto, nameHisto , nbins , nbinsQuant) # nbins+1 if first is zero
-            elif BINtype=="mTauTauVis" :
-                histo= TH1F( nameHisto, nameHisto , nbins , 0. , 200.)
-            histo.Sumw2()
-            for place in range(0,histogramCopy.GetNbinsX() + 1) :
-                content =      histogramCopy.GetBinContent(place)
-                #if content < 0 : continue # print (content,place)
-                binErrorCopy = histogramCopy.GetBinError(place);
-                newbin =       histo.GetXaxis().FindBin(histogramCopy.GetXaxis().GetBinCenter(place))
-                binError =     histo.GetBinError(newbin);
-                contentNew =   histo.GetBinContent(newbin)
-                histo.SetBinContent(newbin, content+contentNew)
-                histo.SetBinError(newbin, sqrt(binError*binError+binErrorCopy*binErrorCopy))
-                #if histogramCopy.GetBinCenter(place) > 0.174 and  content>0 and bdtType=="1B" and nbins==20 : print ("overflow bin", histogramCopy.GetBinCenter(place),content,nameHisto)
-            #if not histo.GetSumw2N() : histo.Sumw2()
-            if histogramCopy.GetName() == "fakes_data" or histogramCopy.GetName() =="TTZ" or histogramCopy.GetName() =="TTW" or histogramCopy.GetName() =="TTWW" or histogramCopy.GetName() == "EWK" :
-                print ("rebinned",histo.GetName(),histo.Integral())
-            histo.Write()
-            #print (histo.GetName(),histo.Integral())
-            #######################
-            if histo.GetName() == "fakes_data" :
-                ratio=1.
-                ratioP=1.
-                hTTi=histo.Clone()
-                hTTi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
-                if histo.GetBinContent(histo.GetNbinsX()) >0 : ratio=histo.GetBinError(histo.GetNbinsX())/histo.GetBinContent(histo.GetNbinsX())
-                if histo.GetBinContent(histo.GetNbinsX()-1) >0 : ratioP=histo.GetBinError(histo.GetNbinsX()-1)/histo.GetBinContent(histo.GetNbinsX()-1)
-                errOcontTTLast=errOcontTTLast+[ratio] if ratio<1.01 else errOcontTTLast+[1.0]
-                errOcontTTPLast=errOcontTTPLast+[ratioP] if ratioP<1.01 else errOcontTTPLast+[1.0]
-                errTTLast=errTTLast+[histo.GetBinError(histo.GetNbinsX())]
-                contTTLast=contTTLast+[histo.GetBinContent(histo.GetNbinsX())]
-            if histo.GetName() =="TTZ" or histo.GetName() =="TTW" :
-                if not hTTWi.Integral()>0 :
-                    hTTWi=histo.Clone()
-                    hTTWi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
-                else : hTTWi.Add(histo.Clone())
-            if histo.GetName() =="Rares" :
-                hRaresi=histo.Clone()
-                hRaresi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
-            if histo.GetName() == "EWK" :
-                hEWKi=histo.Clone()
-                hEWKi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
-            if histo.GetName() == "ttH_hww" or histo.GetName() == "ttH_hzz" or histo.GetName() ==  "ttH_htt" :
-                if not hTTHi.Integral()>0 :
-                    hTTHi=histo.Clone()
-                    hTTHi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
-                else : hTTHi.Add(histo.Clone())
-                #if histo.GetName() =="signal" : print ("TTH",histo.GetNbinsX())
-                #if histo.GetName() =="TTZ" : print ("TTZ",histo.GetNbinsX())
-                #if histo.GetName() =="TTW" : print ("TTW",histo.GetNbinsX())
-                #if histo.GetName() =="EWK" : print ("EWK",histo.GetNbinsX())
-                #if histo.GetName() =="TTWW" : print ("TTWW",histo.GetNbinsX())
-        fileOut.Write()
-        print (name+" created")
-        if doplots and bdtType=="1B_VT":
-            if nbins==4 : # nbins==6
-                if BINtype=="none" : namepdf=histSource
-                if BINtype=="regular" : namepdf=histSource+"_"+str(nbins)+"bins"
-                if BINtype=="ranged" : namepdf=histSource+"_"+str(nbins)+"bins_ranged"
+        #for folder in folders :
+        for nkey, keyF in enumerate(file.GetListOfKeys()) :
+            obj =  keyF.ReadObj()
+            if withFolder :
+                loop_on = obj.GetListOfKeys()
+                histograms=[]
+                histograms2=[]
+                h2 = TH1F()
+                hSum = TH1F()
+                hFakes = TH1F()
+                hSumAll = TH1F()
+                ratiohSum=1.
+                ratiohSumP=1.
+            else : loop_on = ["none"]
+            for keyO in loop_on :
+               # print ( keyF.GetName(), keyO.GetName() )
+               #if type(obj) is not TH1F : continue
+               if keyO=="none" : h2 = obj.Clone();
+               else : h2 = file.Get(keyF.GetName()+"/"+str(keyO.GetName())).Clone()
+               factor=1.
+               if  not h2.GetSumw2N() : h2.Sumw2()
+               if  not hSum.GetSumw2N() : hSum.Sumw2()
+               h2.SetName("x_"+str(keyO.GetName()))
+               if withFolder : histograms.append(h2.Clone())
+               #if keyO.GetName() == "fakes_data" or keyO.GetName() =="TTZ" or keyO.GetName() =="TTW" or keyO.GetName() =="TTWW" or keyO.GetName() == "EWK" :
+                #   hSumDumb = obj # h2_rebin #
+                #   if not hSum.Integral()>0 : hSum=hSumDumb.Clone()
+                #   else : hSum.Add(hSumDumb)
+               if "fakes_data" in keyO.GetName() : hFakes=h2.Clone()
+               if "fakes_data" in keyO.GetName() or "TT" in keyO.GetName() or "EWK" in keyO.GetName() or "Rares" in keyO.GetName() : #  or "tH" in keyO.GetName()
+                   #hSumDumb2 = obj # h2_rebin #
+                   if not hSumAll.Integral()>0 : hSumAll=h2.Clone()
+                   else : hSumAll.Add(h2)
+            #################################################
+            if withFolder: fileOut.mkdir(keyF.GetName()+"/")
+            hTTi = TH1F()
+            hTTHi = TH1F()
+            hEWKi = TH1F()
+            hTTWi = TH1F()
+            hRaresi = TH1F()
+            histo = TH1F()
+            for nn, histogram in enumerate(histograms) :
+                #if BINtype=="quantiles" : ### fix that -- I do not want these written to the file
+                histogramCopy=histogram.Clone()
+                nameHisto=histogramCopy.GetName()
+                histogram.SetName(histogramCopy.GetName()+"_"+str(nn)+BINtype)
+                histogramCopy.SetName(histogramCopy.GetName()+"Copy_"+str(nn)+BINtype)
+                #else : nameHisto=h2.GetName()
+                #histogramCopy.SetBit(ROOT.TH1F.kCanRebin)
+                #if histogramCopy.GetName() == "fakes_data" or histogramCopy.GetName() =="TTZ" or histogramCopy.GetName() =="TTW" or histogramCopy.GetName() =="TTWW" or histogramCopy.GetName() == "EWK" :
+                #print ("not rebinned",histogramCopy.GetName(),histogramCopy.Integral())
+                if BINtype=="none" :
+                    histo=histogramCopy.Clone()
+                    histo.SetName(nameHisto)
+                elif BINtype=="ranged" or BINtype=="regular" :
+                    histo= TH1F( nameHisto, nameHisto , nbins , xmin , xmax)
+                elif BINtype=="quantiles" :
+                    nbinsQuant= getQuantiles(hFakes,nbins,xmax) # getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero
+                    print ("Bins by quantiles",nbins,nbinsQuant)
+                    xmaxLbin=xmaxLbin+[nbinsQuant[nbins-2]]
+                    histo=TH1F( nameHisto, nameHisto , nbins , nbinsQuant) # nbins+1 if first is zero
+                elif BINtype=="mTauTauVis" :
+                    histo= TH1F( nameHisto, nameHisto , nbins , 0. , 200.)
+                histo.Sumw2()
+                #if BINtype=="quantiles" : ### fix that -- I do not want these written to the file
+                for place in range(0,histogramCopy.GetNbinsX() + 1) :
+                    content =      histogramCopy.GetBinContent(place)
+                    #if content < 0 : continue # print (content,place)
+                    binErrorCopy = histogramCopy.GetBinError(place);
+                    newbin =       histo.GetXaxis().FindBin(histogramCopy.GetXaxis().GetBinCenter(place))
+                    binError =     histo.GetBinError(newbin);
+                    contentNew =   histo.GetBinContent(newbin)
+                    histo.SetBinContent(newbin, content+contentNew)
+                    histo.SetBinError(newbin, sqrt(binError*binError+binErrorCopy*binErrorCopy))
+                    #if histogramCopy.GetBinCenter(place) > 0.174 and  content>0 and bdtType=="1B" and nbins==20 : print ("overflow bin", histogramCopy.GetBinCenter(place),content,nameHisto)
+                #if not histo.GetSumw2N() : histo.Sumw2()
+                if "fakes_data" in histogramCopy.GetName() or "TTZ" in histogramCopy.GetName() or "TTW" in histogramCopy.GetName() or "EWK" in histogramCopy.GetName()  :
+                    print ("rebinned",histo.GetName(),histo.Integral())
+                if "fakes_data" in histo.GetName() and nkey == 0 :
+                    ratio=1.
+                    ratioP=1.
+                    hTTi=histo.Clone()
+                    hTTi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
+                    if histo.GetBinContent(histo.GetNbinsX()) >0 : ratio=histo.GetBinError(histo.GetNbinsX())/histo.GetBinContent(histo.GetNbinsX())
+                    if histo.GetBinContent(histo.GetNbinsX()-1) >0 : ratioP=histo.GetBinError(histo.GetNbinsX()-1)/histo.GetBinContent(histo.GetNbinsX()-1)
+                    errOcontTTLast=errOcontTTLast+[ratio] if ratio<1.01 else errOcontTTLast+[1.0]
+                    errOcontTTPLast=errOcontTTPLast+[ratioP] if ratioP<1.01 else errOcontTTPLast+[1.0]
+                    errTTLast=errTTLast+[histo.GetBinError(histo.GetNbinsX())]
+                    contTTLast=contTTLast+[histo.GetBinContent(histo.GetNbinsX())]
+                if "TTZ" in histo.GetName() or "TTW" in histo.GetName()  :
+                    if not hTTWi.Integral()>0 :
+                        hTTWi=histo.Clone()
+                        hTTWi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
+                    else : hTTWi.Add(histo.Clone())
+                if "Rares" in histo.GetName()  :
+                    hRaresi=histo.Clone()
+                    hRaresi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
+                if "EWK" in histo.GetName()  :
+                    hEWKi=histo.Clone()
+                    hEWKi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
+                if "ttH_" in histo.GetName() :
+                    if not hTTHi.Integral()>0 :
+                        hTTHi=histo.Clone()
+                        hTTHi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
+                    else : hTTHi.Add(histo.Clone())
+                if withFolder :
+                    #print (histo.GetName(),histo.Integral(), BINtype)
+                    fileOut.cd("/"+keyF.GetName()+"/")
+                    histo.Write("",TObject.kOverwrite)
+                    fileOut.cd()
+                else : histo.Write("",TObject.kOverwrite)
+            print (name+" created")
+            if nkey == 0 :
+                #fileOut.Write()
+                if doplots and bdtType=="1B_VT":
+                    if nbins==4 : # nbins==6
+                        if BINtype=="none" : namepdf=histSource
+                        if BINtype=="regular" : namepdf=histSource+"_"+str(nbins)+"bins"
+                        if BINtype=="ranged" : namepdf=histSource+"_"+str(nbins)+"bins_ranged"
+                        if BINtype=="quantiles" :
+                            namepdf=histSource+"_"+str(nbins)+"bins_quantiles"
+                            label=str(nbins)+" bins "+BINtype+" "+variables+"  "+bdtType ## nbins+1 if it starts with 0
+                        else : label=str(nbins)+" bins "+BINtype+" "+variables+" "+bdtType
+                        doStackPlot(hTTi,hTTHi,hTTWi,hEWKi,hRaresi,namepdf,label)
+                        print (namepdf+" created")
+                        #print nbinsQuant
+                hSumCopy=hSum.Clone()
+                hSumi = TH1F()
+                if BINtype=="ranged" or BINtype=="regular" : hSumi = TH1F( "hSum", "hSum" , nbins , xmin , xmax)
+                elif BINtype=="quantiles" : hSumi = TH1F( "hSum", "hSum" , nbins , nbinsQuant)
+                elif BINtype=="mTauTauVis" : hSumi = TH1F( "hSum", "hSum" , nbins , 0. , 200.)
+                if not hSumi.GetSumw2N() : hSumi.Sumw2()
+                for place in range(1,hSumCopy.GetNbinsX() + 2) :
+                    content=hSumCopy.GetBinContent(place)
+                    newbin=hSumi.FindBin(hSumCopy.GetBinCenter(place))
+                    binErrorCopy = hSumCopy.GetBinError(place);
+                    binError = hSumi.GetBinError(newbin);
+                    hSumi.SetBinContent(newbin, hSumi.GetBinContent(newbin)+content)
+                    hSumi.SetBinError(newbin,sqrt(binError*binError+ binErrorCopy*binErrorCopy))
+                hSumi.SetBinErrorOption(1)
+                #if not hSum.GetSumw2N() : hSum.Sumw2()
+                if hSumi.GetBinContent(hSumi.GetNbinsX()) >0 :
+                    ratiohSum=hSumi.GetBinError(hSumi.GetNbinsX())/hSumi.GetBinContent(hSumi.GetNbinsX())
+                if hSumi.GetBinContent(hSumi.GetNbinsX()-1) >0 : ratiohSumP=hSumi.GetBinError(hSumi.GetNbinsX()-1)/hSumi.GetBinContent(hSumi.GetNbinsX()-1)
+                errOcontSUMLast=errOcontSUMLast+[ratiohSum] if ratiohSum<1.001 else errOcontSUMLast+[1.0]
+                errOcontSUMPLast=errOcontSUMPLast+[ratiohSumP] if ratiohSumP<1.001 else errOcontSUMPLast+[1.0]
+                errSUMLast=errSUMLast+[hSumi.GetBinError(hSumi.GetNbinsX())]
+                contSUMLast=contSUMLast+[hSumi.GetBinContent(hSumi.GetNbinsX())]
                 if BINtype=="quantiles" :
-                    namepdf=histSource+"_"+str(nbins)+"bins_quantiles"
-                    label=str(nbins)+" bins "+BINtype+" "+variables+"  "+bdtType ## nbins+1 if it starts with 0
-                else : label=str(nbins)+" bins "+BINtype+" "+variables+" "+bdtType
-                doStackPlot(hTTi,hTTHi,hTTWi,hEWKi,hRaresi,namepdf,label)
-                print (namepdf+" created")
-                #print nbinsQuant
-        hSumCopy=hSum.Clone()
-        hSumi = TH1F()
-        if BINtype=="ranged" or BINtype=="regular" : hSumi = TH1F( "hSum", "hSum" , nbins , xmin , xmax)
-        elif BINtype=="quantiles" : hSumi = TH1F( "hSum", "hSum" , nbins , nbinsQuant)
-        elif BINtype=="mTauTauVis" : hSumi = TH1F( "hSum", "hSum" , nbins , 0. , 200.)
-        if not hSumi.GetSumw2N() : hSumi.Sumw2()
-        for place in range(1,hSumCopy.GetNbinsX() + 2) :
-            content=hSumCopy.GetBinContent(place)
-            newbin=hSumi.FindBin(hSumCopy.GetBinCenter(place))
-            binErrorCopy = hSumCopy.GetBinError(place);
-            binError = hSumi.GetBinError(newbin);
-            hSumi.SetBinContent(newbin, hSumi.GetBinContent(newbin)+content)
-            hSumi.SetBinError(newbin,sqrt(binError*binError+ binErrorCopy*binErrorCopy))
-        hSumi.SetBinErrorOption(1)
-        #if not hSum.GetSumw2N() : hSum.Sumw2()
-        if hSumi.GetBinContent(hSumi.GetNbinsX()) >0 :
-            ratiohSum=hSumi.GetBinError(hSumi.GetNbinsX())/hSumi.GetBinContent(hSumi.GetNbinsX())
-        if hSumi.GetBinContent(hSumi.GetNbinsX()-1) >0 : ratiohSumP=hSumi.GetBinError(hSumi.GetNbinsX()-1)/hSumi.GetBinContent(hSumi.GetNbinsX()-1)
-        errOcontSUMLast=errOcontSUMLast+[ratiohSum] if ratiohSum<1.001 else errOcontSUMLast+[1.0]
-        errOcontSUMPLast=errOcontSUMPLast+[ratiohSumP] if ratiohSumP<1.001 else errOcontSUMPLast+[1.0]
-        errSUMLast=errSUMLast+[hSumi.GetBinError(hSumi.GetNbinsX())]
-        contSUMLast=contSUMLast+[hSumi.GetBinContent(hSumi.GetNbinsX())]
-        if BINtype=="quantiles" :
-            lastQuant=lastQuant+[nbinsQuant[nbins]]
-            xmaxQuant=xmaxQuant+[xmaxdef]
-            xminQuant=xminQuant+[xmindef]
+                    lastQuant=lastQuant+[nbinsQuant[nbins]]
+                    xmaxQuant=xmaxQuant+[xmaxdef]
+                    xminQuant=xminQuant+[xmindef]
+                print ("it should be only one ", keyF.GetName(), nkey, errOcontTTLast)
     print ("min",xmindef,xmin)
     print ("max",xmaxdef,xmax)
     return [errOcontTTLast,errOcontTTPLast,errOcontSUMLast,errOcontSUMPLast,lastQuant,xmaxQuant,xminQuant]
