@@ -29,7 +29,7 @@ doLimits=options.doLimits
 doPlots=options.doPlots
 #user="acaan"
 #year="2016"
-user="karl"
+user="mmaurya"
 year="2017"
 channel=options.channel
 if channel == "2lss_1tau" :
@@ -72,7 +72,14 @@ if channel == "3l_0tau" :
     "mva_Updated"
     ] # "mvaOutput_0l_2tau_HTT_sum",
     channelsTypes= [ "3l_0tau" ]
-
+####
+if channel == "2los_1tau" :
+    year="2017"
+    label='2los_1tau_BDTtraining_Ltau_100bin_10Oct_2018'
+    bdtTypes=[
+    "mvaOutput_2los_1tau_evtLevelSUM_TTH_19Var",
+    ] 
+    channelsTypes= [ "2los_1tau" ]
 
 sources=[]
 bdtTypesToDo=[]
@@ -85,7 +92,7 @@ out = proc.stdout.read()
 proc=subprocess.Popen(["mkdir "+label+"/"+options.variables],shell=True,stdout=subprocess.PIPE)
 out = proc.stdout.read()
 #for test in [1000,900,800,700,600,500,400,300,200,100] : print (test, list(divisorGenerator(test)) )
-if channel=="2017" : mom="/home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/2018jun09/Tallinn/"
+if channel=="2017" : mom="/home/mmaurya/VHbbNtuples_8_0_x/CMSSW_8_0_21/src/Oct2018/100Bin/"
 else : mom="/home/"+user+"/ttHAnalysis/"+year+"/"+label+"/datacards/"+channel
 
 local=workingDir+"/"+options.channel+"_"+label+"/"+options.variables+"/"
@@ -218,6 +225,23 @@ if channel == "3l_0tau" :
             print ("rebinning ",sources[counter])
         else : print ("does not exist ",source)
 
+if channel == "2los_1tau" :
+    local="/home/mmaurya/CMSSW_9_4_0_pre1/src/tth-bdt-training/treatDatacards/"+label+"/"
+    for ii, bdtType in enumerate(bdtTypes) :
+        mom = "/home/mmaurya/ttHAnalysis/2017/"+label+"/datacards/2los_1tau/"
+        fileName=mom+"prepareDatacards_2los_1tau_"+bdtTypes[ii]+".root"
+        my_file = Path(fileName)
+        source=local+"prepareDatacards_2los_1tau_"+bdtTypes[ii]
+        print fileName
+        if my_file.exists() :
+            proc=subprocess.Popen(['cp '+fileName+" "+local],shell=True,stdout=subprocess.PIPE)
+            out = proc.stdout.read()
+            sources = sources + [source]
+            bdtTypesToDo = bdtTypesToDo +["2los_1tau "+bdtTypes[ii]]
+            bdtTypesToDoLabel = bdtTypesToDoLabel +["2los_1tau "+bdtTypes[ii]]
+            bdtTypesToDoFile=bdtTypesToDoFile+["2los_1tau_"+bdtTypes[ii]]
+            print ("rebinning ",sources[counter])
+        else : print ("does not exist ",source)
 print ("I will rebin",bdtTypesToDoLabel,"(",len(sources),") BDT options")
 
 if options.BINtype == "regular" or options.BINtype == "ranged" or options.BINtype == "mTauTauVis" : binstoDo=nbinRegular
