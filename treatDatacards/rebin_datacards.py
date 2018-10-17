@@ -27,6 +27,7 @@ parser.add_option("--doLimits", action="store_true", dest="doLimits", help="If y
 
 doLimits=options.doLimits
 doPlots=options.doPlots
+withFolder=False
 #user="acaan"
 #year="2016"
 user="mmaurya"
@@ -78,7 +79,7 @@ if channel == "2los_1tau" :
     label='2los_1tau_BDTtraining_Ltau_100bin_10Oct_2018'
     bdtTypes=[
     "mvaOutput_2los_1tau_evtLevelSUM_TTH_19Var",
-    ] 
+    ]
     channelsTypes= [ "2los_1tau" ]
 
 sources=[]
@@ -91,14 +92,13 @@ proc=subprocess.Popen(["mkdir "+label],shell=True,stdout=subprocess.PIPE)
 out = proc.stdout.read()
 proc=subprocess.Popen(["mkdir "+label+"/"+options.variables],shell=True,stdout=subprocess.PIPE)
 out = proc.stdout.read()
-#for test in [1000,900,800,700,600,500,400,300,200,100] : print (test, list(divisorGenerator(test)) )
 if channel=="2017" : mom="/home/mmaurya/VHbbNtuples_8_0_x/CMSSW_8_0_21/src/Oct2018/100Bin/"
 else : mom="/home/"+user+"/ttHAnalysis/"+year+"/"+label+"/datacards/"+channel
 
 local=workingDir+"/"+options.channel+"_"+label+"/"+options.variables+"/"
 originalBinning=100
 nbinRegular=np.arange(1, 20)
-nbinQuant= np.arange(10,28)
+nbinQuant= np.arange(10,27)
 counter=0
 
 if channel == "2lss_1tau" :
@@ -133,8 +133,8 @@ if channel == "1l_2tau" or channel == "2l_2tau" or channel == "3l_1tau" :
     sourceoriginal=mom+"/prepareDatacards_"+channel+"_"
     source=local+"/prepareDatacards_"+channel+"_"
     if options.variables=="oldTrain" :
-        oldVar=["1l_2tau_ttbar_Old", "1l_2tau_ttbar_OldVar","ttbar_OldVar"] # "1l_2tau_ttbar",
-        typeBDT=[ "oldTrainM","oldVar loose lep" ,"oldVar tight lep"] # "oldTrain",
+        oldVar=["1l_2tau_ttbar_Old", "1l_2tau_ttbar_OldVar","ttbar_OldVar"]
+        typeBDT=[ "oldTrainM","oldVar loose lep" ,"oldVar tight lep"]
         for ii,nn in enumerate(oldVar) :
             my_file = Path(sourceoriginal+"mvaOutput_"+nn+".root")
             print sourceoriginal+nn+".root"
@@ -149,9 +149,7 @@ if channel == "1l_2tau" or channel == "2l_2tau" or channel == "3l_1tau" :
             else : print ("does not exist ",source+nn)
     elif "HTT" in options.variables :
         for bdtType in bdtTypes :
-            #if channel == "2l_2tau" :
             fileName=options.variables+"_"+bdtType
-            #elif channel == "1l_2tau" : fileName=bdtType+"_"+options.variables
             my_file = Path(sourceoriginal+"mvaOutput_"+fileName+".root")
             if my_file.exists() :
                 proc=subprocess.Popen(["cp "+sourceoriginal+"mvaOutput_"+fileName+".root " +local],shell=True,stdout=subprocess.PIPE)
@@ -191,6 +189,7 @@ if channel=="2017" :
             print ("rebinning ",sources[counter])
         else : print ("does not exist ",source)
 if channel == "0l_2tau" :
+    withFolder=True
     local="/home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/"+label+"/"
     for ii, bdtType in enumerate(bdtTypes) :
         mom = "/home/acaan/ttHAnalysis/2017/"+label+"/datacards/0l_2tau/"
@@ -208,6 +207,7 @@ if channel == "0l_2tau" :
             print ("rebinning ",sources[counter])
         else : print ("does not exist ",source)
 if channel == "3l_0tau" :
+    withFolder=True
     local="/home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/"+label+"/"
     for ii, bdtType in enumerate(bdtTypes) :
         mom = "/home/acaan/ttHAnalysis/2017/"+label+"/datacards/3l/"
@@ -226,7 +226,7 @@ if channel == "3l_0tau" :
         else : print ("does not exist ",source)
 
 if channel == "2los_1tau" :
-    local="/home/mmaurya/CMSSW_9_4_0_pre1/src/tth-bdt-training/treatDatacards/"+label+"/"
+    local="/home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/"+label+"/"
     for ii, bdtType in enumerate(bdtTypes) :
         mom = "/home/mmaurya/ttHAnalysis/2017/"+label+"/datacards/2los_1tau/"
         fileName=mom+"prepareDatacards_2los_1tau_"+bdtTypes[ii]+".root"
@@ -254,20 +254,13 @@ if not doLimits:
     #########################################
     ## make rebinned datacards
     fig, ax = plt.subplots(figsize=(5, 5))
-    #plt.title(options.BINtype+" binning "+options.variables)
     plt.title(options.BINtype+" in sum of BKG ")
     lastQuant=[]
     xmaxQuant=[]
     xminQuant=[]
     for nn,source in enumerate(sources) :
-        errOcont=rebinRegular(source, binstoDo, options.BINtype,originalBinning,doPlots,options.variables,bdtTypesToDo[nn], True)
+        errOcont=rebinRegular(source, binstoDo, options.BINtype,originalBinning,doPlots,options.variables,bdtTypesToDo[nn], withFolder)
         print bdtTypesToDo[nn]
-        #print ("                 ",nbinRegular)
-        #print ("TT-only,  last bin", errOcont[0])
-        #print ("TT-only, Plast bin", errOcont[1])
-        #print ("TT+TTV,   last bin", errOcont[2])
-        #print ("TT+TTV,  Plast bin", errOcont[3])
-        #print ("last quantile",len(errOcont[4]),errOcont[4][len(errOcont[4])-1],errOcont[4][len(errOcont[4])-2])
         lastQuant=lastQuant+[errOcont[4]]
         xmaxQuant=xmaxQuant+[errOcont[5]]
         xminQuant=xminQuant+[errOcont[6]]
@@ -312,7 +305,6 @@ if not doLimits:
         line_d, = ax.plot(binstoDo, '.--', color='k',label="Min")
         legend1 = plt.legend(handles=[line_up, line_down, line_d], loc='best', fontsize=8)
         ax.set_ylabel('boundary')
-        #ax.legend(loc='best', fancybox=False, shadow=False, ncol=2)
         plt.grid(True)
         fig.savefig(local+'/'+options.variables+'_fullsim_boundaries_quantiles.pdf')
 
@@ -323,14 +315,11 @@ if doLimits :
     print "do limits"
     print sources
     fig, ax = plt.subplots(figsize=(5, 5))
-    #plt.title(options.BINtype+" binning")
-    #colorsToDo=['r','g','b','m','y','c', 'fuchsia']
     if options.BINtype == "quantiles" : namefig=local+'/'+options.variables+'_fullsim_limits_quantiles'
     if options.BINtype == "regular" or options.BINtype == "mTauTauVis": namefig=local+'/'+options.variables+'_fullsim_limits'
     if options.BINtype == "ranged" : namefig=local+'/'+options.variables+'_fullsim_limits_ranged'
     file = open(namefig+".csv","w")
     for nn,source in enumerate(sources) :
-        #options.variables+'_'+bdtTypesToDoFile[ns]+'_nbin_'+str(nbins)
         limits=ReadLimits(bdtTypesToDoFile[nn], binstoDo, options.BINtype,channel,local,0,0)
         print (len(binstoDo),len(limits[0]))
         for jj in limits[0] : file.write(str(jj)+', ')
@@ -342,18 +331,10 @@ if doLimits :
     ax.set_xlabel('nbins')
     ax.set_ylabel('limits')
     maxsum=0
-    if channel == "0l_2tau" : maxlim = 10.5
+    if channel in ["0l_2tau", "2los_1tau"] : maxlim = 10.5
     else : maxlim = 2.0
     plt.axis((min(binstoDo),max(binstoDo),0.5, maxlim))
-    #if channel=="2lss_1tau" : plt.axis((min(binstoDo),max(binstoDo),0.7,2.5))
-    #if channel=="1l_2tau" :
-    #    plt.axis((min(binstoDo),max(binstoDo),2.0,6.5))
-    #    #plt.yscale('log')
-    #    maxsum=5
     plt.text(11.3, 2.4, options.BINtype+" binning "+" "+options.variables )
-    #plt.text(2.3, 10.53+maxsum, "CMS"  ,  fontweight='bold' )
-    #plt.text(4.3, 10.53+maxsum, "preliminary" )
-    #plt.text(max(binstoDo)-6.0, 2.53+maxsum, "35.9/fb (13 TeV)"   )
     fig.savefig(namefig+'.pdf')
     file.close()
     print ("saved",namefig)

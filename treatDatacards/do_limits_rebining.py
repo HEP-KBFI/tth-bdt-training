@@ -38,8 +38,8 @@ if channel == "3l_1tau" :
     bdtTypes= ["tt","ttV","SUM_M","SUM_T","SUM_VT","1B_M","1B_T","1B_VT"]
 if channel == "2017" :
     label="datacards_ICHEP"
-    bdtTypes= ["plainKin_SUM_VT"] #, "HTT_SUM_M", "plainKin_SUM_M"]
-    channelsTypes= [ "2l_2tau"] #, "2lss_1tau", "2lss_1tau"]
+    bdtTypes= ["plainKin_SUM_VT"]
+    channelsTypes= [ "2l_2tau"]
 if channel == "0l_2tau" :
     year="2017"
     #label='0l_2tau_datacards_2018Oct07_withBoost'
@@ -61,6 +61,13 @@ if channel == "3l_0tau" :
     "mva_oldVar", "mva_Updated"
     ] # "mvaOutput_0l_2tau_HTT_sum",
     channelsTypes= [ "3l_0tau" ]
+if channel == "2los_1tau" :
+    year="2017"
+    label='2los_1tau_BDTtraining_Ltau_100bin_10Oct_2018'
+    bdtTypes=[
+    "mvaOutput_2los_1tau_evtLevelSUM_TTH_19Var",
+    ]
+    channelsTypes= [ "2los_1tau" ]
 
 sources=[]
 bdtTypesToDo=[]
@@ -78,7 +85,7 @@ def run_cmd(command):
   return stdout
 
 nbinRegular=np.arange(1, 20) #list(divisorGenerator(originalBinning))
-nbinQuant= np.arange(10,29)
+nbinQuant= np.arange(10,27)
 #
 """
 python do_limits_rebining.py --channel "0l_2tau"  --BINtype "quantiles" --variables "teste" &
@@ -86,6 +93,8 @@ python do_limits_rebining.py --channel "0l_2tau"  --BINtype "regular" --variable
 
 python do_limits_rebining.py --channel "3l_0tau"  --BINtype "quantiles" --variables "teste" &
 python do_limits_rebining.py --channel "3l_0tau"  --BINtype "regular" --variables "teste" &
+
+python makePostFitPlots_FromCombine.py --channel "ttH_2los_1tau" --input /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/2los_1tau_BDTtraining_Ltau_100bin_10Oct_2018/ttH_teste_2los_1tau_mvaOutput_2los_1tau_evtLevelSUM_TTH_19Var_nbin_14_shapes.root --odir /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/2los_1tau_BDTtraining_Ltau_100bin_10Oct_2018/ --minY 0.1 --maxY 50000 --notFlips  --fromHavester --useLogPlot --nameOut teste_2los_1tau_mvaOutput_2los_1tau_evtLevelSUM_TTH_19Var_nbin_14
 
 """
 
@@ -153,8 +162,6 @@ if channel=="2017" :
         source=local+"/prepareDatacards_"+channelsTypes[ii]+"_mvaOutput_"+bdtTypes[ii]+"_noRebin"
         my_file = source+".root"
         if os.path.exists(my_file) :
-            #proc=subprocess.Popen(["cp "+source+options.variables+".root " +local],shell=True,stdout=subprocess.PIPE)
-            #out = proc.stdout.read()
             sources = sources + [source]
             bdtTypesToDo = bdtTypesToDo +[channelsTypes[ii]+"_mvaOutput_"+bdtTypes[ii]]
             bdtTypesToDoFile=bdtTypesToDoFile+[channelsTypes[ii]+"_mvaOutput_"+bdtTypes[ii]]
@@ -188,46 +195,25 @@ if channel == "3l_0tau" :
             print (sources[counter],"rebinning ")
             counter=counter+1
         else : print (source+" "+my_file, "does not exist ")
-
-
+if channel == "2los_1tau" :
+    local="/home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/"+label+"/"
+    for ii, bdtType in enumerate(bdtTypes) :
+        source=local+"/prepareDatacards_2los_1tau_"+bdtTypes[ii]
+        my_file = source+".root"
+        if os.path.exists(my_file) :
+            sources = sources + [source]
+            bdtTypesToDo = bdtTypesToDo +["2los_1tau_"+bdtTypes[ii]]
+            bdtTypesToDoFile=bdtTypesToDoFile+["2los_1tau_"+bdtTypes[ii]]
+            channelToDo=channelToDo+["2los_1tau"]
+            print (sources[counter],"rebinning ")
+            counter=counter+1
+        else : print (source+" "+my_file, "does not exist ")
 
 if options.BINtype == "regular" or options.BINtype == "ranged" : binstoDo=nbinRegular
 if options.BINtype == "quantiles" : binstoDo=nbinQuant
 
 print ("I will rebin",bdtTypesToDoFile,"(",len(sources),") BDT options")
 
-"""
-combineTool.py  -M Asymptotic -m 125 -t -1 %s
- (do ws)
-#
-
-text2workspace.py
-mkdir GoF; cd GoF
-combineTool.py  -M T2W -i ../ttH_noHTT_noHTT_SUM_M_nbin_5_quantiles.txt
-combine -M MaxLikelihoodFit -d ../ttH_noHTT_noHTT_SUM_M_nbin_5_quantiles.root -t -1
-python $CMSSW_BASE/src/HiggsAnalysis/CombinedLimit/test/diffNuisances.py -a mlfit.root -g plots.root
-combineTool.py -M GoodnessOfFit --algorithm saturated -d ../ttH_noHTT_noHTT_SUM_M_nbin_5_quantiles.root -n .saturated
-combineTool.py -M GoodnessOfFit --algorithm saturated -d ../ttH_noHTT_noHTT_SUM_M_nbin_5_quantiles.root -n .saturated.toys -t 200 -s 0:4:1 --parallel 5
-combineTool.py -M CollectGoodnessOfFit --input higgsCombine.saturated.GoodnessOfFit.mH120.root higgsCombine.saturated.toys.GoodnessOfFit.mH120.*.root -o GoF_saturated.json
-$CMSSW_BASE/src/CombineHarvester/CombineTools/scripts/plotGof.py --statistic saturated --mass 120.0 GoF_saturated.json -o GoF_saturated
-
-combineTool.py  -M T2W -i /home/acaan/ttHAnalysis/2016/1l_2tau_2018Mar02_VHbb_TLepTTau_shape/datacards/1l_2tau/ttH_mvaOutput_1l_2tau_ttbar_Old_5bins.txt
-
-
-combineTool.py  -M T2W -i ../ttH_noHTT_noHTT_SUM_M_12bins_quantiles_fullsyst.txt
-# noHTT_SUM_M_5bins_quantiles_fullsyst
-
-mkdir impacts; cd impacts
-combineTool.py -M Impacts -m 125 -d ../ttH_noHTT_noHTT_SUM_M_nbin_5_quantiles.root --expectSignal 1 --allPars --parallel 8 -t -1 --doInitialFit
-combineTool.py -M Impacts -m 125 -d ../ttH_noHTT_noHTT_SUM_M_nbin_5_quantiles.root --expectSignal 1 --allPars --parallel 8 -t -1 --robustFit 1 --doFits
-combineTool.py -M Impacts -m 125 -d ../ttH_noHTT_noHTT_SUM_M_nbin_5_quantiles.root -o impacts.json
-plotImpacts.py -i impacts.json -o  impacts
-
-python /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/test/makePostFitPlots_FromCombine.py --channel "ttH_0l_2tau" --input /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/0l_2tau_datacards_2018Oct07_withBoost/ttH_teste_0l_2tau_mva_Boosted_AK8_noISO_nbin_3_shapes.root  --odir /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/0l_2tau_datacards_2018Oct07_withBoost/ --minY 0.01 --maxY 90 --notFlips --notConversions --fromHavester --useLogPlot
-"""
-
-#file = open("execute_plots"+options.channel+"_"+options.variables+".sh","w")
-#file.write("#!/bin/bash\n")
 for ns,source in enumerate(sources) :
     for nn,nbins in enumerate(binstoDo) :
         if options.BINtype=="regular" :
@@ -253,15 +239,12 @@ for ns,source in enumerate(sources) :
         run_cmd('rm higgsCombineTest.Asymptotic.mH125.root')
         rootFile = os.path.join(workingDir, local, "ttH_%s_shapes.root" % (shapeVariable))
         run_cmd('PostFitShapes -d %s -o %s -m 125 ' % (txtFile, rootFile))
-        ##### 2lss_1taumvaOutput_2lss_1tau_ttV_nbin_6
-        if (channel == "0l_2tau" and (options.BINtype == "quantiles" and nbins > 18 and nbins <20) or (options.BINtype == "quantiles" and nbins > 5 and nbins < 15)) :
-            run_cmd('python /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/test/makePostFitPlots_FromCombine.py --channel "ttH_0l_2tau" --input %s --odir %s --minY 0.1 --maxY 50000 --notFlips --notConversions --fromHavester --useLogPlot --nameOut %s' % (rootFile, local, shapeVariable))
+
+        if (channel == "0l_2tau" and (options.BINtype == "quantiles" and nbins > 18 and nbins <20) or (options.BINtype == "regular" and nbins > 5 and nbins < 15)) :
+            run_cmd('python makePostFitPlots_FromCombine.py --channel "ttH_0l_2tau" --input %s --odir %s --minY 0.1 --maxY 50000 --notFlips --notConversions --fromHavester --useLogPlot --nameOut %s' % (rootFile, local, shapeVariable))
+
+        if (channel == "2los_1tau" and (options.BINtype == "quantiles" and nbins > 18 and nbins <20) or (options.BINtype == "regular" and nbins > 5 and nbins < 15)) :
+            run_cmd('python makePostFitPlots_FromCombine.py --channel "ttH_2los_1tau" --input %s --odir %s --minY 0.1 --maxY 50000 --notFlips --notConversions --fromHavester --useLogPlot --nameOut %s' % (rootFile, local, shapeVariable))
 
         if (channel == "3l_0tau" and (options.BINtype == "quantiles" and nbins > 15 and nbins <20) or (options.BINtype == "quantiles" and nbins > 3 and nbins < 8)) :
-            run_cmd('python /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/test/makePostFitPlots_FromCombine.py --channel "ttH_3l" --input %s --odir %s --minY 0 --maxY 100 --notFlips  --notConversions  --fromHavester --nameOut %s' % (rootFile, local, shapeVariable))
-
-
-        #makeplots='root -l -b -n -q /home/acaan/VHbbNtuples_8_0_x/CMSSW_7_4_7/src/CombineHarvester/ttH_htt/macros/makePostFitPlots.C++(\\"'+shapeVariable+'\\",\\"'+local+'\\",\\"'+options.channel+'\\",\\"'+local+'\\")'
-        #file.write(makeplots+ "\n")
-#file.close()
-# python /home/acaan/VHbbNtuples_8_0_x/CMSSW_8_1_0/src/CombineHarvester/ttH_htt/test/makePostFitPlots_FromCombine.py --channel "ttH_3l" --input /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/3l_0tau_datacards_2018Oct07_withBoost_multilepCat/ttH_teste_3l_0tau_mva_AK12_nbin_6_shapes.root --odir /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/3l_0tau_datacards_2018Oct07_withBoost_multilepCat/ --minY 0 --maxY 20 --notFlips  --notConversions  --fromHavester --nameOut teste_3l_0tau_mva_AK12_nbin_6
+            run_cmd('python makePostFitPlots_FromCombine.py --channel "ttH_3l" --input %s --odir %s --minY 0 --maxY 100 --notFlips  --notConversions  --fromHavester --nameOut %s' % (rootFile, local, shapeVariable))
