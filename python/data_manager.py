@@ -1024,8 +1024,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                if  not h2.GetSumw2N() : h2.Sumw2()
                if  not hSum.GetSumw2N() : hSum.Sumw2()
                #if withFolder :
-               h2.SetName("x_"+str(h2.GetName()))
-               #if withFolder :
+               if withFolder : h2.SetName("x_"+str(h2.GetName()))
                histograms.append(h2.Clone())
                print ("h2.", h2.Integral())
                if "fakes_data" in h2.GetName() : hFakes=h2.Clone()
