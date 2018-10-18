@@ -289,6 +289,7 @@ canvas = ROOT.TCanvas("canvas", "canvas", 600, 1500);
 canvas.SetFillColor(10);
 canvas.SetBorderSize(2);
 dumb = canvas.Draw();
+del dumb
 
 topPad = ROOT.TPad("topPad", "topPad", 0.00, 0.34, 1.00, 0.995);
 topPad.SetFillColor(10);
@@ -306,37 +307,52 @@ bottomPad.SetRightMargin(0.04);
 ####################################
 canvas.cd();
 dumb = topPad.Draw();
+del dumb
 topPad.cd();
-hist_total.Draw("axis")
+dumb = hist_total.Draw("axis")
+del dumb
 histogramStack_mc = ROOT.THStack()
 print ("list of processes considered and their integrals")
 for key in  dprocs.keys() :
     histogram = rebin_hist(template, fin, key, dprocs[key], divideByBinWidth)
-    histogramStack_mc.Add(histogram)
+    dumb = histogramStack_mc.Add(histogram)
+    del dumb
     print (key, histogram.Integral())
-histogramStack_mc.Draw("hist,same")
-hist_total.Draw("e2,same")
-if options.unblind : data.Draw("e1P,same")
-hist_total.Draw("axis,same")
-legend1.Draw("same")
+dumb = histogramStack_mc.Draw("hist,same")
+del dumb
+dumb = hist_total.Draw("e2,same")
+del dumb
+if options.unblind :
+    dumb = data.Draw("e1P,same")
+    del dumb
+dumb = hist_total.Draw("axis,same")
+del dumb
+dumb = legend1.Draw("same")
+del dumb
 labels = addLabel_CMS_preliminary()
-for label in labels : label.Draw("same")
+for label in labels :
+    dumb = label.Draw("same")
+    del dumb
 #
 #################################
 canvas.cd();
 dumb = bottomPad.Draw();
+del dumb
 bottomPad.cd();
 bottomPad.SetLogy(0);
 print ("doing bottom pad")
 hist_total_err = do_hist_total_err(template, options.labelX, name_total) # , category
-hist_total_err.Draw("e2")
+dumb = hist_total_err.Draw("e2")
+del dumb
 if options.unblind :
     dataerr = err_data(hist_total, folder, options.fromHavester)
-    dataerr.Draw("e1P,same")
+    dumb = dataerr.Draw("e1P,same")
+    del dumb
 line = ROOT.TF1("line","1", hist_total_err.GetXaxis().GetXmin(), hist_total_err.GetXaxis().GetXmax());
 line.SetLineStyle(3);
 line.SetLineColor(ROOT.kBlack);
-line.Draw("same");
+dumb = line.Draw("same");
+del dumb
 print ("done bottom pad")
 ##################################
 oplin = "linear"
