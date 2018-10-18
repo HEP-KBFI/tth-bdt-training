@@ -240,11 +240,11 @@ for ns,source in enumerate(sources) :
         rootFile = os.path.join(workingDir, local, "ttH_%s_shapes.root" % (shapeVariable))
         run_cmd('PostFitShapes -d %s -o %s -m 125 ' % (txtFile, rootFile))
 
-        if (channel == "0l_2tau" and (options.BINtype == "quantiles" and nbins > 18 and nbins <20) or (options.BINtype == "regular" and nbins > 5 and nbins < 15)) :
+        if (channel == "0l_2tau" and (options.BINtype == "quantiles" and nbins > 18 and nbins <20) or (channel == "0l_2tau" and options.BINtype == "regular" and nbins > 5 and nbins < 15)) :
             run_cmd('python makePostFitPlots_FromCombine.py --channel "ttH_0l_2tau" --input %s --odir %s --minY 0.1 --maxY 50000 --notFlips --notConversions --fromHavester --useLogPlot --nameOut %s' % (rootFile, local, shapeVariable))
 
-        if (channel == "2los_1tau" and (options.BINtype == "quantiles" and nbins > 18 and nbins <20) or (options.BINtype == "regular" and nbins > 5 and nbins < 15)) :
+        if (channel == "2los_1tau" and (options.BINtype == "quantiles" and nbins > 18 and nbins <20) or (channel == "2los_1tau" and options.BINtype == "regular" and nbins > 5 and nbins < 15)) :
             run_cmd('python makePostFitPlots_FromCombine.py --channel "ttH_2los_1tau" --input %s --odir %s --minY 0.1 --maxY 50000 --notFlips --notConversions --fromHavester --useLogPlot --nameOut %s' % (rootFile, local, shapeVariable))
 
-        if (channel == "3l_0tau" and (options.BINtype == "quantiles" and nbins > 15 and nbins <20) or (options.BINtype == "quantiles" and nbins > 3 and nbins < 8)) :
+        if (channel == "3l_0tau" and (options.BINtype == "quantiles" and nbins > 15 and nbins <20) or (channel == "3l_0tau" and options.BINtype == "quantiles" and nbins > 3 and nbins < 8)) :
             run_cmd('python makePostFitPlots_FromCombine.py --channel "ttH_3l" --input %s --odir %s --minY 0 --maxY 100 --notFlips  --notConversions  --fromHavester --nameOut %s' % (rootFile, local, shapeVariable))
