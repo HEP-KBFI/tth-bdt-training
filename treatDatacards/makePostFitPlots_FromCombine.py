@@ -288,7 +288,7 @@ legend1.AddEntry(hist_total, "Uncertainty", "f");
 canvas = ROOT.TCanvas("canvas", "canvas", 600, 1500);
 canvas.SetFillColor(10);
 canvas.SetBorderSize(2);
-canvas.Draw();
+dumb = canvas.Draw();
 
 topPad = ROOT.TPad("topPad", "topPad", 0.00, 0.34, 1.00, 0.995);
 topPad.SetFillColor(10);
@@ -305,7 +305,7 @@ bottomPad.SetBottomMargin(0.35);
 bottomPad.SetRightMargin(0.04);
 ####################################
 canvas.cd();
-topPad.Draw();
+dumb = topPad.Draw();
 topPad.cd();
 hist_total.Draw("axis")
 histogramStack_mc = ROOT.THStack()
@@ -324,7 +324,7 @@ for label in labels : label.Draw("same")
 #
 #################################
 canvas.cd();
-bottomPad.Draw();
+dumb = bottomPad.Draw();
 bottomPad.cd();
 bottomPad.SetLogy(0);
 print ("doing bottom pad")
@@ -346,5 +346,6 @@ if divideByBinWidth : optbin = "divideByBinWidth"
 print ("made log")
 #canvas.Print(options.odir+category+"_"+typeFit+"_"+optbin+"_unblind"+str(options.unblind)+"_"+oplin+".pdf")
 #canvas.Close()
-canvas.SaveAs(options.odir+category+"_"+typeFit+"_"+optbin+"_"+options.nameOut+"_unblind"+str(options.unblind)+"_"+oplin+".pdf")
+dumb = canvas.SaveAs(options.odir+category+"_"+typeFit+"_"+optbin+"_"+options.nameOut+"_unblind"+str(options.unblind)+"_"+oplin+".pdf")
+dumb = 0
 print ("saved",options.odir+category+"_"+typeFit+"_"+optbin+"_"+options.nameOut+"_unblind"+str(options.unblind)+"_"+oplin+".pdf")
