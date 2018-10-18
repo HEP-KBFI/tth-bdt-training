@@ -347,5 +347,5 @@ print ("made log")
 #canvas.Print(options.odir+category+"_"+typeFit+"_"+optbin+"_unblind"+str(options.unblind)+"_"+oplin+".pdf")
 #canvas.Close()
 dumb = canvas.SaveAs(options.odir+category+"_"+typeFit+"_"+optbin+"_"+options.nameOut+"_unblind"+str(options.unblind)+"_"+oplin+".pdf")
-dumb = 0
+del dumb
 print ("saved",options.odir+category+"_"+typeFit+"_"+optbin+"_"+options.nameOut+"_unblind"+str(options.unblind)+"_"+oplin+".pdf")
