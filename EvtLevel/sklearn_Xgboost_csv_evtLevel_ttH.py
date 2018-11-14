@@ -54,9 +54,9 @@ parser.add_option("--doXML", action="store_true", dest="doXML", help="Do save no
 parser.add_option("--doPlots", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
 parser.add_option("--oldNtuple", action="store_true", dest="oldNtuple", help="use Matthias", default=False)
 parser.add_option("--ntrees ", type="int", dest="ntrees", help="hyp", default=1000)
-parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=3)
+parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=4)
 parser.add_option("--lr", type="float", dest="lr", help="hyp", default=0.01)
-parser.add_option("--mcw", type="int", dest="mcw", help="hyp", default=10)
+parser.add_option("--mcw", type="int", dest="mcw", help="hyp", default=1000)
 (options, args) = parser.parse_args()
 #""" bdtType=="evtLevelTTV_TTH"
 
@@ -74,6 +74,7 @@ if channel=='2lss_1tau' : execfile("../cards/info_2lss_1tau.py")
 if channel=="2l_2tau" : execfile("../cards/info_2l_2tau.py")
 if channel=="3l_1tau" : execfile("../cards/info_3l_1tau.py")
 if channel=="3l_0tau" : execfile("../cards/info_3l_0tau.py")
+if channel=="0l_2tau" : execfile("../cards/info_0l_2tau.py")
 
 ### wheather to compare with other samples
 doTight=False
@@ -352,10 +353,10 @@ if options.HypOpt==True :
 if options.HypOpt==True :
 	# http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
 	param_grid = {
-				'n_estimators': [ 500, 1000, 2500],
-				'min_child_weight': [10, 100, 1000],
-				'max_depth': [ 1, 2, 3, 4],
-				'learning_rate': [0.01, 0.05, 0.1]
+				'n_estimators': [ 500, 800, 1000, 1200],
+				'min_child_weight': [10, 100],
+				'max_depth': [ 1, 2, 3],
+				'learning_rate': [0.01, 0.03, 0.1, 0.2]
 	            #'n_estimators': [ 500 ]
 				}
 	scoring = "roc_auc"
@@ -461,11 +462,12 @@ fig.savefig("{}/{}_{}_{}_{}_roc.pdf".format(channel,bdtType,trainvar,str(len(tra
 ## feature importance plot
 fig, ax = plt.subplots()
 f_score_dict =cls.booster().get_fscore()
+print (len(f_score_dict), len(trainVars(False))  )
 f_score_dict = {trainVars(False)[int(k[1:])] : v for k,v in f_score_dict.items()}
 feat_imp = pandas.Series(f_score_dict).sort_values(ascending=True)
 feat_imp.plot(kind='barh', title='Feature Importances')
 fig.tight_layout()
-fig.savefig("{}/{}_{}_{}_{}_XGB_importance.png".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar))
+#fig.savefig("{}/{}_{}_{}_{}_XGB_importance.png".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar))
 fig.savefig("{}/{}_{}_{}_{}_XGB_importance.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar))
 ###########################################################################
 #print (list(valdataset))
@@ -504,7 +506,7 @@ if options.HypOpt==False :
 		fig.colorbar(cax)
 		fig.tight_layout()
 		#plt.subplots_adjust(left=0.9, right=0.9, top=0.9, bottom=0.1)
-		plt.savefig("{}/{}_{}_{}_corr_{}.png".format(channel,bdtType,trainvar,str(len(trainVars(False))),label))
+		#plt.savefig("{}/{}_{}_{}_corr_{}.png".format(channel,bdtType,trainvar,str(len(trainVars(False))),label))
 		plt.savefig("{}/{}_{}_{}_corr_{}.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),label))
 		ax.clear()
 	###################################################################
