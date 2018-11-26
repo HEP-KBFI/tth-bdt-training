@@ -127,12 +127,8 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
     data = pandas.DataFrame(columns=my_cols_list)
     if bdtType=="evtLevelTT_TTH" : keys=['ttHToNonbb','TTTo2L2Nu', 'TTToHadronic','TTToSemiLeptonic']
     if bdtType=="evtLevelTTV_TTH" : keys=['ttHToNonbb','TTWJets','TTZJets']
-<<<<<<< HEAD
-    if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic', 'TTToHadronic'] #
-=======
     if bdtType=="evtLevelDY_TTH" : keys=['ttHToNonbb','DYJetsToLL', 'DY1JetsToLL', 'DY2JetsToLL', 'DY3JetsToLL', 'DY4JetsToLL']
     if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic'] # 'TTToHadronic',
->>>>>>> c7e4a6406e012b3233f62ab6a92be77dbba53181
     if "evtLevelSUM_HH" in bdtType :
         keys=[
     'TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic', 'TTToHadronic',
