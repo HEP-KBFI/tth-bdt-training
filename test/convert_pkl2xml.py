@@ -22,16 +22,16 @@ from sklearn.externals import joblib
 from itertools import izip
 
 #InputFile_Dir = "/home/sbhowmik/VHbbNtuples_8_0_x/CMSSW_8_0_21/src/tthAnalysis/bdtTraining/test/"
-inputFile_Dir = "/home/acaan/VHbbNtuples_8_0_x/CMSSW_9_4_6_patch1/src/tthAnalysis/HiggsToTauTau/data/evtLevel_2018March/"
-inputFile_Name = "1l_2tau_XGB_noHTT_evtLevelSUM_TTH_16Var.pkl"
+inputFile_Dir = "/home/snandan/workdir/CMSSW_9_4_6_patch1/src/tthAnalysis/bdtTraining/EvtLevel/bb2l_HH"
+inputFile_Name = "bb2l_HH_XGB_noTopness_evtLevelSUM_HH_bb2l_res_15Var_2.pkl"
 inputFile = os.path.join(inputFile_Dir, inputFile_Name)
 workingDir = os.getcwd()
 outputFile_Dir = os.path.join(workingDir, "")
 #outputFile_Name = inputFile_Name[0:-4]
-outputFile_Name = "1l_2tau_XGB_noHTT_evtLevelSUM_TTH_16Var"
+outputFile_Name = "bb2l_HH_XGB_noTopness_evtLevelSUM_HH_bb2l_res_15Var_test"
 outputFile = os.path.join(outputFile_Dir, "%s%s" %(outputFile_Name,".xml"))
 
-features=['avg_dr_jet', 'dr_taus', 'ptmiss', 'lep_conePt', 'mT_lep', 'mTauTauVis', 'mindr_lep_jet', 'mindr_tau1_jet', 'mindr_tau2_jet', 'nJet', 'dr_lep_tau_ss', 'dr_lep_tau_lead', 'costS_tau', 'nBJetLoose', 'tau1_pt', 'tau2_pt']
+features=['m_ll', 'm_Hbb', 'nBJetMedium', 'm_Hww', 'logTopness_fixedChi2', 'logHiggsness_fixedChi2', 'mT2_top_3particle', 'pT_HH', 'dPhi_HH', 'min_dPhi_lepMEt', 'max_dR_b_lep', 'met', 'max_lep_pt', 'max_bjet_pt', 'gen_mHH']
 
 def mul():
     print 'Today is',ctime(time()), 'All python libraries we need loaded goodHTT'

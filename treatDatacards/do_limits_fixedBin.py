@@ -162,8 +162,6 @@ if university == "Tallinn":
     "1l_2tau_SS_mvaOutput_final_x",
     "1l_2tau_SS_EventCounter_x",
     "1l_2tau_SS_EventCounter",
-
-
     ]
 
     channels = [
