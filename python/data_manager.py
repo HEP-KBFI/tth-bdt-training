@@ -1121,9 +1121,11 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                #if withFolder :
                if withFolder : h2.SetName("x_"+str(h2.GetName()))
                histograms.append(h2.Clone())
-               print ("h2.", h2.Integral())
+               '''print ("h2.", h2.Integral())
                if "fakes_data" in h2.GetName() : hFakes=h2.Clone()
-               if "fakes_data" in h2.GetName() or "TT" in h2.GetName() or "EWK" in h2.GetName() or "Rares" in h2.GetName() : #  or "tH" in keyO.GetName()
+               if "fakes_data" in h2.GetName() or "TT" in h2.GetName() or "EWK" in h2.GetName() or "Rares" in h2.GetName() : #  or "tH" in keyO.GetName()'''
+               if "fakes_data" in h2.GetName() : hFakes=h2.Clone()
+               if h2.GetName().find("signal") ==-1 and h2.GetName().find("data_obs") ==-1 and h2.GetName().find("conversions") ==-1:
                    #hSumDumb2 = obj # h2_rebin #
                    if not hSumAll.Integral()>0 : hSumAll=h2.Clone()
                    else : hSumAll.Add(h2)
@@ -1194,7 +1196,8 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                         else : label=str(nbins)+" bins "+BINtype+" "+variables+" "+bdtType
                         doStackPlot(hTTi,hTTHi,hTTWi,hEWKi,hRaresi,namepdf,label)
                         print (namepdf+" created")
-                hSumCopy=hSum.Clone()
+                #hSumCopy=hSum.Clone()
+                hSumCopy=hSumAll.Clone()
                 hSumi = TH1F()
                 if BINtype=="ranged" or BINtype=="regular" : hSumi = TH1F( "hSum", "hSum" , nbins , xmin , xmax)
                 elif BINtype=="quantiles" : hSumi = TH1F( "hSum", "hSum" , nbins , nbinsQuant)
