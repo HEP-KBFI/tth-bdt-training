@@ -90,10 +90,6 @@ if 'evtLevelSUM' in bdtType :
 	for mass in range(len(masses)) :
 		data.loc[(data[target]==1) & (data["gen_mHH"] == masses[mass]),[weights]] *= 100000./data.loc[(data[target]==1) & (data["gen_mHH"]== masses[mass]),[weights]].sum()
 		data.loc[(data[target]==0) & (data["gen_mHH"] == masses[mass]),[weights]] *= 100000./data.loc[(data[target]==0) & (data["gen_mHH"]== masses[mass]),[weights]].sum()
-		'''data.loc[(data[target]==1) & (data["gen_mHH"] ==300),[weights]] *= 100000./data.loc[(data[target]==1) & (data["gen_mHH"]==300),[weights]].sum()
-		data.loc[(data[target]==0) & (data["gen_mHH"] ==300),[weights]] *= 100000./data.loc[(data[target]==0) & (data["gen_mHH"]==300),[weights]].sum()
-		data.loc[(data[target]==1) & (data["gen_mHH"] ==750),[weights]] *= 100000./data.loc[(data[target]==1) & (data["gen_mHH"]==750),[weights]].sum()
-		data.loc[(data[target]==0) & (data["gen_mHH"] ==750),[weights]] *= 100000./data.loc[(data[target]==0) & (data["gen_mHH"]==750),[weights]].sum()'''
 else :
 	data.loc[data['target']==0, [weights]] *= 100000/data.loc[data['target']==0][weights].sum()
 	data.loc[data['target']==1, [weights]] *= 100000/data.loc[data['target']==1][weights].sum()
