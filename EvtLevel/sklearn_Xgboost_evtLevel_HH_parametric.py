@@ -1,3 +1,4 @@
+from datetime import datetime
 import sys , time
 #import sklearn_to_tmva
 import sklearn
@@ -30,12 +31,12 @@ from sklearn.metrics import roc_curve, auc
 import ROOT
 from tqdm import trange
 import glob
-
+#file_ = open('output1.log','w+')
+#sys.stdout = file_
 from collections import OrderedDict
-
+startTime = datetime.now()
 execfile("../python/data_manager.py")
-# run: python sklearn_Xgboost_evtLevel_HH_parametric.py --channel '2l_2tau' --variables "noTopness" --bdtType "evtLevelSUM_HH_res"
-
+#python sklearn_Xgboost_evtLevel_HH_parametric.py --channel 'bb2l' --bdtType 'evtLevelSUM_HH_bb2l_res'  --variables "noTopness"
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--channel ", type="string", dest="channel", help="The ones whose variables implemented now are:\n   - 1l_2tau\n   - 2lss_1tau\n It will create a local folder and store the report*/xml", default='T')
@@ -45,12 +46,11 @@ parser.add_option("--HypOpt", action="store_true", dest="HypOpt", help="If you c
 parser.add_option("--doXML", action="store_true", dest="doXML", help="Do save not write the xml file", default=False)
 parser.add_option("--doPlots", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
 parser.add_option("--nonResonant", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
-parser.add_option("--ntrees ", type="int", dest="ntrees", help="hyp", default=2000)
-parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=2)
+parser.add_option("--ntrees ", type="int", dest="ntrees", help="hyp", default=1500)
+parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=3)
 parser.add_option("--lr", type="float", dest="lr", help="hyp", default=0.01)
 parser.add_option("--mcw", type="int", dest="mcw", help="hyp", default=1)
 (options, args) = parser.parse_args()
-#""" bdtType=="evtLevelTTV_TTH"
 
 doPlots=options.doPlots
 bdtType=options.bdtType
@@ -60,33 +60,44 @@ hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(option
 channel=options.channel+"_HH"
 #if resonant bdtype
 
-if "2l_2tau" in channel : execfile("../cards/info_2l_2tau_HH.py")
-
+if "bb2l" in channel : execfile("../cards/info_bb2l_HH.py")
+print 'trainVars(False) :'
+print trainVars(False)
 import shutil,subprocess
 proc=subprocess.Popen(['mkdir '+channel],shell=True,stdout=subprocess.PIPE)
 out = proc.stdout.read()
 
 ####################################################################################################
 ## Load data
-data=load_data_2017(inputPath,channelInTree,trainVars(True),[],bdtType)
+#data=load_data_2017(inputPath,channelInTree,trainVars(True),[],bdtType)
+data=load_data_2017_bb2l(inputPath,channelInTree,trainVars(True),[],bdtType)
 #**********************
 
 weights="totalWeight"
 target='target'
 #################################################################################
-print ("Sum of weights:", data.loc[data['target']==0][weights].sum())
+#print ("Sum of weights:", data.loc[data['target']==0][weights].sum())
 
 ## Balance datasets
 #https://stackoverflow.com/questions/34803670/pandas-conditional-multiplication
 if 'evtLevelSUM' in bdtType :
-	data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton'), [weights]]*=TTdatacard/fastsimTT
-	data.loc[(data['key']=='TTWJetsToLNu') | (data['key']=='TTZToLLNuNu'), [weights]]*=TTVdatacard/fastsimTTV
-	data.loc[data[target]==0, [weights]] *= 100000/data.loc[data[target]==0][weights].sum()
-	data.loc[data[target]==1, [weights]] *= 100000/data.loc[data[target]==1][weights].sum()
+	data.loc[(data['key']=='TTToHadronic') | (data['key']=='TTToSemileptonic') | (data['key']=='TTTo2L2Nu'), [weights]]*=TTdatacard/fastsimTT
+	#data.loc[(data['key']=='TTWJetsToLNu') | (data['key']=='TTZ'), [weights]]*=TTVdatacard/fastsimTTV
+	data.loc[(data['key']=='DY'), [weights]]*=DYdatacard/fastsimDY
+	#data.loc[data[target]==0, [weights]] *= 100000./data.loc[data[target]==0][weights].sum()
+	#data.ix[data[target]==1, [weights]] *= 100000./data.loc[data[target]==1][weights].sum()
+	masses = [300,400,750]
+	for mass in range(len(masses)) :
+		data.loc[(data[target]==1) & (data["gen_mHH"] == masses[mass]),[weights]] *= 100000./data.loc[(data[target]==1) & (data["gen_mHH"]== masses[mass]),[weights]].sum()
+		data.loc[(data[target]==0) & (data["gen_mHH"] == masses[mass]),[weights]] *= 100000./data.loc[(data[target]==0) & (data["gen_mHH"]== masses[mass]),[weights]].sum()
+		'''data.loc[(data[target]==1) & (data["gen_mHH"] ==300),[weights]] *= 100000./data.loc[(data[target]==1) & (data["gen_mHH"]==300),[weights]].sum()
+		data.loc[(data[target]==0) & (data["gen_mHH"] ==300),[weights]] *= 100000./data.loc[(data[target]==0) & (data["gen_mHH"]==300),[weights]].sum()
+		data.loc[(data[target]==1) & (data["gen_mHH"] ==750),[weights]] *= 100000./data.loc[(data[target]==1) & (data["gen_mHH"]==750),[weights]].sum()
+		data.loc[(data[target]==0) & (data["gen_mHH"] ==750),[weights]] *= 100000./data.loc[(data[target]==0) & (data["gen_mHH"]==750),[weights]].sum()'''
 else :
 	data.loc[data['target']==0, [weights]] *= 100000/data.loc[data['target']==0][weights].sum()
 	data.loc[data['target']==1, [weights]] *= 100000/data.loc[data['target']==1][weights].sum()
-print data.columns.values.tolist()
+print 'data to list = ', data.columns.values.tolist()
 
 print ("norm", data.loc[data[target]==0][weights].sum(),data.loc[data[target]==1][weights].sum())
 
@@ -116,11 +127,17 @@ make_plots(BDTvariables,nbins,
     data.ix[data.target.values == 1],'Signal', colorFastT,
     channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT.pdf",
     printmin,
-	plotResiduals
+    plotResiduals
     )
 
 #########################################################################################
+'''traindataset, valdataset1  = train_test_split(data[trainVars(False)+["target","totalWeight"]], test_size=0.2, random_state=7)
+valdataset = valdataset1.loc[valdataset1['gen_mHH']==400]
+valdataset.loc[valdataset[target]==1,[weights]] *= valdataset1.loc[valdataset1[target]==1]["totalWeight"].sum()/valdataset.loc[valdataset[target]==1]["totalWeight"].sum()
+valdataset.loc[valdataset[target]==0,[weights]]*= valdataset1.loc[valdataset1[target]==0]["totalWeight"].sum()/valdataset.loc[valdataset[target]==0]["totalWeight"].sum()'''
 traindataset, valdataset  = train_test_split(data[trainVars(False)+["target","totalWeight"]], test_size=0.2, random_state=7)
+print 'Tot weight of train and validation for signal= ', traindataset.loc[traindataset[target]==1]["totalWeight"].sum(), valdataset.loc[valdataset[target]==1]["totalWeight"].sum()
+print 'Tot weight of train and validation for bkg= ', traindataset.loc[traindataset[target]==0]['totalWeight'].sum(),valdataset.loc[valdataset[target]==0]['totalWeight'].sum()
 ## to GridSearchCV the test_size should not be smaller than 0.4 == it is used for cross validation!
 ## to final BDT fit test_size can go down to 0.1 without sign of overtraining
 #############################################################################################
@@ -183,8 +200,8 @@ cls.fit(
 	#(valdataset[trainVars(False)].values,  valdataset.target.astype(np.bool), valdataset[weights].astype(np.float64))] ,
 	#verbose=True,eval_metric="auc"
 	)
-print trainVars(False)
-print traindataset[trainVars(False)].columns.values.tolist()
+#print trainVars(False)
+print 'traindataset[trainVars(False)].columns.values.tolist() : ', traindataset[trainVars(False)].columns.values.tolist()
 print ("XGBoost trained")
 proba = cls.predict_proba(traindataset[trainVars(False)].values )
 fpr, tpr, thresholds = roc_curve(traindataset[target], proba[:,1],
@@ -236,6 +253,13 @@ hist_params = {'normed': True, 'bins': 10 , 'histtype':'step'}
 plt.clf()
 y_pred = cls.predict_proba(valdataset.ix[valdataset.target.values == 0, trainVars(False)].values)[:, 1] #
 y_predS = cls.predict_proba(valdataset.ix[valdataset.target.values == 1, trainVars(False)].values)[:, 1] #
+'''for indx in range(0,len(valdataset)) :
+	test = valdataset.take([indx])
+	#print indx, '\t', 'test data : '
+	#print test
+	pre = cls.predict_proba(test[trainVars(False)].values )[:, 1]
+	#print 'predict for test data : ',
+	#print pre'''
 plt.figure('XGB',figsize=(6, 6))
 values, bins, _ = plt.hist(y_pred , label="TT (XGB)", **hist_params)
 values, bins, _ = plt.hist(y_predS , label="signal", **hist_params )
@@ -272,3 +296,4 @@ if options.HypOpt==False :
 		ax.clear()
 process = psutil.Process(os.getpid())
 print(process.memory_info().rss)
+print(datetime.now() - startTime)

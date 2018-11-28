@@ -20,7 +20,7 @@ parser.add_option("--BDTtype", type="string", dest="BDTtype", help="Variable set
 parser.add_option("--BINtype", type="string", dest="BINtype", help="regular / ranged / quantiles", default="regular")
 (options, args) = parser.parse_args()
 
-user="acaan"
+user="snandan"
 year="2016"
 channel=options.channel
 
@@ -83,7 +83,8 @@ if channel == "hh_bb2l" :
     year="2017"
     label='hh_bb2l'
     bdtTypes=[
-    "hh_bb2lOS_MVAOutput_400",
+    "hh_bb2lOS_MVAOutput_400","hh_bb2l_resolvedHbbOS_MVAOutput_400","hh_bb2l_boostedHbbOS_MVAOutput_400",
+    "hh_bb2eOS_MVAOutput_400","hh_bb2muOS_MVAOutput_400","hh_bb1e1muOS_MVAOutput_400"
     ]
 
 
@@ -102,7 +103,7 @@ def run_cmd(command):
   print stderr
   return stdout
 
-nbinRegular=np.arange(1, 20) #list(divisorGenerator(originalBinning))
+nbinRegular=np.arange(1, 35) #list(divisorGenerator(originalBinning))
 nbinQuant= np.arange(10,30)
 #
 #nbinRegular=np.arange(8, 11) #list(divisorGenerator(originalBinning))
@@ -243,7 +244,7 @@ if channel == "2los_1tau" :
             counter=counter+1
         else : print (source+" "+my_file, "does not exist ")
 if channel == "hh_bb2l" :
-    local="/home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/"+label+"/"
+    local="/home/snandan/workdir/CMSSW_9_4_6_patch1/src/tthAnalysis/bdtTraining/treatDatacards/"+label+"/"
     for ii, bdtType in enumerate(bdtTypes) :
         source=local+"/prepareDatacards_hh_bb2l_"+bdtTypes[ii]
         my_file = source+".root"
@@ -262,6 +263,10 @@ if options.BINtype == "quantiles" : binstoDo=nbinQuant
 print ("I will rebin",bdtTypesToDoFile,"(",len(sources),") BDT options")
 
 for ns,source in enumerate(sources) :
+    lepton = "2l"
+    if source.find("2mu") != -1 : lepton = "2mu"
+    elif source.find("2e") !=-1 : lepton = "2e"
+    elif source.find("1e1mu") !=-1 : lepton ="1e1mu"
     for nn,nbins in enumerate(binstoDo) :
         if options.BINtype=="regular" :
             name=source+'_'+str(nbins)+'bins.root'
@@ -276,15 +281,15 @@ for ns,source in enumerate(sources) :
         shapeVariable=options.variables+'_'+bdtTypesToDoFile[ns]+'_nbin_'+str(nbins)
         if options.BINtype=="ranged" : shapeVariable=shapeVariable+"_ranged"
         if options.BINtype=="quantiles" : shapeVariable=shapeVariable+"_quantiles"
-        datacardFile_output = os.path.join(workingDir, local, "ttH_%s" % shapeVariable)
+        datacardFile_output = os.path.join(workingDir, local, "%s_%s" % (channelToDo[ns],shapeVariable))
         #run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=false' % ('WriteDatacards_'+channel, name, datacardFile_output))
-        run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=false' % ('WriteDatacards_'+channelToDo[ns], name, datacardFile_output))
+        run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=false --lepton=%s' % ('WriteDatacards_'+channelToDo[ns], name, datacardFile_output,lepton))
 
         txtFile = datacardFile_output + ".txt" #.replace(".root", ".txt")
         logFile = datacardFile_output + ".log" #.replace(".root", ".log")
         run_cmd('combine -M Asymptotic -m %s -t -1 %s &> %s' % (str(125), txtFile, logFile))
         run_cmd('rm higgsCombineTest.Asymptotic.mH125.root')
-        rootFile = os.path.join(workingDir, local, "ttH_%s_shapes.root" % (shapeVariable))
+        rootFile = os.path.join(workingDir, local, "%s_%s_shapes.root" % (channelToDo[ns],shapeVariable))
         run_cmd('PostFitShapes -d %s -o %s -m 125 ' % (txtFile, rootFile))
 
         if (channel == "0l_2tau" and (options.BINtype == "quantiles" and nbins > 18 and nbins <20) or (channel == "0l_2tau" and options.BINtype == "regular" and nbins > 5 and nbins < 15)) :
