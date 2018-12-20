@@ -152,7 +152,7 @@ def trainVars(cat,train):
 		variables_train = [
         #'massTop',
         'tau32Top',
-        "btagDisc_b",
+        #"btagDisc_b",
         #"btagDisc_Wj1",
         #"btagDisc_Wj2",
         #"qg_Wj1",
@@ -169,17 +169,21 @@ def trainVars(cat,train):
         'm_bWj2',
         #"dR_bWj2",
         #'pT_Wj1',
-        'mass_Wj1',
+        #'mass_Wj1',
         'pT_Wj2',
-        'mass_Wj2',
+        #'mass_Wj2',
         'pT_b',
-        "mass_b",
+        #"mass_b",
         #'cosThetab_rest',
         #"HTTv2_area", "HTTv2_Ropt", "HTTv2_RoptCalc"
         #'kinFit_pT_b_o_pT_b',
         #'kinFit_pT_Wj1_o_pT_Wj1',
         #'kinFit_pT_Wj2_o_pT_Wj2',
         #'nllKinFit',
+	#'m23_div_m123',
+	'atan_m13_div_m12',
+	'Rmin_square_one_plus_m13_div_m12_square',
+	'Rmax_square_one_plus_m13_div_m12_square',
 		]
 
 	if cat==2 and train==True :
@@ -308,13 +312,17 @@ treetoread=[
     ]
 sources = [
     #"/hdfs/local/acaan/ttHAnalysis/2017/HTT_wBoost_2018Sep13/histograms/hadTopTagger/TTWJets_LO/TTWJets_LO_1.root",
-    "/hdfs/local/acaan/ttHAnalysis/2017/HTT_wBoost_2018Sep13/histograms/hadTopTagger/TTZJets_LO/TTZJets_LO_1.root",
+    #"/hdfs/local/acaan/ttHAnalysis/2017/HTT_wBoost_2018Sep13/histograms/hadTopTagger/TTZJets_LO/TTZJets_LO_1.root",
     #"/hdfs/local/acaan/ttHAnalysis/2017/HTT_wBoost_2018Sep13/histograms/hadTopTagger/TTZJets_LO/TTZJets_LO_2.root",
-    "/hdfs/local/acaan/ttHAnalysis/2017/HTT_wBoost_2018Sep13/histograms/hadTopTagger/ttHToNonbb_M125_powheg/ttHToNonbb_M125_powheg_1.root",
+    #"/hdfs/local/acaan/ttHAnalysis/2017/HTT_wBoost_2018Sep13/histograms/hadTopTagger/ttHToNonbb_M125_powheg/ttHToNonbb_M125_powheg_1.root",
     #"/hdfs/local/acaan/ttHAnalysis/2017/HTT_wBoost_2018Sep13/histograms/hadTopTagger/ttHToNonbb_M125_powheg/ttHToNonbb_M125_powheg_3.root",
     #"/hdfs/local/acaan/ttHAnalysis/2017/HTT_wBoost_2018Sep13/histograms/hadTopTagger/TTToHadronic_PSweights/TTToHadronic_PSweights_14.root",
-    "/hdfs/local/acaan/ttHAnalysis/2017/HTT_wBoost_2018Sep13/histograms/hadTopTagger/TTToHadronic/TTToHadronic_5.root",
+    #"/hdfs/local/acaan/ttHAnalysis/2017/HTT_wBoost_2018Sep13/histograms/hadTopTagger/TTToHadronic/TTToHadronic_5.root",
     #"/hdfs/local/acaan/ttHAnalysis/2017/HTT_wBoost_2018Sep13/histograms/hadTopTagger/TTToHadronic/TTToHadronic_1.root",
+    "/hdfs/local/karmakar/ttHAnalysis/2017/HTTv2_Nov22/histograms/hadTopTagger/TTZJets_LO/TTZJets_LO_1.root",
+    "/hdfs/local/karmakar/ttHAnalysis/2017/HTTv2_Nov22/histograms/hadTopTagger/ttHToNonbb_M125_powheg/ttHToNonbb_M125_powheg_1.root",
+    #"/hdfs/local/karmakar/ttHAnalysis/2017/HTTv2_Nov22/histograms/hadTopTagger/ttHToNonbb_M125_powheg/ttHToNonbb_M125_powheg_3.root",
+    "/hdfs/local/karmakar/ttHAnalysis/2017/HTTv2_Nov22/histograms/hadTopTagger/TTToHadronic/TTToHadronic_1.root",
     ]
 
 weights = "weights"

@@ -54,23 +54,36 @@ if channel == "2017" :
     channelsTypes= [ "2l_2tau"]
 if channel == "0l_2tau" :
     year="2017"
-    label='0l_2tau_datacards_2018Oct07_withBoost'
+    label= "0l_2tau_datacards_2018Oct25_withBoostSubjetCat" #"0l_2tau_datacards_2018Oct22_withBoost_4cat" #'0l_2tau_datacards_2018Oct07_withBoost'
     #label='0l_2tau_datacards_2018Oct07_withBoost_looseTau'
     bdtTypes=[
     "mva_Updated", #"mva_oldVar", # "mTauTau", # "mTauTauVis",
     #"mva_Boosted_AK12", "mva_Boosted_AK12_basic","mva_Boosted_AK12_noISO",
-    "mva_Boosted_AK8", "mva_Boosted_AK8_basic","mva_Boosted_AK8_noISO",
+    "mva_Boosted_AK8", #"mva_Boosted_AK8_basic",
+    "mva_Boosted_AK8_noISO",
     ] # "mvaOutput_0l_2tau_HTT_sum",
     channelsTypes= [ "0l_2tau" ]
+if channel == "2lss_0tau" :
+    year="2017"
+    label= "2lss_0tau_datacards_2018Oct28_withBoost_multilepCat" #"2lss_0tau_datacards_2018Oct25_withBoostCat" #"2lss_0tau_datacards_2018Oct07_withBoost_multilepCat_2" #'0l_2tau_datacards_2018Oct07_withBoost'
+    #label='0l_2tau_datacards_2018Oct07_withBoost_looseTau'
+    bdtTypes=[
+    "mva_oldVar", "mva_Updated", # "mTauTau", # "mTauTauVis",
+    #"mva_Boosted_AK12", "mva_Boosted_AK12_noISO", "mva_Boosted_AK12_basic",
+    "mva_Boosted_AK8", #"mva_Boosted_AK8_basic",
+    #"mva_Boosted_AK8_noISO",
+    ]
+    channelsTypes= [ "2lss_0tau" ]
 if channel == "3l_0tau" :
     year="2017"
-    label='3l_0tau_datacards_2018Oct07_withBoost_multilepCat'
+    label= '3l_0tau_datacards_2018Oct07_withBoost_multilepCat' #"3l_0tau_datacards_2018Oct28_withBoostCat_SubjetISO" #
     #label='0l_2tau_datacards_2018Oct07_withBoost_looseTau'
     bdtTypes=[
     #"mva_AK12", "mva_Boosted_AK12_basic", "mva_Boosted_AK12_noISO", "mva_Boosted_AK12",
-    #"mva_Boosted_AK8_noISO", "mva_Boosted_AK8",
-    "mva_oldVar",
-    "mva_Updated"
+    #"mva_Boosted_AK8_noISO",
+    #"mva_oldVar",
+    "mva_Updated",
+    #"mva_Boosted_AK8",
     ] # "mvaOutput_0l_2tau_HTT_sum",
     channelsTypes= [ "3l_0tau" ]
 ####
@@ -80,7 +93,15 @@ if channel == "2los_1tau" :
     bdtTypes=[
     "mvaOutput_2los_1tau_evtLevelSUM_TTH_19Var",
     ]
-    channelsTypes= [ "2los_1tau" ]
+    channelsTypes= [ "hh_bb2l" ]
+if channel == "hh_bb2l" :
+    year="2017"
+    label='hh_bb2l'
+    bdtTypes=[
+    "hh_bb2lOS_MVAOutput_400","hh_bb2l_resolvedHbbOS_MVAOutput_400","hh_bb2l_boostedHbbOS_MVAOutput_400",
+    "hh_bb2eOS_MVAOutput_400","hh_bb2muOS_MVAOutput_400","hh_bb1e1muOS_MVAOutput_400",
+    ]
+    channelsTypes= [ "hh_bb2l" ]
 
 sources=[]
 bdtTypesToDo=[]
@@ -97,8 +118,8 @@ else : mom="/home/"+user+"/ttHAnalysis/"+year+"/"+label+"/datacards/"+channel
 
 local=workingDir+"/"+options.channel+"_"+label+"/"+options.variables+"/"
 originalBinning=100
-nbinRegular=np.arange(1, 20)
-nbinQuant= np.arange(10,27)
+nbinRegular=np.arange(1, 35)
+nbinQuant= np.arange(10,29)
 counter=0
 
 if channel == "2lss_1tau" :
@@ -224,7 +245,24 @@ if channel == "3l_0tau" :
             bdtTypesToDoFile=bdtTypesToDoFile+["3l_0tau_"+bdtTypes[ii]]
             print ("rebinning ",sources[counter])
         else : print ("does not exist ",source)
-
+if channel == "2lss_0tau" :
+    withFolder=True
+    local="/home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/"+label+"/"
+    for ii, bdtType in enumerate(bdtTypes) :
+        mom = "/home/acaan/ttHAnalysis/2017/"+label+"/datacards/2lss/"
+        fileName=mom+"prepareDatacards_2lss_"+bdtTypes[ii]+".root"
+        my_file = Path(fileName)
+        source=local+"prepareDatacards_2lss_"+bdtTypes[ii]
+        print fileName
+        if my_file.exists() :
+            proc=subprocess.Popen(['cp '+fileName+" "+local],shell=True,stdout=subprocess.PIPE)
+            out = proc.stdout.read()
+            sources = sources + [source]
+            bdtTypesToDo = bdtTypesToDo +["2lss "+bdtTypes[ii]]
+            bdtTypesToDoLabel = bdtTypesToDoLabel +["2lss "+bdtTypes[ii]]
+            bdtTypesToDoFile=bdtTypesToDoFile+["2lss_0tau_"+bdtTypes[ii]]
+            print ("rebinning ",sources[counter])
+        else : print ("does not exist ",source)
 if channel == "2los_1tau" :
     local="/home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/treatDatacards/"+label+"/"
     for ii, bdtType in enumerate(bdtTypes) :
@@ -241,6 +279,27 @@ if channel == "2los_1tau" :
             bdtTypesToDoLabel = bdtTypesToDoLabel +["2los_1tau "+bdtTypes[ii]]
             bdtTypesToDoFile=bdtTypesToDoFile+["2los_1tau_"+bdtTypes[ii]]
             print ("rebinning ",sources[counter])
+        else : print ("does not exist ",source)
+print ("I will rebin",bdtTypesToDoLabel,"(",len(sources),") BDT options")
+
+if channel == "hh_bb2l" :
+    local="/home/snandan/workdir/CMSSW_9_4_6_patch1/src/tthAnalysis/bdtTraining/treatDatacards/"+label+"/"
+    for ii, bdtType in enumerate(bdtTypes) :
+        mom = "/home/snandan/hhAnalysis/2017/2018Nov1st/datacards/hh_bb2l/"
+        fileName=mom+"prepareDatacards_hh_bb2l_"+bdtTypes[ii]+".root"
+        my_file = Path(fileName)
+        source=local+"prepareDatacards_hh_bb2l_"+bdtTypes[ii]
+        print fileName
+        if my_file.exists() :
+            proc=subprocess.Popen(['cp '+fileName+" "+local],shell=True,stdout=subprocess.PIPE)
+            print 'cp ',fileName," ",local
+            out = proc.stdout.read()
+            sources = sources + [source]
+            bdtTypesToDo = bdtTypesToDo +["hh_bb2l "+bdtTypes[ii]]
+            bdtTypesToDoLabel = bdtTypesToDoLabel +["hh_bb2l "+bdtTypes[ii]]
+            bdtTypesToDoFile=bdtTypesToDoFile+["hh_bb2l_"+bdtTypes[ii]]
+            print ("rebinning ",sources[counter])
+            ++counter
         else : print ("does not exist ",source)
 print ("I will rebin",bdtTypesToDoLabel,"(",len(sources),") BDT options")
 
@@ -265,12 +324,15 @@ if not doLimits:
         xmaxQuant=xmaxQuant+[errOcont[5]]
         xminQuant=xminQuant+[errOcont[6]]
         #
-        print (binstoDo,errOcont[0])
+        '''print (binstoDo,errOcont[0])
         plt.plot(binstoDo,errOcont[0], color=colorsToDo[nn],linestyle='-') # ,label=bdtTypesToDo[nn]
-        plt.plot(binstoDo,errOcont[0], color=colorsToDo[nn],linestyle='-',marker='o',label=bdtTypesToDo[nn]) #
+        plt.plot(binstoDo,errOcont[0], color=colorsToDo[nn],linestyle='-',marker='o',label=bdtTypesToDo[nn]) #'''
+        print (binstoDo,errOcont[2])
+        plt.plot(binstoDo,errOcont[2], color=colorsToDo[nn],linestyle='-') # ,label=bdtTypesToDo[nn]
+        plt.plot(binstoDo,errOcont[2], color=colorsToDo[nn],linestyle='-',marker='o',label=bdtTypesToDo[nn]) #
         #plt.plot(binstoDo,errOcont[2], color=colorsToDo[nn],linestyle='--',marker='x')
-    ax.set_xlabel('nbins')
-    if options.BINtype == "regular" : maxplot =1.0
+        ax.set_xlabel('nbins')
+    if options.BINtype == "regular" : maxplot =0.02
     #elif options.BINtype == "mTauTauVis" : maxplot=200.
     else : maxplot =1.0 # 0.35
     plt.axis((min(binstoDo),max(binstoDo),0,maxplot))
@@ -282,7 +344,8 @@ if not doLimits:
     plt.grid(True)
     if options.BINtype == "none" : namefig=local+'/'+options.variables+'_fullsim_ErrOcont_none.pdf'
     if options.BINtype == "quantiles" : namefig=local+'/'+options.variables+'_fullsim_ErrOcont_quantiles.pdf'
-    if options.BINtype == "regular" or options.BINtype == "mTauTauVis": namefig=local+'/'+options.variables+'_fullsim_ErrOcont.pdf'
+    #if options.BINtype == "regular" or options.BINtype == "mTauTauVis": namefig=local+'/'+options.variables+'_fullsim_ErrOcont.pdf'
+    if options.BINtype == "regular" or options.BINtype == "mTauTauVis": namefig=local+'/'+options.variables+'_fullsim_ErrOcont.png'
     if options.BINtype == "ranged" : namefig=local+'/'+options.variables+'_fullsim_ErrOcont_ranged.pdf'
     fig.savefig(namefig)
     print ("saved",namefig)
@@ -299,6 +362,7 @@ if not doLimits:
             plt.plot(binstoDo,xmaxQuant[nn], color=colorsToDo[nn],linestyle='--',marker='x')
             plt.plot(binstoDo,xminQuant[nn], color=colorsToDo[nn],linestyle='--',marker='.')
         ax.set_xlabel('nbins')
+        ax.set_ylabel('err/content last bin')
         plt.axis((min(binstoDo),max(binstoDo),0,1.0))
         line_up, = plt.plot(binstoDo, 'o-', color='k',label="last bin low")
         line_down, = ax.plot(binstoDo, 'x--', color='k',label="Max")
@@ -313,7 +377,6 @@ if not doLimits:
 print sources
 if doLimits :
     print "do limits"
-    print sources
     fig, ax = plt.subplots(figsize=(5, 5))
     if options.BINtype == "quantiles" : namefig=local+'/'+options.variables+'_fullsim_limits_quantiles'
     if options.BINtype == "regular" or options.BINtype == "mTauTauVis": namefig=local+'/'+options.variables+'_fullsim_limits'
@@ -322,6 +385,8 @@ if doLimits :
     for nn,source in enumerate(sources) :
         limits=ReadLimits(bdtTypesToDoFile[nn], binstoDo, options.BINtype,channel,local,0,0)
         print (len(binstoDo),len(limits[0]))
+        print 'binstoDo= ', binstoDo
+        print limits[0]
         for jj in limits[0] : file.write(str(jj)+', ')
         file.write('\n')
         plt.plot(binstoDo,limits[0], color=colorsToDo[nn],linestyle='-',marker='o',label=bdtTypesToDoLabel[nn])
@@ -331,10 +396,10 @@ if doLimits :
     ax.set_xlabel('nbins')
     ax.set_ylabel('limits')
     maxsum=0
-    if channel in ["0l_2tau", "2los_1tau"] : maxlim = 10.5
+    if channel in ["0l_2tau", "2los_1tau", "hh_bb2l"] : maxlim = 10.5
     else : maxlim = 2.0
     plt.axis((min(binstoDo),max(binstoDo),0.5, maxlim))
-    plt.text(11.3, 2.4, options.BINtype+" binning "+" "+options.variables )
-    fig.savefig(namefig+'.pdf')
+    plt.text(0.3, 1.4, options.BINtype+" binning "+" "+options.variables )
+    fig.savefig(namefig+'.png')
     file.close()
     print ("saved",namefig)

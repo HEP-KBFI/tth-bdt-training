@@ -25,9 +25,9 @@ def rebin_total(template, folder, fin, divideByBinWidth, name_total) :
     if not hist.GetSumw2N() : hist.Sumw2()
     hist.GetXaxis().SetTitleOffset(0.7);
     hist.GetXaxis().SetLabelColor(10);
-    hist.GetYaxis().SetTitleOffset(0.8);
-    hist.GetYaxis().SetTitleSize(0.080);
-    hist.GetYaxis().SetLabelSize(0.065);
+    hist.GetYaxis().SetTitleOffset(1.);
+    hist.GetYaxis().SetTitleSize(0.055);
+    hist.GetYaxis().SetLabelSize(0.050);
     hist.GetYaxis().SetTickLength(0.04);
     hist.GetXaxis().SetTickLength(0.04);
     return hist
@@ -49,11 +49,13 @@ def rebin_hist(template, fin, name, itemDict, divideByBinWidth) :
         binContent_original = hist.GetBinContent(ii)
         binError2_original = hist.GetBinError(ii)**2;
         if binContent_original < 0. :
-            print ("bin with negative entry: ", binContent_original)
-            binError2_modified = binError2_original + math.pow(2, binContent_original - binContent_modified)
+            binContent_modified = 0.
+            print ("bin with negative entry: ", ii, '\t', binContent_original)
+            binError2_modified = binError2_original + math.pow((binContent_original-binContent_modified),2)
             if not binError2_modified >= 0. : print "Bin error negative!"
             hist_rebin.SetBinError(ii, math.sqrt(binError2_modified)/bin_width);
             hist_rebin.SetBinContent(ii, 0.)
+            print 'binerror_original= ', binError2_original, '\t',  'bincontent_original', '\t', binContent_original,'\t', 'bincontent_modified', '\t', binContent_modified, '\t', 'binerror= ', hist_rebin.GetBinError(ii)
         else :
             hist_rebin.SetBinError(ii,   hist.GetBinError(ii)/bin_width);
             hist_rebin.SetBinContent(ii, hist.GetBinContent(ii)/bin_width)
@@ -81,11 +83,16 @@ def rebin_data(template, folder, fin, fromHavester) :
         for ii in xrange(1, template.GetXaxis().GetNbins()+1) :
             bin_width = 1.
             if divideByBinWidth : bin_width = template.GetXaxis().GetBinWidth(ii+1)
-            dataTGraph1.SetBinContent(ii, dataTGraph.GetBinContent(ii)/bin_width)
-            dataTGraph1.SetBinError(ii, dataTGraph.GetBinError(ii)/bin_width)
+            if ii == template.GetXaxis().GetNbins() or ii == template.GetXaxis().GetNbins()-1 :
+              dataTGraph1.SetBinContent(ii, 0)
+              dataTGraph1.SetBinError(ii, 0)
+            else :
+              dataTGraph1.SetBinContent(ii, dataTGraph.GetBinContent(ii)/bin_width)
+              dataTGraph1.SetBinError(ii, dataTGraph.GetBinError(ii)/bin_width)
+            
     dataTGraph1.SetMarkerColor(1);
     dataTGraph1.SetMarkerStyle(20);
-    dataTGraph1.SetMarkerSize(2);
+    dataTGraph1.SetMarkerSize(0.8);
     dataTGraph1.SetLineColor(1);
     dataTGraph1.SetLineWidth(1);
     dataTGraph1.SetLineStyle(1)
@@ -98,6 +105,7 @@ def err_data(template, folder, fromHavester) :
         dataTGraph = fin.Get(folder+"/data")
         dataTGraph1 = ROOT.TGraphAsymmErrors()
         for ii in xrange(0, template.GetXaxis().GetNbins()) :
+            if ii == template.GetXaxis().GetNbins() -1 or ii == template.GetXaxis().GetNbins()-2 : continue
             bin_width = 1.
             if divideByBinWidth : bin_width = template.GetXaxis().GetBinWidth(ii+1)
             dividend = template.GetBinContent(ii+1)*bin_width
@@ -117,6 +125,7 @@ def err_data(template, folder, fromHavester) :
         dataTGraph = fin.Get(folder+"/data_obs")
         dataTGraph1 = template.Clone()
         for ii in xrange(1, template.GetXaxis().GetNbins()+1) :
+            if ii == template.GetXaxis().GetNbins() or ii == template.GetXaxis().GetNbins()-1 : continue
             bin_width = 1.
             if divideByBinWidth : bin_width = template.GetXaxis().GetBinWidth(ii)
             dividend = template.GetBinContent(ii)*bin_width
@@ -129,7 +138,7 @@ def err_data(template, folder, fromHavester) :
         if not dataTGraph1.GetSumw2N() : dataTGraph1.Sumw2()
     dataTGraph1.SetMarkerColor(1);
     dataTGraph1.SetMarkerStyle(20);
-    dataTGraph1.SetMarkerSize(2);
+    dataTGraph1.SetMarkerSize(0.8);
     dataTGraph1.SetLineColor(1);
     dataTGraph1.SetLineWidth(1);
     dataTGraph1.SetLineStyle(1)
@@ -140,9 +149,9 @@ def do_hist_total_err(template, labelX, name_total) :
     hist_total_err = template.Clone()
     hist_total_err.GetYaxis().SetTitle("#frac{Data - Expectation}{Expectation}");
     hist_total_err.GetXaxis().SetTitleOffset(1.15);
-    hist_total_err.GetYaxis().SetTitleOffset(0.8);
+    hist_total_err.GetYaxis().SetTitleOffset(1.0);
     hist_total_err.GetXaxis().SetTitleSize(0.14);
-    hist_total_err.GetYaxis().SetTitleSize(0.105);
+    hist_total_err.GetYaxis().SetTitleSize(0.055);
     hist_total_err.GetYaxis().SetLabelSize(0.105);
     hist_total_err.GetXaxis().SetLabelSize(0.10);
     hist_total_err.GetYaxis().SetTickLength(0.04);
@@ -164,20 +173,20 @@ def addLabel_CMS_preliminary() :
     x0 = 0.2
     y0 = 0.953
     ypreliminary = 0.95
-    xlumi = 0.7
+    xlumi = 0.5
     label_cms = ROOT.TPaveText(x0, y0, x0 + 0.0950, y0 + 0.0600, "NDC");
     label_cms.AddText("CMS");
-    label_cms.SetTextFont(61);
+    label_cms.SetTextFont(50);
     label_cms.SetTextAlign(13);
     label_cms.SetTextSize(0.0575);
     label_cms.SetTextColor(1);
     label_cms.SetFillStyle(0);
     label_cms.SetBorderSize(0);
-    label_preliminary = ROOT.TPaveText(x0 + 0.1050, ypreliminary - 0.0010, x0 + 0.2950, ypreliminary + 0.0500, "NDC");
+    label_preliminary = ROOT.TPaveText(x0 + 0.1055, ypreliminary - 0.0010, x0 + 0.2950, ypreliminary + 0.0500, "NDC");
     label_preliminary.AddText("Preliminary");
-    label_preliminary.SetTextFont(52);
+    label_preliminary.SetTextFont(48);
     label_preliminary.SetTextAlign(13);
-    label_preliminary.SetTextSize(0.050);
+    label_preliminary.SetTextSize(0.045);
     label_preliminary.SetTextColor(1);
     label_preliminary.SetFillStyle(0);
     label_preliminary.SetBorderSize(0);
