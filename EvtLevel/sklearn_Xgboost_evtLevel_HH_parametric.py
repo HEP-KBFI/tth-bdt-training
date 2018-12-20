@@ -60,12 +60,16 @@ hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(option
 channel=options.channel+"_HH"
 #if resonant bdtype
 
+print "Siddh:: options: ",options; sys.stdout.flush()
+
 if "2l_2tau" in channel : execfile("../cards/info_2l_2tau_HH.py")
+if "3l_0tau" in channel : execfile("../cards/info_3l_0tau_HH.py")
 
 import shutil,subprocess
 proc=subprocess.Popen(['mkdir '+channel],shell=True,stdout=subprocess.PIPE)
 out = proc.stdout.read()
 
+print "Siddh:: inputPath: ",inputPath,", channelInTree: ",channelInTree; sys.stdout.flush()
 ####################################################################################################
 ## Load data
 data=load_data_2017(inputPath,channelInTree,trainVars(True),[],bdtType)
@@ -76,19 +80,42 @@ target='target'
 #################################################################################
 print ("Sum of weights:", data.loc[data['target']==0][weights].sum())
 
+#print "Siddh:: data.loc[(data['key']=='TTTo2L2Nu')]: ",data.loc[(data['key']=='TTTo2L2Nu')]; sys.stdout.flush()
+#print "Siddh:: data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton')]: ",data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton')]; sys.stdout.flush()
+#print "Siddh:: data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton'), [weights]]: ",data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton'), [weights]]; sys.stdout.flush()
+
+#print "\n\nSiddh:: data:",data.to_string(),"\n\n"; sys.stdout.flush()
+
+
+
 ## Balance datasets
 #https://stackoverflow.com/questions/34803670/pandas-conditional-multiplication
 if 'evtLevelSUM' in bdtType :
 	data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton'), [weights]]*=TTdatacard/fastsimTT
-	data.loc[(data['key']=='TTWJetsToLNu') | (data['key']=='TTZToLLNuNu'), [weights]]*=TTVdatacard/fastsimTTV
+	#data.loc[(data['key']=='TTWJetsToLNu') | (data['key']=='TTZToLLNuNu'), [weights]]*=TTVdatacard/fastsimTTV
+	data.loc[(data['key']=='TTWJets') | (data['key']=='TTZJets'), [weights]]*=TTVdatacard/fastsimTTV
+	data.loc[(data['key']=='WZ'), [weights]]*=WZdatacard/fastsimWZ
+	data.loc[(data['key']=='DY'), [weights]]*=DYdatacard/fastsimDY
 	data.loc[data[target]==0, [weights]] *= 100000/data.loc[data[target]==0][weights].sum()
 	data.loc[data[target]==1, [weights]] *= 100000/data.loc[data[target]==1][weights].sum()
+elif 'evtLevelWZ' in bdtType :
+	data.loc[(data['key']=='WZ'), [weights]]*=WZdatacard/fastsimWZ
+        data.loc[data[target]==0, [weights]] *= 100000/data.loc[data[target]==0][weights].sum()
+        data.loc[data[target]==1, [weights]] *= 100000/data.loc[data[target]==1][weights].sum()
+elif 'evtLevelDY' in bdtType :
+	data.loc[(data['key']=='DYJetsToLL'), [weights]]*=DYdatacard/fastsimDY
+        data.loc[data[target]==0, [weights]] *= 100000/data.loc[data[target]==0][weights].sum()
+        data.loc[data[target]==1, [weights]] *= 100000/data.loc[data[target]==1][weights].sum()
+elif 'evtLevelTT' in bdtType :
+	data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton'), [weights]]*=TTdatacard/fastsimTT
+        data.loc[data[target]==0, [weights]] *= 100000/data.loc[data[target]==0][weights].sum()
+        data.loc[data[target]==1, [weights]] *= 100000/data.loc[data[target]==1][weights].sum()
 else :
 	data.loc[data['target']==0, [weights]] *= 100000/data.loc[data['target']==0][weights].sum()
 	data.loc[data['target']==1, [weights]] *= 100000/data.loc[data['target']==1][weights].sum()
-print data.columns.values.tolist()
+print "data.columns.values.tolist(): ",data.columns.values.tolist()
 
-print ("norm", data.loc[data[target]==0][weights].sum(),data.loc[data[target]==1][weights].sum())
+print ("norm bk:", data.loc[data[target]==0][weights].sum(),",  sig:",data.loc[data[target]==1][weights].sum())
 
 # drop events with NaN weights - for safety
 #data.replace(to_replace=np.inf, value=np.NaN, inplace=True)
@@ -97,7 +124,7 @@ print ("norm", data.loc[data[target]==0][weights].sum(),data.loc[data[target]==1
 data.dropna(subset=[weights],inplace = True) # data
 data.fillna(0)
 
-print "length of sig, bkg without NaN: ", len(data.loc[data.target.values == 0]), len(data.loc[data.target.values == 1])
+print "length of sig, bkg without NaN: bk:", len(data.loc[data.target.values == 0]),", sig:", len(data.loc[data.target.values == 1])
 #################################################################################
 ### Plot histograms of training variables
 nbins=8
@@ -106,7 +133,17 @@ colorFastT='b'
 colorFull='r'
 hist_params = {'normed': True, 'histtype': 'bar', 'fill': False , 'lw':5}
 #plt.figure(figsize=(60, 60))
-if 'evtLevelSUM' in bdtType : labelBKG = "tt+ttV"
+if 'evtLevelSUM' in bdtType : 
+	labelBKG = "tt+ttV"
+	if channel in ["3l_0tau_HH"]:
+		labelBKG = "WZ+tt+ttV"
+elif 'evtLevelWZ' in bdtType :
+	labelBKG = "WZ"
+elif 'evtLevelDY' in bdtType :
+        labelBKG = "DY"
+elif 'evtLevelTT' in bdtType :
+        labelBKG = "TT"
+print "labelBKG: ",labelBKG
 printmin=True
 plotResiduals=False
 plotAll=False
@@ -125,6 +162,7 @@ traindataset, valdataset  = train_test_split(data[trainVars(False)+["target","to
 ## to final BDT fit test_size can go down to 0.1 without sign of overtraining
 #############################################################################################
 ## Training parameters
+print "Siddh:: options.HypOpt:",options.HypOpt; sys.stdout.flush()
 if options.HypOpt==True :
 	# http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
 	param_grid = {
@@ -183,8 +221,8 @@ cls.fit(
 	#(valdataset[trainVars(False)].values,  valdataset.target.astype(np.bool), valdataset[weights].astype(np.float64))] ,
 	#verbose=True,eval_metric="auc"
 	)
-print trainVars(False)
-print traindataset[trainVars(False)].columns.values.tolist()
+print "Siddh:: After fit:: trainVars(False):",trainVars(False)
+print "traindataset[trainVars(False)].columns.values.tolist(): ",traindataset[trainVars(False)].columns.values.tolist()
 print ("XGBoost trained")
 proba = cls.predict_proba(traindataset[trainVars(False)].values )
 fpr, tpr, thresholds = roc_curve(traindataset[target], proba[:,1],
@@ -237,12 +275,14 @@ plt.clf()
 y_pred = cls.predict_proba(valdataset.ix[valdataset.target.values == 0, trainVars(False)].values)[:, 1] #
 y_predS = cls.predict_proba(valdataset.ix[valdataset.target.values == 1, trainVars(False)].values)[:, 1] #
 plt.figure('XGB',figsize=(6, 6))
-values, bins, _ = plt.hist(y_pred , label="TT (XGB)", **hist_params)
+#values, bins, _ = plt.hist(y_pred , label="TT (XGB)", **hist_params)
+values, bins, _ = plt.hist(y_pred , label=("%s (XGB)" % labelBKG), **hist_params)
 values, bins, _ = plt.hist(y_predS , label="signal", **hist_params )
 #plt.xscale('log')
 #plt.yscale('log')
 plt.legend(loc='best')
 plt.savefig(channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False)))+'_'+hyppar+'_XGBclassifier.pdf')
+plt.savefig(channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False)))+'_'+hyppar+'_XGBclassifier.png')
 ###########################################################################
 # plot correlation matrix
 if options.HypOpt==False :
