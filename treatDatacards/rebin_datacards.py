@@ -15,6 +15,9 @@ import matplotlib.pyplot as plt
 # ./rebin_datacards.py --channel "2lss_1tau" --variables "HTT" --BINtype "quantiles" --doLimits
 # ./rebin_datacards.py --channel "2l_2tau" --variables "mTauTauVis" --BINtype "mTauTauVis"
 # ./rebin_datacards.py --channel "0l_2tau" --BINtype "regular" --variables "teste"
+# time ./rebin_datacards.py --channel "hh_3l" --BINtype "regular" --variables "BDT1" 2>&1 | tee cout_rebin_datacards_20190102_regular_1.txt
+# time ./rebin_datacards.py --channel "hh_3l" --BINtype "quantiles" --variables "BDT1" 2>&1 | tee cout_rebin_datacards_20190102_quantiles_1.txt
+
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--channel ", type="string", dest="channel", help="The ones whose variables implemented now are:\n   - 1l_2tau\n   - 2lss_1tau\n It will create a local folder and store the report*/xml", default="2lss_1tau")
@@ -125,8 +128,8 @@ else : mom="/home/"+user+"/ttHAnalysis/"+year+"/"+label+"/datacards/"+channel
 
 local=workingDir+"/"+options.channel+"_"+label+"/"+options.variables+"/"
 originalBinning=50
-nbinRegular=np.arange(1, 50)  #nbinRegular=np.arange(1, 35)
-nbinQuant= np.arange(1,50)  #nbinsQuant= np.arange(10,29)
+nbinRegular=np.arange(5, 35) #np.arange(1, 50)  #nbinRegular=np.arange(1, 35)
+nbinQuant=np.arange(10,30) #np.arange(1,50)  #nbinsQuant= np.arange(10,29)
 counter=0
 print "nbinRegular: ",nbinRegular
 print "nbinQuant: ",nbinQuant

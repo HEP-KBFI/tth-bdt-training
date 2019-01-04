@@ -1157,9 +1157,9 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                 #if BINtype=="quantiles" : ### fix that -- I do not want these written to the file
                 histogramCopy=histogram.Clone()
                 nameHisto=histogramCopy.GetName()
-                histogram.SetName(histogramCopy.GetName()+"_"+str(nn)+BINtype)
-                histogramCopy.SetName(histogramCopy.GetName()+"Copy_"+str(nn)+BINtype)
-                nameHisto = nameHisto + ("_rebin%i_%s" % (nbins,BINtype))
+                histogram.SetName(histogramCopy.GetName()+"_"+str(nbins)+BINtype)
+                histogramCopy.SetName(histogramCopy.GetName()+"Copy_"+str(nbins)+BINtype)
+                #nameHisto = nameHisto + ("_rebin%i_%s" % (nbins,BINtype))
                 #else : nameHisto=h2.GetName()
                 #histogramCopy.SetBit(ROOT.TH1F.kCanRebin)
                 #if histogramCopy.GetName() == "fakes_data" or histogramCopy.GetName() =="TTZ" or histogramCopy.GetName() =="TTW" or histogramCopy.GetName() =="TTWW" or histogramCopy.GetName() == "EWK" :
@@ -1288,6 +1288,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
     return [errOcontTTLast,errOcontTTPLast,errOcontSUMLast,errOcontSUMPLast,lastQuant,xmaxQuant,xminQuant]
 
 def ReadLimits(bdtType,nbin, BINtype,channel,local,nstart,ntarget):
+    print "ReadLimits:: bdtType: ",bdtType,", nbin:",nbin,", BINtype: ",BINtype,", channel: ",channel,", local: ",local,", ",nstart,", ntarget: ",ntarget
     central=[]
     do1=[]
     do2=[]
@@ -1305,6 +1306,8 @@ def ReadLimits(bdtType,nbin, BINtype,channel,local,nstart,ntarget):
         if BINtype=="ranged" : shapeVariable=shapeVariable+"_ranged"
         if BINtype=="quantiles" : shapeVariable=shapeVariable+"_quantiles"
         datacardFile_output = os.path.join(local, "ttH_%s.log" % shapeVariable)
+        if channel == "hh_3l":
+            datacardFile_output = os.path.join(local, "hh_3l_%s.log" % shapeVariable)
         #if nn==0 :print  shapeVariable
         if nn==0 : print ("reading ", datacardFile_output)
         f = open(datacardFile_output, 'r+')
