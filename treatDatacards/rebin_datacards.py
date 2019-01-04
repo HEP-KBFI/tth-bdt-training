@@ -30,7 +30,7 @@ doPlots=options.doPlots
 withFolder=False
 #user="acaan"
 #year="2016"
-user="mmaurya"
+user="ssawant"
 year="2017"
 channel=options.channel
 if channel == "2lss_1tau" :
@@ -102,7 +102,14 @@ if channel == "hh_bb2l" :
     "hh_bb2eOS_MVAOutput_400","hh_bb2muOS_MVAOutput_400","hh_bb1e1muOS_MVAOutput_400",
     ]
     channelsTypes= [ "hh_bb2l" ]
-
+if channel == "hh_3l" :
+    year="2017"
+    label='hh_3l'
+    bdtTypes=[
+      "hh_3l_mvaOutput_xgb_hh_3l_SUMBk_HH"
+    ]
+    channelsTypes= [ "hh_3l" ]
+    
 sources=[]
 bdtTypesToDo=[]
 bdtTypesToDoLabel=[]
@@ -117,10 +124,12 @@ if channel=="2017" : mom="/home/mmaurya/VHbbNtuples_8_0_x/CMSSW_8_0_21/src/Oct20
 else : mom="/home/"+user+"/ttHAnalysis/"+year+"/"+label+"/datacards/"+channel
 
 local=workingDir+"/"+options.channel+"_"+label+"/"+options.variables+"/"
-originalBinning=100
-nbinRegular=np.arange(1, 35)
-nbinQuant= np.arange(10,29)
+originalBinning=50
+nbinRegular=np.arange(1, 50)  #nbinRegular=np.arange(1, 35)
+nbinQuant= np.arange(1,50)  #nbinsQuant= np.arange(10,29)
 counter=0
+print "nbinRegular: ",nbinRegular
+print "nbinQuant: ",nbinQuant
 
 if channel == "2lss_1tau" :
     sourceoriginal=mom+"/prepareDatacards_"+channel+"_sumOS_"
@@ -303,6 +312,27 @@ if channel == "hh_bb2l" :
         else : print ("does not exist ",source)
 print ("I will rebin",bdtTypesToDoLabel,"(",len(sources),") BDT options")
 
+if channel == "hh_3l" :
+    local="/home/ssawant/VHbbNtuples_9_4_x/CMSSW_9_4_6_patch1_rpst2/CMSSW_9_4_6_patch1/src/tth-bdt-training/treatDatacards/"+label+"/"
+    for ii, bdtType in enumerate(bdtTypes) :
+        mom = "/home/ssawant/hhAnalysis/2017/20181127/datacards/hh_3l/"
+        fileName=mom+"prepareDatacards_hh_3l_"+bdtTypes[ii]+".root"
+        my_file = Path(fileName)
+        source=local+"prepareDatacards_hh_3l_"+bdtTypes[ii]
+        print "fileName: ", fileName
+        if my_file.exists() :
+            proc=subprocess.Popen(['cp '+fileName+" "+local],shell=True,stdout=subprocess.PIPE)
+            print 'cp ',fileName," ",local
+            out = proc.stdout.read()
+            sources = sources + [source]
+            bdtTypesToDo = bdtTypesToDo +["hh_3l "+bdtTypes[ii]]
+            bdtTypesToDoLabel = bdtTypesToDoLabel +["hh_3l "+bdtTypes[ii]]
+            bdtTypesToDoFile=bdtTypesToDoFile+["hh_3l_"+bdtTypes[ii]]
+            print ("rebinning ",sources[counter])
+            ++counter
+        else : print ("does not exist ",source)
+print ("I will rebin",bdtTypesToDoLabel,"(",len(sources),") BDT options")
+
 if options.BINtype == "regular" or options.BINtype == "ranged" or options.BINtype == "mTauTauVis" : binstoDo=nbinRegular
 if options.BINtype == "quantiles" : binstoDo=nbinQuant
 if options.BINtype == "none" : binstoDo=np.arange(1,originalBinning)
@@ -327,14 +357,15 @@ if not doLimits:
         '''print (binstoDo,errOcont[0])
         plt.plot(binstoDo,errOcont[0], color=colorsToDo[nn],linestyle='-') # ,label=bdtTypesToDo[nn]
         plt.plot(binstoDo,errOcont[0], color=colorsToDo[nn],linestyle='-',marker='o',label=bdtTypesToDo[nn]) #'''
-        print (binstoDo,errOcont[2])
-        plt.plot(binstoDo,errOcont[2], color=colorsToDo[nn],linestyle='-') # ,label=bdtTypesToDo[nn]
+        print "(binstoDo,errOcont[2]): ",(binstoDo,errOcont[2])
+        #plt.plot(binstoDo,errOcont[2], color=colorsToDo[nn],linestyle='-') # ,label=bdtTypesToDo[nn]
         plt.plot(binstoDo,errOcont[2], color=colorsToDo[nn],linestyle='-',marker='o',label=bdtTypesToDo[nn]) #
         #plt.plot(binstoDo,errOcont[2], color=colorsToDo[nn],linestyle='--',marker='x')
         ax.set_xlabel('nbins')
-    if options.BINtype == "regular" : maxplot =0.02
+    #if options.BINtype == "regular" : maxplot =0.02
+    if options.BINtype == "regular" : maxplot =1.5
     #elif options.BINtype == "mTauTauVis" : maxplot=200.
-    else : maxplot =1.0 # 0.35
+    else : maxplot = 0.35
     plt.axis((min(binstoDo),max(binstoDo),0,maxplot))
     #line_up, = plt.plot(binstoDo,linestyle='-',marker='o', color='k',label="fake-only")
     #line_down, = ax.plot(binstoDo,linestyle='--',marker='x', color='k',label="fake+ttV+EWK")
@@ -357,16 +388,17 @@ if not doLimits:
         #colorsToDo=['r','g','b','m','y','c']
         for nn,source in enumerate(sources) :
             print (len(binstoDo),len(lastQuant[nn]))
-            plt.plot(binstoDo,lastQuant[nn], color=colorsToDo[nn],linestyle='-')
-            plt.plot(binstoDo,lastQuant[nn], color=colorsToDo[nn],linestyle='-',marker='o') # ,label=bdtTypesToDo[nn]
-            plt.plot(binstoDo,xmaxQuant[nn], color=colorsToDo[nn],linestyle='--',marker='x')
-            plt.plot(binstoDo,xminQuant[nn], color=colorsToDo[nn],linestyle='--',marker='.')
+            print ("binstoDo",binstoDo,"lastQuant[nn]",lastQuant[nn],"xmaxQuant[nn]",xmaxQuant[nn],"xminQuant[nn]",xminQuant[nn])
+            #plt.plot(binstoDo,lastQuant[nn], color=colorsToDo[nn],linestyle='-')
+            plt.plot(binstoDo,lastQuant[nn], color=colorsToDo[0],linestyle='-',marker='o') # ,label=bdtTypesToDo[nn]
+            plt.plot(binstoDo,xmaxQuant[nn], color=colorsToDo[1],linestyle='--',marker='x')
+            plt.plot(binstoDo,xminQuant[nn], color=colorsToDo[2],linestyle='--',marker='.')
         ax.set_xlabel('nbins')
         ax.set_ylabel('err/content last bin')
-        plt.axis((min(binstoDo),max(binstoDo),0,1.0))
-        line_up, = plt.plot(binstoDo, 'o-', color='k',label="last bin low")
-        line_down, = ax.plot(binstoDo, 'x--', color='k',label="Max")
-        line_d, = ax.plot(binstoDo, '.--', color='k',label="Min")
+        plt.axis((min(binstoDo),max(binstoDo),-0.1,1.1))
+        line_up, = plt.plot(binstoDo, 'o-', color=colorsToDo[0],label="last bin low")
+        line_down, = ax.plot(binstoDo, 'x--', color=colorsToDo[1],label="Max")
+        line_d, = ax.plot(binstoDo, '.--', color=colorsToDo[2],label="Min")
         legend1 = plt.legend(handles=[line_up, line_down, line_d], loc='best', fontsize=8)
         ax.set_ylabel('boundary')
         plt.grid(True)
@@ -396,7 +428,7 @@ if doLimits :
     ax.set_xlabel('nbins')
     ax.set_ylabel('limits')
     maxsum=0
-    if channel in ["0l_2tau", "2los_1tau", "hh_bb2l"] : maxlim = 10.5
+    if channel in ["0l_2tau", "2los_1tau", "hh_bb2l", "hh_3l"] : maxlim = 10.5
     else : maxlim = 2.0
     plt.axis((min(binstoDo),max(binstoDo),0.5, maxlim))
     plt.text(0.3, 1.4, options.BINtype+" binning "+" "+options.variables )
