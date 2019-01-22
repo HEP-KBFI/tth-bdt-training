@@ -117,19 +117,41 @@ def load_dataGen(inputPath,channelInTree,variables,criteria,testtruth,folderName
     return data
 
 
-def load_data_2017_bb2l(inputPath,channelInTree,variables,criteria,bdtType) :
+def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
     print 'bdttype= ', bdtType
     my_cols_list=variables+['proces', 'key', 'target', "totalWeight"]
     data = pandas.DataFrame(columns=my_cols_list)
     if "evtLevelSUM_HH_bb2l" in bdtType :
         keys=[
-            'TTToSemiLeptonic_PSweights', 
-            'TTToHadronic_PSweights','DY','TTTo2L2Nu_PSweights',
-            #'TTWJetsToLNu_PSweights','TTZ_PSweights', 
+            'TTToSemiLeptonic_PSweights',
+            'TTToHadronic_PSweights','DY',
+            'TTTo2L2Nu_PSweights',
             'signal_vbf_spin0_400_hh_2b2v', 'signal_vbf_spin0_750_hh_2b2v',
-            'signal_vbf_spin0_300_hh_2b2v',
+            'signal_vbf_spin0_300_hh_2b2v'
             ]
         masses = [300,400,750]
+
+    elif "evtLevelSUM_HH_bb1l" in bdtType :
+        keys=[
+            'W',
+            'TTToSemiLeptonic_PSweights', 
+            'TTToHadronic_PSweights',
+            'DY',
+            'TTTo2L2Nu_PSweights',
+            'signal_ggf_spin0_250_hh_2b2v','signal_ggf_spin0_270_hh_2b2v','signal_ggf_spin0_280_hh_2b2v',
+            'signal_ggf_spin0_320_hh_2b2v','signal_ggf_spin0_350_hh_2b2v',
+            'signal_ggf_spin0_400_hh_2b2v', #300 sample is missing for bb2v
+            'signal_ggf_spin0_450_hh_2b2v','signal_ggf_spin0_500_hh_2b2v','signal_ggf_spin0_600_hh_2b2v',
+            'signal_ggf_spin0_650_hh_2b2v','signal_ggf_spin0_750_hh_2b2v','signal_ggf_spin0_800_hh_2b2v',
+            'signal_ggf_spin0_850_hh_2b2v','signal_ggf_spin0_900_hh_2b2v','signal_ggf_spin0_1000_hh_2b2v',
+
+            #'signal_ggf_spin0_270_hh_2b2v','signal_ggf_spin0_400_hh_2b2v', 'signal_ggf_spin0_500_hh_2b2v','signal_ggf_spin0_750_hh_2b2v',
+            #'signal_ggf_spin0_400_hh_2b2v','signal_ggf_spin0_350_hh_2b2v','signal_ggf_spin0_900_hh_2b2v','signal_ggf_spin0_500_hh_2b2v',
+            #'signal_vbf_spin0_400_hh_2b2v', 'signal_vbf_spin0_750_hh_2b2v',
+            #'signal_vbf_spin0_300_hh_2b2v',
+            ]
+        masses = [250,270,280,320,350,400,450,500,600,650,750,800,850,900,1000]
+        #masses = [270,400,500,750]
     
     for folderName in keys :
         print '(folderName, channelTree) = ', (folderName, channelInTree)
@@ -142,9 +164,20 @@ def load_data_2017_bb2l(inputPath,channelInTree,variables,criteria,bdtType) :
         if 'DY' in folderName :
             sampleName='DY'
             target=0
+        if 'W' in folderName :
+            sampleName='W'
+            target=0
         if "evtLevelSUM_HH_bb2l" in bdtType :
             if 'signal_vbf_spin0' in folderName :
                 sampleName='signal_vbf_spin0_'
+                for mass in masses :
+                    if str(mass) in folderName : sampleName=sampleName+str(mass)
+                if '_2b2v' in folderName : sampleName=sampleName+'_hh_bbvv'
+                target=1
+
+        elif "evtLevelSUM_HH_bb1l" in bdtType :
+            if 'signal_ggf_spin0' in folderName :
+                sampleName='signal_ggf_spin0_'
                 for mass in masses :
                     if str(mass) in folderName : sampleName=sampleName+str(mass)
                 if '_2b2v' in folderName : sampleName=sampleName+'_hh_bbvv'
@@ -153,7 +186,7 @@ def load_data_2017_bb2l(inputPath,channelInTree,variables,criteria,bdtType) :
             sampleName='TTW'
             target=0
         inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
-        if 'signal_vbf_spin0' in folderName :
+        if 'signal_ggf_spin0' in folderName or 'signal_vbf_spin0' in folderName:
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
 
@@ -164,6 +197,9 @@ def load_data_2017_bb2l(inputPath,channelInTree,variables,criteria,bdtType) :
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
         elif ('DY' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+        elif ('W' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
         elif ('TTW' in folderName) or ('TTZ' in folderName):
@@ -183,22 +219,37 @@ def load_data_2017_bb2l(inputPath,channelInTree,variables,criteria,bdtType) :
                     chunk_df['proces']=sampleName
                     chunk_df['key']=folderName
                     chunk_df['target']=target
-                    chunk_df["totalWeight"] = 1
-                    chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep1","dR_b2lep1","dR_b2lep1","dR_b2lep2"]].max(axis=1)
+                    chunk_df["totalWeight"] = chunk_df["evtWeight"]
+                    #chunk_df["totalWeight"] = 1
+                    if "evtLevelSUM_HH_bb2l" in bdtType : chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep1","dR_b2lep1","dR_b2lep1","dR_b2lep2"]].max(axis=1)
+                    elif "evtLevelSUM_HH_bb1l" in bdtType : chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep","dR_b2lep"]].max(axis=1)
                     chunk_df["max_bjet_pt"] = chunk_df[["bjet1_pt","bjet2_pt"]].max(axis=1)
-                    chunk_df["max_lep_pt"] = chunk_df[["lep1_pt","lep2_pt"]].max(axis=1)
-                if "evtLevelSUM_HH_bb2l_res" in bdtType :
+                    if "evtLevelSUM_HH_bb2l" in bdtType : chunk_df["max_lep_pt"] = chunk_df[["lep1_pt","lep2_pt"]].max(axis=1)
+                if "evtLevelSUM_HH_bb2l_res" in bdtType or "evtLevelSUM_HH_bb1l_res" in bdtType :
                         foundMass = False
                         for mass in masses :
                             if str(mass) in folderName :
                                 chunk_df["gen_mHH"]=mass
                                 foundMass = True
-                        if not foundMass : chunk_df["gen_mHH"]=masses[randint(0, len(masses)-1)]
+                        if not foundMass : 
+                            #chunk_df["gen_mHH"]=masses[randint(0, len(masses)-1)]
+                            mass = []
+                            for i in range(len(chunk_df)) :
+                                mass.append(masses[randint(0,len(masses)-1)])
+                            #chunk_df['gen_mHH'] = pandas.Series(np.random.randint(masses[0],masses[len(masses)-1],len(chunk_df)), index=chunk_df.index)
+                            chunk_df['gen_mHH'] = pandas.Series(mass, index=chunk_df.index)
+                            #if folderName == 'TTToHadronic_PSweights' or folderName == 'TTTo2L2Nu_PSweights' or folderName == 'TTToSemiLeptonic_PSweights' : print folderName, '\t', len(chunk_df),'\t',chunk_df["gen_mHH"]
                 data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
         if len(data) == 0 : continue
-        if folderName == 'TTTo2L2Nu' : data.drop(data.tail(6000000).index,inplace = True)
+        if "evtLevelSUM_HH_bb2l_res" in bdtType and folderName == 'TTTo2L2Nu' : data.drop(data.tail(6000000).index,inplace = True)
+        elif "evtLevelSUM_HH_bb1l_res" in bdtType :
+            if folderName == 'TTToSemiLeptonic_PSweights' : data.drop(data.tail(24565062).index,inplace = True)
+            if folderName == 'TTTo2L2Nu_PSweights' : data.drop(data.tail(11089852).index,inplace = True) #12089852
+            if folderName.find('signal') !=-1 : 
+                if folderName.find('900') ==-1 and folderName.find('1000') ==-1 : data.drop(data.tail(15000).index,inplace = True)
+            elif folderName == 'W' : data.drop(data.tail(2933623).index,inplace = True)
         nS = len(data.ix[(data.target.values == 1) & (data.key.values==folderName) ])
         nB = len(data.ix[(data.target.values == 0) & (data.key.values==folderName) ])
         print folderName,"size of sig, bkg, evtweight, tot weight of data: ", nS, nB , data.ix[ (data.key.values==folderName)]["evtWeight"].sum(), data.ix[(data.key.values==folderName)]["totalWeight"].sum()
@@ -1110,10 +1161,10 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                # print ( keyF.GetName(), keyO.GetName() )
                #if type(obj) is not TH1F : continue
                if not withFolder :
-                   print "got histogram"
+                   #print "got histogram"
                    obj = keyO.ReadObj()
                    h2  = obj.Clone();
-                   print h2.GetName()
+                   #print h2.GetName()
                else : h2 = file.Get(keyF.GetName()+"/"+str(keyO.GetName())).Clone()
                factor=1.
                if  not h2.GetSumw2N() : h2.Sumw2()
@@ -1125,7 +1176,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                if "fakes_data" in h2.GetName() : hFakes=h2.Clone()
                if "fakes_data" in h2.GetName() or "TT" in h2.GetName() or "EWK" in h2.GetName() or "Rares" in h2.GetName() : #  or "tH" in keyO.GetName()'''
                if "fakes_data" in h2.GetName() : hFakes=h2.Clone()
-               if h2.GetName().find("signal") ==-1 and h2.GetName().find("data_obs") ==-1 and h2.GetName().find("conversions") ==-1:
+               if h2.GetName().find("signal") ==-1 and h2.GetName().find("data_obs") ==-1:
                    #hSumDumb2 = obj # h2_rebin #
                    if not hSumAll.Integral()>0 : hSumAll=h2.Clone()
                    else : hSumAll.Add(h2)
@@ -1148,8 +1199,34 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                 #if histogramCopy.GetName() == "fakes_data" or histogramCopy.GetName() =="TTZ" or histogramCopy.GetName() =="TTW" or histogramCopy.GetName() =="TTWW" or histogramCopy.GetName() == "EWK" :
                 # histogramCopy.GetBinCenter(place),content,nameHisto)
                 #if not histo.GetSumw2N() : histo.Sumw2()
-                if "fakes_data" in histogramCopy.GetName() or "TTZ" in histogramCopy.GetName() or "TTW" in histogramCopy.GetName() or "EWK" in histogramCopy.GetName()  :
-                    print ("rebinned",histo.GetName(),histo.Integral())
+                if BINtype=="none" :
+                    histo=histogramCopy.Clone()
+                    histo.SetName(nameHisto)
+                elif BINtype=="ranged" or BINtype=="regular" :
+                    histo= TH1F( nameHisto, nameHisto , nbins , xmin , xmax)
+                elif BINtype=="quantiles" :
+                    #print ("hSumAll", hSumAll.Integral(), hFakes.Integral())
+                    nbinsQuant= getQuantiles(hSumAll,nbins,xmax) # getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero
+                    print ("Bins by quantiles",nbins,nbinsQuant)
+                    xmaxLbin=xmaxLbin+[nbinsQuant[nbins-2]]
+                    histo=TH1F( nameHisto, nameHisto , nbins , nbinsQuant) # nbins+1 if first is zero
+                elif BINtype=="mTauTauVis" :
+                    histo= TH1F( nameHisto, nameHisto , nbins , 0. , 200.)
+                histo.Sumw2()
+                #if BINtype=="quantiles" : ### fix that -- I do not want these written to the file
+                for place in range(0,histogramCopy.GetNbinsX() + 1) :
+                    content =      histogramCopy.GetBinContent(place)
+                    #if content < 0 : continue # print (content,place)
+                    binErrorCopy = histogramCopy.GetBinError(place);
+                    newbin =       histo.GetXaxis().FindBin(histogramCopy.GetXaxis().GetBinCenter(place))
+                    binError =     histo.GetBinError(newbin);
+                    contentNew =   histo.GetBinContent(newbin)
+                    histo.SetBinContent(newbin, content+contentNew)
+                    histo.SetBinError(newbin, sqrt(binError*binError+binErrorCopy*binErrorCopy))
+                    #if histogramCopy.GetBinCenter(place) > 0.174 and  content>0 and bdtType=="1B" and nbins==20 : print ("overflow bin", histogramCopy.GetBinCenter(place),content,nameHisto)
+                #if not histo.GetSumw2N() : histo.Sumw2()                         
+                #if "fakes_data" in histogramCopy.GetName() or "TTZ" in histogramCopy.GetName() or "TTW" in histogramCopy.GetName() or "EWK" in histogramCopy.GetName()  :
+                    #print ("rebinned",histo.GetName(),histo.Integral())
                 if "fakes_data" in histo.GetName() and nkey == 0 :
                     ratio=1.
                     ratioP=1.
@@ -1245,7 +1322,7 @@ def ReadLimits(bdtType,nbin, BINtype,channel,local,nstart,ntarget):
         else : shapeVariable=options.variables+'_from'+str(nstart)+'_to_'+str(nbins)
         if BINtype=="ranged" : shapeVariable=shapeVariable+"_ranged"
         if BINtype=="quantiles" : shapeVariable=shapeVariable+"_quantiles"
-        datacardFile_output = os.path.join(local, "ttH_%s.log" % shapeVariable)
+        datacardFile_output = os.path.join(local, "%s_%s.log" % (options.channel,shapeVariable))
         #if nn==0 :print  shapeVariable
         if nn==0 : print ("reading ", datacardFile_output)
         f = open(datacardFile_output, 'r+')
