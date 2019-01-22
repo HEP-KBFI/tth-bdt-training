@@ -992,7 +992,10 @@ def getQuantiles(histoP,ntarget,xmax) :
     #yqbin[0]=0.0
     for  ii in range(1,ntarget+1) : yqbin[ii]=yq[ii]
     yqbin[ntarget]=xmax # +1 if first is not 0
-    print yqbin
+    print "getQuantiles::    xq: ",xq
+    print "getQuantiles:: yqbin: ",yqbin
+    for  ii in range(1,ntarget+1) :
+        print "\t ii: ",ii,", xq: ",xq[ii],", yqbin: ",yqbin[ii],", histoP.IntegralCumutative: ",histoP.Integral(1,histoP.GetXaxis().FindBin(yqbin[ii]))
     return yqbin
 
 def getQuantilesWStat(histoP,nmin) :
@@ -1089,7 +1092,10 @@ def GetRatio(histSource,namepdf) :
 
 
 def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtType, withFolder=False) :
-    minmax = finMaxMin(histSource)
+    print "data_manager::rebinRegular::";
+    print "histSource: ",histSource, ", nbin: ",nbin, ", BINtype: ",BINtype, ", originalBinning: ",originalBinning, \
+        ", doplots: ",doplots, ", variables: ",variables, ", bdtType: ",bdtType, ", withFolder: ",withFolder;
+    minmax = finMaxMin(histSource) # [[0], [1]], [0]=first, last bin above 0; [1]= their corresponding x-value
     errOcontTTLast=[]
     errOcontTTPLast=[]
     errOcontSUMLast=[]
@@ -1120,7 +1126,9 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
         xmax=1.0
         xmaxdef=minmax[1][1]
         xmindef=minmax[1][0]
+    print "enumerate(nbin): ",enumerate(nbin), ", nbin: ",nbin
     for nn,nbins in enumerate(nbin) :
+        print "\n\nnn: ",nn,", nbins: ",nbins
         file = TFile(histSource+".root","READ");
         file.cd()
         histograms=[]
@@ -1144,6 +1152,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
         if withFolder : folders_Loop = file.GetListOfKeys()
         else : folders_Loop = ["none"]
         for nkey, keyF in enumerate(folders_Loop) :
+            print "nkey: ",nkey,", keyF: ",keyF
             if withFolder :
                 obj =  keyF.ReadObj()
                 loop_on = obj.GetListOfKeys()
@@ -1172,15 +1181,20 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                #if withFolder :
                if withFolder : h2.SetName("x_"+str(h2.GetName()))
                histograms.append(h2.Clone())
-               '''print ("h2.", h2.Integral())
+               print ("h2.Integral:", h2.Integral())
                if "fakes_data" in h2.GetName() : hFakes=h2.Clone()
-               if "fakes_data" in h2.GetName() or "TT" in h2.GetName() or "EWK" in h2.GetName() or "Rares" in h2.GetName() : #  or "tH" in keyO.GetName()'''
+               #if "fakes_data" in h2.GetName() or "TT" in h2.GetName() or "EWK" in h2.GetName() or "Rares" in h2.GetName() : #  or "tH" in keyO.GetName()
                if "fakes_data" in h2.GetName() : hFakes=h2.Clone()
                if h2.GetName().find("signal") ==-1 and h2.GetName().find("data_obs") ==-1:
                    #hSumDumb2 = obj # h2_rebin #
-                   if not hSumAll.Integral()>0 : hSumAll=h2.Clone()
-                   else : hSumAll.Add(h2)
+                   if not hSumAll.Integral()>0 :
+                       hSumAll=h2.Clone()
+                       hSumAll.SetName("hSumAllBk1")
+                   else : hSumAll.Add(h2)            
             #################################################
+            print ("hSumAll.Integral: ", hSumAll.Integral(), ", hFakes.Integral: ",hFakes.Integral())
+            nbinsQuant= getQuantiles(hFakes,nbins,xmax) # getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero
+            print ("Bins by quantiles ",nbins,nbinsQuant)            
             if withFolder: fileOut.mkdir(keyF.GetName()+"/")
             hTTi = TH1F()
             hTTHi = TH1F()
@@ -1188,16 +1202,44 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
             hTTWi = TH1F()
             hRaresi = TH1F()
             histo = TH1F()
-            for nn, histogram in enumerate(histograms) :
+            #for nn, histogram in enumerate(histograms) :  # original
+            for nn1, histogram in enumerate(histograms) :
+                print "nn1: ",nn1,", histogram: ",histogram,", histo:",histo.GetName()
                 #if BINtype=="quantiles" : ### fix that -- I do not want these written to the file
                 histogramCopy=histogram.Clone()
                 nameHisto=histogramCopy.GetName()
-                histogram.SetName(histogramCopy.GetName()+"_"+str(nn)+BINtype)
-                histogramCopy.SetName(histogramCopy.GetName()+"Copy_"+str(nn)+BINtype)
+                histogram.SetName(histogramCopy.GetName()+"_"+str(nbins)+BINtype)
+                histogramCopy.SetName(histogramCopy.GetName()+"Copy_"+str(nbins)+BINtype)
+                #nameHisto = nameHisto + ("_rebin%i_%s" % (nbins,BINtype))
                 #else : nameHisto=h2.GetName()
                 #histogramCopy.SetBit(ROOT.TH1F.kCanRebin)
                 #if histogramCopy.GetName() == "fakes_data" or histogramCopy.GetName() =="TTZ" or histogramCopy.GetName() =="TTW" or histogramCopy.GetName() =="TTWW" or histogramCopy.GetName() == "EWK" :
-                # histogramCopy.GetBinCenter(place),content,nameHisto)
+                #print ("not rebinned",histogramCopy.GetName(),histogramCopy.Integral())
+                if BINtype=="none" :
+                    histo=histogramCopy.Clone()
+                    histo.SetName(nameHisto)
+                elif BINtype=="ranged" or BINtype=="regular" :
+                    histo= TH1F( nameHisto, nameHisto , nbins , xmin , xmax)
+                elif BINtype=="quantiles" :
+                    #print ("hSumAll.Integral: ", hSumAll.Integral(), ", hFakes.Integral: ",hFakes.Integral())
+                    #nbinsQuant= getQuantiles(hFakes,nbins,xmax) # getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero
+                    #print ("Bins by quantiles",nbins,nbinsQuant)
+                    xmaxLbin=xmaxLbin+[nbinsQuant[nbins-2]]
+                    histo=TH1F( nameHisto, nameHisto , nbins , nbinsQuant) # nbins+1 if first is zero
+                elif BINtype=="mTauTauVis" :
+                    histo= TH1F( nameHisto, nameHisto , nbins , 0. , 200.)
+                histo.Sumw2()
+                #if BINtype=="quantiles" : ### fix that -- I do not want these written to the file
+                for place in range(0,histogramCopy.GetNbinsX() + 1) :
+                    content =      histogramCopy.GetBinContent(place)
+                    #if content < 0 : continue # print (content,place)
+                    binErrorCopy = histogramCopy.GetBinError(place);
+                    newbin =       histo.GetXaxis().FindBin(histogramCopy.GetXaxis().GetBinCenter(place))
+                    binError =     histo.GetBinError(newbin);
+                    contentNew =   histo.GetBinContent(newbin)
+                    histo.SetBinContent(newbin, content+contentNew)
+                    histo.SetBinError(newbin, sqrt(binError*binError+binErrorCopy*binErrorCopy))
+                    #if histogramCopy.GetBinCenter(place) > 0.174 and  content>0 and bdtType=="1B" and nbins==20 : print ("overflow bin", histogramCopy.GetBinCenter(place),content,nameHisto)
                 #if not histo.GetSumw2N() : histo.Sumw2()
                 if BINtype=="none" :
                     histo=histogramCopy.Clone()
@@ -1259,7 +1301,16 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                     fileOut.cd("/"+keyF.GetName()+"/")
                     histo.Write("",TObject.kOverwrite)
                     fileOut.cd()
-                else : histo.Write("",TObject.kOverwrite)
+                    print ("histo.Write("",TObject.kOverwrite) withFolder :: histoName: ",histo.GetName())
+                else :
+                    histogram.Write("",TObject.kOverwrite)
+                    histo.Write("",TObject.kOverwrite)                    
+                    print ("histo.Write("",TObject.kOverwrite) :: histoName: ",histo.GetName())
+                    if "fakes_data" in histo.GetName():
+                        histoClone1 = histo.Clone(histo.GetName()+"_Norm")
+                        histoClone1.Scale(1./histoClone1.Integral())
+                        histoCumulative = histoClone1.GetCumulative()
+                        histoCumulative.Write("",TObject.kOverwrite)     
             print (name+" created")
             if nkey == 0 :
                 if doplots and bdtType=="1B_VT":
@@ -1275,10 +1326,11 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                         print (namepdf+" created")
                 #hSumCopy=hSum.Clone()
                 hSumCopy=hSumAll.Clone()
+                print ("hSumCopy for rebinning:: hSumCopy.Name: ",hSumCopy.GetName())
                 hSumi = TH1F()
-                if BINtype=="ranged" or BINtype=="regular" : hSumi = TH1F( "hSum", "hSum" , nbins , xmin , xmax)
-                elif BINtype=="quantiles" : hSumi = TH1F( "hSum", "hSum" , nbins , nbinsQuant)
-                elif BINtype=="mTauTauVis" : hSumi = TH1F( "hSum", "hSum" , nbins , 0. , 200.)
+                if BINtype=="ranged" or BINtype=="regular" : hSumi = TH1F( "hSumRebinned", "hSum" , nbins , xmin , xmax)
+                elif BINtype=="quantiles" : hSumi = TH1F( "hSumRebinned", "hSum" , nbins , nbinsQuant)
+                elif BINtype=="mTauTauVis" : hSumi = TH1F( "hSumRebinned", "hSum" , nbins , 0. , 200.)
                 if not hSumi.GetSumw2N() : hSumi.Sumw2()
                 for place in range(1,hSumCopy.GetNbinsX() + 2) :
                     content=hSumCopy.GetBinContent(place)
@@ -1296,8 +1348,15 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                 errOcontSUMPLast=errOcontSUMPLast+[ratiohSumP] if ratiohSumP<1.001 else errOcontSUMPLast+[1.0]
                 errSUMLast=errSUMLast+[hSumi.GetBinError(hSumi.GetNbinsX())]
                 contSUMLast=contSUMLast+[hSumi.GetBinContent(hSumi.GetNbinsX())]
+                if 1==1:
+                    fileOut.cd()
+                    hSumCopy.Write()
+                    hSumi.Write()
+                
                 if BINtype=="quantiles" :
-                    lastQuant=lastQuant+[nbinsQuant[nbins]]
+                    print "nbins: ",nbins
+                    print "nbinsQuant: ",nbinsQuant
+                    lastQuant=lastQuant+[nbinsQuant[nbins]]   # original
                     xmaxQuant=xmaxQuant+[xmaxdef]
                     xminQuant=xminQuant+[xmindef]
                 print ("it should be only one ",  nkey, errOcontTTLast)
@@ -1306,6 +1365,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
     return [errOcontTTLast,errOcontTTPLast,errOcontSUMLast,errOcontSUMPLast,lastQuant,xmaxQuant,xminQuant]
 
 def ReadLimits(bdtType,nbin, BINtype,channel,local,nstart,ntarget):
+    print "ReadLimits:: bdtType: ",bdtType,", nbin:",nbin,", BINtype: ",BINtype,", channel: ",channel,", local: ",local,", ",nstart,", ntarget: ",ntarget
     central=[]
     do1=[]
     do2=[]
@@ -1323,6 +1383,8 @@ def ReadLimits(bdtType,nbin, BINtype,channel,local,nstart,ntarget):
         if BINtype=="ranged" : shapeVariable=shapeVariable+"_ranged"
         if BINtype=="quantiles" : shapeVariable=shapeVariable+"_quantiles"
         datacardFile_output = os.path.join(local, "%s_%s.log" % (options.channel,shapeVariable))
+        if channel == "hh_3l":
+            datacardFile_output = os.path.join(local, "hh_3l_%s.log" % shapeVariable)
         #if nn==0 :print  shapeVariable
         if nn==0 : print ("reading ", datacardFile_output)
         f = open(datacardFile_output, 'r+')
