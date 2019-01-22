@@ -134,7 +134,7 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
     elif "evtLevelSUM_HH_bb1l" in bdtType :
         keys=[
             'W',
-            'TTToSemiLeptonic_PSweights', 
+            'TTToSemiLeptonic_PSweights',
             'TTToHadronic_PSweights',
             'DY',
             'TTTo2L2Nu_PSweights',
@@ -144,15 +144,13 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
             'signal_ggf_spin0_450_hh_2b2v','signal_ggf_spin0_500_hh_2b2v','signal_ggf_spin0_600_hh_2b2v',
             'signal_ggf_spin0_650_hh_2b2v','signal_ggf_spin0_750_hh_2b2v','signal_ggf_spin0_800_hh_2b2v',
             'signal_ggf_spin0_850_hh_2b2v','signal_ggf_spin0_900_hh_2b2v','signal_ggf_spin0_1000_hh_2b2v',
-
             #'signal_ggf_spin0_270_hh_2b2v','signal_ggf_spin0_400_hh_2b2v', 'signal_ggf_spin0_500_hh_2b2v','signal_ggf_spin0_750_hh_2b2v',
             #'signal_ggf_spin0_400_hh_2b2v','signal_ggf_spin0_350_hh_2b2v','signal_ggf_spin0_900_hh_2b2v','signal_ggf_spin0_500_hh_2b2v',
             #'signal_vbf_spin0_400_hh_2b2v', 'signal_vbf_spin0_750_hh_2b2v',
             #'signal_vbf_spin0_300_hh_2b2v',
             ]
         masses = [250,270,280,320,350,400,450,500,600,650,750,800,850,900,1000]
-        #masses = [270,400,500,750]
-    
+
     for folderName in keys :
         print '(folderName, channelTree) = ', (folderName, channelInTree)
         if 'TTT' in folderName :
@@ -189,7 +187,6 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
         if 'signal_ggf_spin0' in folderName or 'signal_vbf_spin0' in folderName:
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
-
         elif ('TTT' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
@@ -206,13 +203,12 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
             procP1=glob.glob(inputPath+"/"+folderName+"/"+folderName+"*.root")
             list=procP1
         for ii in range(0, len(list)) :
-            print 'root file========', list[ii]
             try: tfile = ROOT.TFile(list[ii])
             except : continue
             try: tree = tfile.Get(inputTree)
             except : continue
             if tree is not None :
-                try: chunk_arr = tree2array(tree) #,  start=start, stop = stop) 
+                try: chunk_arr = tree2array(tree) #,  start=start, stop = stop)
                 except : continue
                 else :
                     chunk_df = pandas.DataFrame(chunk_arr, columns=variables)
@@ -231,14 +227,7 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
                             if str(mass) in folderName :
                                 chunk_df["gen_mHH"]=mass
                                 foundMass = True
-                        if not foundMass : 
-                            #chunk_df["gen_mHH"]=masses[randint(0, len(masses)-1)]
-                            mass = []
-                            for i in range(len(chunk_df)) :
-                                mass.append(masses[randint(0,len(masses)-1)])
-                            #chunk_df['gen_mHH'] = pandas.Series(np.random.randint(masses[0],masses[len(masses)-1],len(chunk_df)), index=chunk_df.index)
-                            chunk_df['gen_mHH'] = pandas.Series(mass, index=chunk_df.index)
-                            #if folderName == 'TTToHadronic_PSweights' or folderName == 'TTTo2L2Nu_PSweights' or folderName == 'TTToSemiLeptonic_PSweights' : print folderName, '\t', len(chunk_df),'\t',chunk_df["gen_mHH"]
+                        if not foundMass : chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
                 data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
@@ -247,7 +236,7 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
         elif "evtLevelSUM_HH_bb1l_res" in bdtType :
             if folderName == 'TTToSemiLeptonic_PSweights' : data.drop(data.tail(24565062).index,inplace = True)
             if folderName == 'TTTo2L2Nu_PSweights' : data.drop(data.tail(11089852).index,inplace = True) #12089852
-            if folderName.find('signal') !=-1 : 
+            if folderName.find('signal') !=-1 :
                 if folderName.find('900') ==-1 and folderName.find('1000') ==-1 : data.drop(data.tail(15000).index,inplace = True)
             elif folderName == 'W' : data.drop(data.tail(2933623).index,inplace = True)
         nS = len(data.ix[(data.target.values == 1) & (data.key.values==folderName) ])
@@ -1190,11 +1179,11 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                    if not hSumAll.Integral()>0 :
                        hSumAll=h2.Clone()
                        hSumAll.SetName("hSumAllBk1")
-                   else : hSumAll.Add(h2)            
+                   else : hSumAll.Add(h2)
             #################################################
             print ("hSumAll.Integral: ", hSumAll.Integral(), ", hFakes.Integral: ",hFakes.Integral())
             nbinsQuant= getQuantiles(hFakes,nbins,xmax) # getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero
-            print ("Bins by quantiles ",nbins,nbinsQuant)            
+            print ("Bins by quantiles ",nbins,nbinsQuant)
             if withFolder: fileOut.mkdir(keyF.GetName()+"/")
             hTTi = TH1F()
             hTTHi = TH1F()
@@ -1266,7 +1255,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                     histo.SetBinContent(newbin, content+contentNew)
                     histo.SetBinError(newbin, sqrt(binError*binError+binErrorCopy*binErrorCopy))
                     #if histogramCopy.GetBinCenter(place) > 0.174 and  content>0 and bdtType=="1B" and nbins==20 : print ("overflow bin", histogramCopy.GetBinCenter(place),content,nameHisto)
-                #if not histo.GetSumw2N() : histo.Sumw2()                         
+                #if not histo.GetSumw2N() : histo.Sumw2()
                 #if "fakes_data" in histogramCopy.GetName() or "TTZ" in histogramCopy.GetName() or "TTW" in histogramCopy.GetName() or "EWK" in histogramCopy.GetName()  :
                     #print ("rebinned",histo.GetName(),histo.Integral())
                 if "fakes_data" in histo.GetName() and nkey == 0 :
@@ -1304,13 +1293,13 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                     print ("histo.Write("",TObject.kOverwrite) withFolder :: histoName: ",histo.GetName())
                 else :
                     histogram.Write("",TObject.kOverwrite)
-                    histo.Write("",TObject.kOverwrite)                    
+                    histo.Write("",TObject.kOverwrite)
                     print ("histo.Write("",TObject.kOverwrite) :: histoName: ",histo.GetName())
                     if "fakes_data" in histo.GetName():
                         histoClone1 = histo.Clone(histo.GetName()+"_Norm")
                         histoClone1.Scale(1./histoClone1.Integral())
                         histoCumulative = histoClone1.GetCumulative()
-                        histoCumulative.Write("",TObject.kOverwrite)     
+                        histoCumulative.Write("",TObject.kOverwrite)
             print (name+" created")
             if nkey == 0 :
                 if doplots and bdtType=="1B_VT":
@@ -1352,7 +1341,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                     fileOut.cd()
                     hSumCopy.Write()
                     hSumi.Write()
-                
+
                 if BINtype=="quantiles" :
                     print "nbins: ",nbins
                     print "nbinsQuant: ",nbinsQuant
