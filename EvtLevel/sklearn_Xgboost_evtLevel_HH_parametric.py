@@ -215,14 +215,6 @@ traindataset, valdataset  = train_test_split(data[trainVars(False)+["target","to
 print 'Tot weight of train and validation for signal= ', traindataset.loc[traindataset[target]==1]["totalWeight"].sum(), valdataset.loc[valdataset[target]==1]["totalWeight"].sum()
 print 'Tot weight of train and validation for bkg= ', traindataset.loc[traindataset[target]==0]['totalWeight'].sum(),valdataset.loc[valdataset[target]==0]['totalWeight'].sum()
 
-valdataset1= valdataset.loc[(valdataset["gen_mHH"]==400) & (valdataset["target"]==0) & ((valdataset["key"] == "TTToHadronic_PSweights") | (valdataset["key"] == "TTToSemiLeptonic_PSweights") | (valdataset["key"] == "TTTo2L2Nu_PSweights"))]
-valdataset1=valdataset1.append(valdataset.loc[(valdataset["gen_mHH"]==400) & (valdataset["target"]==1)])
-traindataset1= traindataset.loc[(traindataset["gen_mHH"]==400) & (traindataset["target"]==0) & ((traindataset["key"] == "TTToHadronic_PSweights") | (traindataset["key"] == "TTToSemiLeptonic_PSweights") |(traindataset["key"] == "TTTo2L2Nu_PSweights"))]
-traindataset1=traindataset1.append(traindataset.loc[(traindataset["gen_mHH"]==400) & (traindataset["target"]==1)])
-
-valdataset2= valdataset.loc[(valdataset["gen_mHH"]==400)]                                                                                                                                                  
-traindataset2= traindataset.loc[(traindataset["gen_mHH"]==400)]                                                                                                                                            
-
 ## to GridSearchCV the test_size should not be smaller than 0.4 == it is used for cross validation!
 ## to final BDT fit test_size can go down to 0.1 without sign of overtraining
 #############################################################################################
