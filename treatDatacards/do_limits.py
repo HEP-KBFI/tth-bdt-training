@@ -135,7 +135,7 @@ for ns,source in enumerate(sources) :
         if options.BINtype=="ranged" : shapeVariable=shapeVariable+"_ranged"
         if options.BINtype=="quantiles" : shapeVariable=shapeVariable+"_quantiles"
         datacardFile_output = os.path.join(workingDir, local, "ttH_%s.root" % shapeVariable)
-        run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=false' % ('WriteDatacards_'+channel, name, datacardFile_output))
+        run_cmd('%s --input_file=%s --output_file=%s --add_shape_sys=true' % ('WriteDatacards_'+channel, name, datacardFile_output))
         txtFile = datacardFile_output.replace(".root", ".txt")
         logFile = datacardFile_output.replace(".root", ".log")
         run_cmd('combine -M Asymptotic -m %s -t -1 %s &> %s' % (str(125), txtFile, logFile))
