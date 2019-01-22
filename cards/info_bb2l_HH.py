@@ -1,7 +1,7 @@
 hasHTT = False
 
 channelInTree='hh_bb2l_OS_Tight'
-inputPath='/hdfs/local/snandan/hhAnalysis/2017/2018Nov26/histograms/hh_bb2l/Tight_OS/'
+inputPath='/hdfs/local/snandan/hhAnalysis/2017/2018Nov26_forBDTtrainning/histograms/hh_bb2l/Tight_OS/'
 #inputPath='/hdfs/local/snandan/hhAnalysis/2017/2018Oct17_forBDTtraining/histograms/hh_bb2l/Tight_OS/'
 
 ## to make balancing of BKGs
@@ -43,7 +43,22 @@ def trainVars(all):
 		]
 
 	if trainvar=="noTopness"  and bdtType=="evtLevelSUM_HH_bb2l_res" and all==False :return [
-		'm_ll',#'dR_ll',
+
+
+			   "mht",
+      "HT",
+      "m_Hbb",# "dR_Hbb",
+      "m_ll", #"dR_ll",
+      #"max_dPhi_lepMEt",
+      "Smin_Hww",
+      #"dPhi_HHvis",
+      #"pT_HH",#'max_lep_pt','max_bjet_pt',#"max_dR_b_lep",
+      #"mT2_top_2particle",
+		#	   "logTopness_fixedChi2", "logHiggsness_fixedChi2",
+       "nJet", "nBJetLoose",
+			   "gen_mHH"]
+
+	'''		'm_ll',#'dR_ll',
 		'm_Hbb',#'pT_Hbb',
 		'nBJetMedium',
 		'm_Hww',
@@ -55,7 +70,7 @@ def trainVars(all):
 		'max_dR_b_lep',
 		'met',
                 'max_lep_pt','max_bjet_pt','gen_mHH'
-		]
+		]'''
 
 	if trainvar=="Updated"   and bdtType=="evtLevelSUM_TTH" and all==False :return [
 		"lep1_conePt", "lep2_conePt", "lep3_conePt",
