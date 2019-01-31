@@ -264,12 +264,42 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
     if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic'] # 'TTToHadronic',
     if "evtLevelSUM_HH" in bdtType :
         keys=[
-    'TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic', 'TTToHadronic',
-    'signal_ggf_spin0_400_hh_2v2t', 'signal_ggf_spin0_400_hh_4t',  'signal_ggf_spin0_400_hh_4v',
-    'signal_ggf_spin0_700_hh_2v2t', 'signal_ggf_spin0_700_hh_4t',   'signal_ggf_spin0_700_hh_4v',
-    ## missing: diboson/ singleH
+    'TTTo2L2Nu','TTToSemiLeptonic', 'TTTo2L2Nu_PSweights', 'TTToSemiLeptonic_PSweights', #'TTToHadronic, ''TTToHadronic_PSweights', ## 0 events selected
+    #'DYJetsToLL_M-50_LO', 'DYJetsToLL_M-50_LO_ext1',
+    #'DY1JetsToLL_M-50', 'DY1JetsToLL_M-50_ext1', ## poor event statistics
+    #'DY2JetsToLL_M-50', 'DY2JetsToLL_M-50_ext1', ## poor event statistics
+    #'DY3JetsToLL_M-50', 'DY3JetsToLL_M-50_ext1', ## poor event statistics
+    #'DY4JetsToLL_M-50',                          ## poor event statistics 
+    'ZZTo4L', 'ZZTo2L2Q', 'ZZTo4L_ext1', ##'ZZTo2L2Nu', ## poor event statistics 
+    #'ZZZ'                                              ## poor event statistics 
+    #'WWTo2L2Nu', ##'WWToLNuQQ', 'WWTo1L1Nu2Q', 'WWTo4Q',  ## poor event statistics 
+    #'WWW_4F', 'WWZ_4F', 'WZZ',                            ## poor event statistics                            
+    #'WWTo2L2Nu_PSweights', 'WWTo2L2Nu_DoubleScattering', #'WWToLNuQQ_PSweights', 'WWTo4Q_PSweights', 'WpWpJJ_EWK_QCD', 'WpWpJJ_EWK_QCD_v14-v1', ## poor event statistics   
+    'WZTo3LNu_1Jets_MLL-50', 'WZTo3LNu_2Jets_MLL-4to50', 'WZTo3LNu_3Jets_MLL-50', 'WZTo3LNu_2Jets_MLL-50', 'WZTo3LNu_0Jets_MLL-50', 'WZTo3LNu_1Jets_MLL-4to50', #'WZTo3LNu_0Jets_MLL-4to50'
+    'TTZJets', #'TTWJets', #'TTWW',                                                                                                     
+    'VHToNonbb_M125',                                                                                                                                                                                 
+    'ttHToNonbb',
+    'signal_ggf_spin0_250_hh_4t', #'signal_ggf_spin0_250_hh_2v2t',  'signal_ggf_spin0_250_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_260_hh_4t', #'signal_ggf_spin0_260_hh_2v2t',  'signal_ggf_spin0_260_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_270_hh_4t', #'signal_ggf_spin0_270_hh_2v2t',  'signal_ggf_spin0_270_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_280_hh_4t', #'signal_ggf_spin0_280_hh_2v2t',  'signal_ggf_spin0_280_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_300_hh_4t', #'signal_ggf_spin0_300_hh_2v2t',  'signal_ggf_spin0_300_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_350_hh_4t', #'signal_ggf_spin0_350_hh_2v2t',  'signal_ggf_spin0_350_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_400_hh_4t', #'signal_ggf_spin0_400_hh_2v2t',  'signal_ggf_spin0_400_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_450_hh_4t', #'signal_ggf_spin0_450_hh_2v2t',  'signal_ggf_spin0_450_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_500_hh_4t', #'signal_ggf_spin0_500_hh_2v2t',  'signal_ggf_spin0_500_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_550_hh_4t', #'signal_ggf_spin0_550_hh_2v2t',  'signal_ggf_spin0_550_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_600_hh_4t', #'signal_ggf_spin0_600_hh_2v2t',  'signal_ggf_spin0_600_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_650_hh_4t', #'signal_ggf_spin0_650_hh_2v2t',  'signal_ggf_spin0_650_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_700_hh_4t', #'signal_ggf_spin0_700_hh_2v2t',  'signal_ggf_spin0_700_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_750_hh_4t', #'signal_ggf_spin0_750_hh_2v2t',  'signal_ggf_spin0_750_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_800_hh_4t', #'signal_ggf_spin0_800_hh_2v2t',  'signal_ggf_spin0_800_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_850_hh_4t', #'signal_ggf_spin0_850_hh_2v2t',  'signal_ggf_spin0_850_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_900_hh_4t', #'signal_ggf_spin0_900_hh_2v2t',  'signal_ggf_spin0_900_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_1000_hh_4t', #'signal_ggf_spin0_1000_hh_2v2t',  'signal_ggf_spin0_1000_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
         ]
-        masses = [400, 700]
+    #    masses = [400, 700]
+        masses = [250,260,270,280,300,350,400,450,500, 550,600,650,700,750,800,850,900,1000]
     if channel in ["0l_2tau"] : keys = keys + ["DYJetsToLL"] ## list of channels to process DY for training
     if bdtType=="all" : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu', 'TTToHadronic', 'TTToSemiLeptonic']
     for folderName in keys :
@@ -292,11 +322,32 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
         if 'TTW' in folderName :
                 sampleName='TTW'
                 target=0
+        if 'TTWW' in folderName :
+                sampleName='TTWW'
+                target=0
         if 'TTZ' in folderName :
                 sampleName='TTZ'
                 target=0
         if 'DY' in folderName :
-                sampleName='EWK'
+                sampleName='DY'
+                target=0
+        if 'ZZ' in folderName :
+                sampleName='ZZ'
+                target=0
+        if 'WW' in folderName :
+                sampleName='WW'
+                target=0
+        if 'WpWp' in folderName :
+                sampleName='WpWp'
+                target=0
+        if 'WZ' in folderName :
+                sampleName='WZ'
+                target=0
+        if 'VH' in folderName :
+                sampleName='VH'
+                target=0
+        if 'ttH' in folderName : ## check true folderName inside the bdt training Ntuples !!!
+                sampleName='TTH'
                 target=0
         inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
         if folderName=='ttHToNonbb' :
@@ -308,10 +359,28 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
         elif ('TTT' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
+        elif ('TTWW' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
         elif ('TTW' in folderName) or ('TTZ' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"_LO/"+folderName+"*.root")
             list=procP1
         elif ('DY' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+        elif ('ZZ' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+        elif ('WW' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+        elif ('WpWp' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+        elif ('WZ' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+        elif ('VH' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
         print '======= list ==== ', list

@@ -101,9 +101,10 @@ target='target'
 #https://stackoverflow.com/questions/34803670/pandas-conditional-multiplication
 if "evtLevelSUM_HH_bb1l_res" in bdtType : masses = [250,270,280,320,350,400,450,500,600,650,750,800,850,900,1000]
 elif "evtLevelSUM_HH_bb2l_res" in bdtType : masses = [400,300,750]
+elif "evtLevelSUM_HH_res" in bdtType : masses = [250,260,270,280,300,350,400,450,500, 550,600,650,700,750,800,850,900,1000]
 else : print '****************** please define your mass point**************'
-
 #masses = [270,400,500,750]
+
 if 'evtLevelSUM' in bdtType :
 	data.loc[(data['key']=='TTToHadronic_PSweights') | (data['key']=='TTToSemiLeptonic_PSweights') | (data['key']=='TTTo2L2Nu_PSweights'), [weights]]*=TTdatacard/fastsimTT
 	#fastsimTT=data.loc[(data['key']=='TTToHadronic_PSweights'),[weights]].sum()+ data.loc[(data['key']=='TTToSemiLeptonic_PSweights'),[weights]].sum() + data.loc[(data['key']=='TTTo2L2Nu_PSweights'), [weights]].sum()
@@ -135,16 +136,24 @@ else :
 print "data.columns.values.tolist(): ",data.columns.values.tolist()
         '''
 	#data.loc[(data['key']=='TTWJetsToLNu') | (data['key']=='TTZ'), [weights]]*=TTVdatacard/fastsimTTV
-	data.loc[(data['key']=='DY'), [weights]]*=DYdatacard/fastsimDY
+	#data.loc[(data['key']=='DY'), [weights]]*=DYdatacard/fastsimDY
 	#fastsimDY=data.loc[(data['key']=='DY'), [weights]].sum()
 	#print 'fastsimDY= ', fastsimDY
-        #data.loc[(data['key']=='DY'), [weights]]*=DYdatacard/fastsimDY
+        data.loc[(data['key']=='DY'), [weights]]*=DYdatacard/fastsimDY
 	if"evtLevelSUM_HH_bb1l_res" in bdtType : 
 		#fastsimW=data.loc[(data['key']=='W'), [weights]].sum()
 		#print 'fastsimW= ', fastsimW
 		#data.loc[(data['key']=='W'), [weights]]*=Wdatacard/fastsimW
 		data.loc[(data['key']=='W'), [weights]]*=Wdatacard/fastsimW
-	
+	if"evtLevelSUM_HH_res" in bdtType : 
+	        data.loc[(data['key']=='TTToHadronic') | (data['key']=='TTToSemileptonic') | (data['key']=='TTTo2L2Nu'), [weights]]*=TTdatacard/fastsimTT
+                data.loc[(data['key']=='TTWJets') | (data['key']=='TTZJets'), [weights]]*=TTVdatacard/fastsimTTV
+                data.loc[(data['key']=='DY'), [weights]]*=DYdatacard/fastsimDY
+                data.loc[(data['key']=='VH'), [weights]]*=VHdatacard/fastsimVH
+                data.loc[(data['key']=='TTH'), [weights]]*=TTHdatacard/fastsimTTH
+                data.loc[(data['key']=='WW') | (data['key']=='WZ') | (data['key']=='ZZ'), [weights]]*=VVdatacard/fastsimVV
+                ##data.loc[data[target]==0, [weights]] *= 100000./data.loc[data[target]==0][weights].sum()                                                                                                                                                                 
+                data.ix[data[target]==1, [weights]] *= 100000./data.loc[data[target]==1][weights].sum()
 	for mass in range(len(masses)) :
 		data.loc[(data[target]==1) & (data["gen_mHH"] == masses[mass]),[weights]] *= 100000./data.loc[(data[target]==1) & (data["gen_mHH"]== masses[mass]),[weights]].sum()
 		data.loc[(data[target]==0) & (data["gen_mHH"] == masses[mass]),[weights]] *= 100000./data.loc[(data[target]==0) & (data["gen_mHH"]== masses[mass]),[weights]].sum()
@@ -152,19 +161,17 @@ else :
 	data.loc[data['target']==0, [weights]] *= 100000/data.loc[data['target']==0][weights].sum()
 	data.loc[data['target']==1, [weights]] *= 100000/data.loc[data['target']==1][weights].sum()
 
-print '# of events in TTHadronic w/ mass 350 400 750 ',len(data.loc[(data['key']=='TTToHadronic_PSweights') & (data["gen_mHH"]==350)]),'\t', len(data.loc[(data['key']=='TTToHadronic_PSweights') & (data["gen_mHH"]==400)]),'\t', len(data.loc[(data['key']=='TTToHadronic_PSweights') & (data["gen_mHH"]==750)])
-print '# of events in TT2L2Nu w/ mass 350 400 750 ',len(data.loc[(data['key']=='TTTo2L2Nu_PSweights') & (data["gen_mHH"]==350)]),'\t', len(data.loc[(data['key']=='TTTo2L2Nu_PSweights') & (data["gen_mHH"]==400)]),'\t', len(data.loc[(data['key']=='TTTo2L2Nu_PSweights') & (data["gen_mHH"]==750)])
-print '# of events in TTSemileptonic w/ mass 350 400 750 ',len(data.loc[(data['key']=='TTToSemiLeptonic_PSweights') & (data["gen_mHH"]==350)]),'\t', len(data.loc[(data['key']=='TTToSemiLeptonic_PSweights') & (data["gen_mHH"]==400)]),'\t', len(data.loc[(data['key']=='TTToSemiLeptonic_PSweights') & (data["gen_mHH"]==750)])
-print '# of events in W w/ mass 350 400 750 ',len(data.loc[(data['key']=='W') & (data["gen_mHH"]==350)]),'\t', len(data.loc[(data['key']=='W') & (data["gen_mHH"]==400)]),'\t', len(data.loc[(data['key']=='W') & (data["gen_mHH"]==750)])
-print '# of events in DY w/ mass 350 400 750 ',len(data.loc[(data['key']=='DY') & (data["gen_mHH"]==350)]),'\t', len(data.loc[(data['key']=='DY') & (data["gen_mHH"]==400)]),'\t', len(data.loc[(data['key']=='DY') & (data["gen_mHH"]==750)])
-totTT =  data.loc[(data['key']=='TTToHadronic_PSweights'),[weights]].sum()+data.loc[(data['key']=='TTToSemiLeptonic_PSweights'),[weights]].sum()+data.loc[(data['key']=='TTTo2L2Nu_PSweights'), [weights]].sum()
-totDY = data.loc[(data['key']=='DY'), [weights]].sum()
-totW =  data.loc[(data['key']=='W'), [weights]].sum()
-print 'ratioTTWDY = ', totTT/(totTT+totW+totDY),'\t', ':', totW/(totTT+totW+totDY),'\t', ':', totDY/(totTT+totW+totDY)
-
-print 'data to list = ', data.columns.values.tolist()
-
-print ("norm bk:", data.loc[data[target]==0][weights].sum(),",  sig:",data.loc[data[target]==1][weights].sum())
+#print '# of events in TTHadronic w/ mass 350 400 750 ',len(data.loc[(data['key']=='TTToHadronic_PSweights') & (data["gen_mHH"]==350)]),'\t', len(data.loc[(data['key']=='TTToHadronic_PSweights') & (data["gen_mHH"]==400)]),'\t', len(data.loc[(data['key']=='TTToHadronic_PSweights') & (data["gen_mHH"]==750)])
+#print '# of events in TT2L2Nu w/ mass 350 400 750 ',len(data.loc[(data['key']=='TTTo2L2Nu_PSweights') & (data["gen_mHH"]==350)]),'\t', len(data.loc[(data['key']=='TTTo2L2Nu_PSweights') & (data["gen_mHH"]==400)]),'\t', len(data.loc[(data['key']=='TTTo2L2Nu_PSweights') & (data["gen_mHH"]==750)])
+#print '# of events in TTSemileptonic w/ mass 350 400 750 ',len(data.loc[(data['key']=='TTToSemiLeptonic_PSweights') & (data["gen_mHH"]==350)]),'\t', len(data.loc[(data['key']=='TTToSemiLeptonic_PSweights') & (data["gen_mHH"]==400)]),'\t', len(data.loc[(data['key']=='TTToSemiLeptonic_PSweights') & (data["gen_mHH"]==750)])
+#print '# of events in W w/ mass 350 400 750 ',len(data.loc[(data['key']=='W') & (data["gen_mHH"]==350)]),'\t', len(data.loc[(data['key']=='W') & (data["gen_mHH"]==400)]),'\t', len(data.loc[(data['key']=='W') & (data["gen_mHH"]==750)])
+#print '# of events in DY w/ mass 350 400 750 ',len(data.loc[(data['key']=='DY') & (data["gen_mHH"]==350)]),'\t', len(data.loc[(data['key']=='DY') & (data["gen_mHH"]==400)]),'\t', len(data.loc[(data['key']=='DY') & (data["gen_mHH"]==750)])
+#totTT =  data.loc[(data['key']=='TTToHadronic_PSweights'),[weights]].sum()+data.loc[(data['key']=='TTToSemiLeptonic_PSweights'),[weights]].sum()+data.loc[(data['key']=='TTTo2L2Nu_PSweights'), [weights]].sum()
+#totDY = data.loc[(data['key']=='DY'), [weights]].sum()
+#totW =  data.loc[(data['key']=='W'), [weights]].sum()
+#print 'ratioTTWDY = ', totTT/(totTT+totW+totDY),'\t', ':', totW/(totTT+totW+totDY),'\t', ':', totDY/(totTT+totW+totDY)
+#print 'data to list = ', data.columns.values.tolist()
+#print ("norm bk:", data.loc[data[target]==0][weights].sum(),",  sig:",data.loc[data[target]==1][weights].sum())
 
 # drop events with NaN weights - for safety
 #data.replace(to_replace=np.inf, value=np.NaN, inplace=True)
@@ -192,6 +199,8 @@ elif 'evtLevelDY' in bdtType :
         labelBKG = "DY"
 elif 'evtLevelTT' in bdtType :
         labelBKG = "TT"
+elif 'evtLevelSUM_HH_res' in bdtType :
+        labelBKG = "TT+DY+VV"
 print "labelBKG: ",labelBKG
 printmin=True
 plotResiduals=False
@@ -210,7 +219,7 @@ make_plots(BDTvariables,nbins,
 valdataset = valdataset1.loc[valdataset1['gen_mHH']==400]
 valdataset.loc[valdataset[target]==1,[weights]] *= valdataset1.loc[valdataset1[target]==1]["totalWeight"].sum()/valdataset.loc[valdataset[target]==1]["totalWeight"].sum()
 valdataset.loc[valdataset[target]==0,[weights]]*= valdataset1.loc[valdataset1[target]==0]["totalWeight"].sum()/valdataset.loc[valdataset[target]==0]["totalWeight"].sum()'''
-traindataset, valdataset  = train_test_split(data[trainVars(False)+["target","totalWeight","key"]], test_size=0.2, random_state=7)
+traindataset, valdataset  = train_test_split(data[trainVars(False)+["target","totalWeight","key"]], test_size=0.5, random_state=7)
 #traindataset = traindataset.loc[(traindataset["gen_mHH"] !=500)]# | (traindataset["gen_mHH"] ==500) | (traindataset["gen_mHH"] == 900)]
 print 'Tot weight of train and validation for signal= ', traindataset.loc[traindataset[target]==1]["totalWeight"].sum(), valdataset.loc[valdataset[target]==1]["totalWeight"].sum()
 print 'Tot weight of train and validation for bkg= ', traindataset.loc[traindataset[target]==0]['totalWeight'].sum(),valdataset.loc[valdataset[target]==0]['totalWeight'].sum()
@@ -328,7 +337,8 @@ file_.write('yval_all = ')
 file_.write(str(tprt.tolist()))
 file_.write('\n')
 
-masses=[400]
+#masses=[400,700]
+masses = [250,260,270,280,300,350,400,450,500, 550,600,650,700,750,800,850,900,1000]
 colors = ['b', 'g', 'r']
 for mm, mass in enumerate(masses) :
 	valdataset1= valdataset.loc[(valdataset["gen_mHH"]==mass) & (valdataset["target"]==0) & ((valdataset["key"] == "TTToHadronic_PSweights") | (valdataset["key"] == "TTToSemiLeptonic_PSweights") | (valdataset["key"] == "TTTo2L2Nu_PSweights"))]
