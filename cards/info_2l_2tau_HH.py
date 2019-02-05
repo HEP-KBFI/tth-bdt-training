@@ -43,7 +43,7 @@ def trainVars(all):
       "lep1_isElectron", "lep1_charge", "lep2_isElectron", "lep2_charge",
       "nElectron", "nMuon", "gen_mHH",
       "lep1_phi", "lep2_phi", "tau1_phi", "tau2_phi",
-      "m_lep1_tau1", "m_lep1_tau2", "m_lep2_tau1", "m_lep2_tau2",
+      "m_lep1_tau1", "m_lep1_tau2", "m_lep2_tau1", "m_lep2_tau2", "mTauTau",
       "deltaEta_lep1_tau1", "deltaEta_lep1_tau2", "deltaEta_lep2_tau1", "deltaEta_lep2_tau2", "deltaEta_lep1_lep2", "deltaEta_tau1_tau2",
       "deltaPhi_lep1_tau1", "deltaPhi_lep1_tau2", "deltaPhi_lep2_tau1", "deltaPhi_lep2_tau2", "deltaPhi_lep1_lep2", "deltaPhi_tau1_tau2",
       "dr_lep1_tau1_tau2_min", "dr_lep1_tau1_tau2_max", "dr_lep2_tau1_tau2_min", "dr_lep2_tau1_tau2_max",
@@ -92,7 +92,7 @@ def trainVars(all):
                 "dr_lep1_tau1", "dr_lep1_tau2", "dr_lep2_tau1", "dr_lep2_tau2",
                 "dr_leps", "dr_taus", #"avg_dr_jet",                                                                                                                                                                                                       
                 "met_LD", #"met", "mht",                                                                                                                                                                                                                   
-                "diHiggsVisMass", "diHiggsMass", "mTauTauVis", #"ptTauTauVis",                                                                                                                                                                             
+                "diHiggsVisMass", "diHiggsMass", "mTauTauVis", "mTauTau", #"ptTauTauVis",                                                                                                                                                                             
                 "nBJet_medium", #"nJet", "nBJet_loose",                                                                                                                                                                                                    
                 #"lep1_charge", "lep2_charge",                                                                                                                                                                                                             
                 "nElectron", "gen_mHH",
@@ -105,7 +105,7 @@ def trainVars(all):
 
         if trainvar=="testVars"  and bdtType=="evtLevelSUM_HH_res" and all==False :return [
                 "diHiggsMass", "m_ll", "met_LD", "gen_mHH",
-                "diHiggsVisMass",
+                "diHiggsVisMass", "mTauTau",
                 "mTauTauVis", "tau1_eta", "dr_leps", "tau1_pt", "nElectron", "nBJet_medium",
                 "dr_taus", "dr_lep_tau_min_SS", "dr_lep1_tau1_tau2_min", "tau2_pt", #"tau2_eta",
                 "dr_lep_tau_min_OS", "lep1_conePt", #"lep2_eta", "lep1_eta",
@@ -113,7 +113,7 @@ def trainVars(all):
                 ]
 
         if trainvar=="testVars2"  and bdtType=="evtLevelSUM_HH_res" and all==False :return [
-                "diHiggsMass", "m_ll", "met_LD", "gen_mHH", "tau1_pt", "dr_lep_tau_min_SS", "dr_leps", "dr_taus", "lep1_conePt"
+                "diHiggsMass", "m_ll", "met_LD", "gen_mHH", "tau1_pt", "dr_lep_tau_min_SS", "dr_leps", "dr_taus", "lep1_conePt", "mTauTau"
                 #"diHiggsVisMass",
                 #"mTauTauVis", "tau1_eta", "dr_leps", "tau1_pt", "nElectron", "nBJet_medium",
                 #"tau2_pt", "tau2_eta", "dr_taus", "dr_lep_tau_min_SS", "dr_lep1_tau1_tau2_min",
