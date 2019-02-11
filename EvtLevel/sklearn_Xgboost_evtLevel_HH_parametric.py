@@ -45,8 +45,8 @@ parser.add_option("--HypOpt", action="store_true", dest="HypOpt", help="If you c
 parser.add_option("--doXML", action="store_true", dest="doXML", help="Do save not write the xml file", default=False)
 parser.add_option("--doPlots", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
 parser.add_option("--nonResonant", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
-parser.add_option("--ntrees ", type="int", dest="ntrees", help="hyp", default=1500)
-parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=3)
+parser.add_option("--ntrees ", type="int", dest="ntrees", help="hyp", default=1000)
+parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=2)
 parser.add_option("--lr", type="float", dest="lr", help="hyp", default=0.01)
 parser.add_option("--mcw", type="int", dest="mcw", help="hyp", default=1)
 (options, args) = parser.parse_args()
@@ -219,7 +219,7 @@ make_plots(BDTvariables,nbins,
 valdataset = valdataset1.loc[valdataset1['gen_mHH']==400]
 valdataset.loc[valdataset[target]==1,[weights]] *= valdataset1.loc[valdataset1[target]==1]["totalWeight"].sum()/valdataset.loc[valdataset[target]==1]["totalWeight"].sum()
 valdataset.loc[valdataset[target]==0,[weights]]*= valdataset1.loc[valdataset1[target]==0]["totalWeight"].sum()/valdataset.loc[valdataset[target]==0]["totalWeight"].sum()'''
-traindataset, valdataset  = train_test_split(data[trainVars(False)+["target","totalWeight","key"]], test_size=0.5, random_state=7)
+traindataset, valdataset  = train_test_split(data[trainVars(False)+["target","totalWeight","key"]], test_size=0.2, random_state=7)
 #traindataset = traindataset.loc[(traindataset["gen_mHH"] !=500)]# | (traindataset["gen_mHH"] ==500) | (traindataset["gen_mHH"] == 900)]
 print 'Tot weight of train and validation for signal= ', traindataset.loc[traindataset[target]==1]["totalWeight"].sum(), valdataset.loc[valdataset[target]==1]["totalWeight"].sum()
 print 'Tot weight of train and validation for bkg= ', traindataset.loc[traindataset[target]==0]['totalWeight'].sum(),valdataset.loc[valdataset[target]==0]['totalWeight'].sum()

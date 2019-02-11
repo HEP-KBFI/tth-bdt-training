@@ -265,20 +265,31 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
     if "evtLevelSUM_HH" in bdtType :
         keys=[
     'TTTo2L2Nu','TTToSemiLeptonic', 'TTTo2L2Nu_PSweights', 'TTToSemiLeptonic_PSweights', #'TTToHadronic, ''TTToHadronic_PSweights', ## 0 events selected
-    #'DYJetsToLL_M-50_LO', 'DYJetsToLL_M-50_LO_ext1',
-    #'DY1JetsToLL_M-50', 'DY1JetsToLL_M-50_ext1', ## poor event statistics
-    #'DY2JetsToLL_M-50', 'DY2JetsToLL_M-50_ext1', ## poor event statistics
-    #'DY3JetsToLL_M-50', 'DY3JetsToLL_M-50_ext1', ## poor event statistics
-    #'DY4JetsToLL_M-50',                          ## poor event statistics 
-    'ZZTo4L', 'ZZTo2L2Q', 'ZZTo4L_ext1', ##'ZZTo2L2Nu', ## poor event statistics 
+    'DYJetsToLL_M-50_LO', 'DYJetsToLL_M-50_LO_ext1',
+    'DY1JetsToLL_M-50', 'DY1JetsToLL_M-50_ext1', ## poor event statistics
+    'DY2JetsToLL_M-50', 'DY2JetsToLL_M-50_ext1', ## poor event statistics
+    'DY3JetsToLL_M-50', 'DY3JetsToLL_M-50_ext1', ## poor event statistics
+    'DY4JetsToLL_M-50',                          ## poor event statistics
+    'DYJetsToLL_M-4to50_HT-100to200', 'DYJetsToLL_M-4to50_HT-100to200_ext1', 
+    'DYJetsToLL_M-4to50_HT-200to400', 'DYJetsToLL_M-4to50_HT-200to400_ext1',   
+    'DYJetsToLL_M-4to50_HT-400to600', 'DYJetsToLL_M-4to50_HT-400to600_ext1',
+    'DYJetsToLL_M-4to50_HT-600toInf',
+    'DYJetsToLL_M50_HT100to200', 'DYJetsToLL_M50_HT100to200_ext1', 
+    'DYJetsToLL_M50_HT200to400', 'DYJetsToLL_M50_HT200to400_ext1',
+    'DYJetsToLL_M50_HT400to600', 'DYJetsToLL_M50_HT400to600_ext1', 
+    'DYJetsToLL_M50_HT600to800', 'DYJetsToLL_M50_HT800to1200', 
+    'DYJetsToLL_M50_HT1200to2500', 'DYJetsToLL_M50_HT2500toInf',
+    #'ZZTo4L', ## Not to be used since used in analysis
+    'ZZTo4L_ext1', 'ZZTo2L2Q', ##'ZZTo2L2Nu', ## poor event statistics 
     #'ZZZ'                                              ## poor event statistics 
     #'WWTo2L2Nu', ##'WWToLNuQQ', 'WWTo1L1Nu2Q', 'WWTo4Q',  ## poor event statistics 
     #'WWW_4F', 'WWZ_4F', 'WZZ',                            ## poor event statistics                            
     #'WWTo2L2Nu_PSweights', 'WWTo2L2Nu_DoubleScattering', #'WWToLNuQQ_PSweights', 'WWTo4Q_PSweights', 'WpWpJJ_EWK_QCD', 'WpWpJJ_EWK_QCD_v14-v1', ## poor event statistics   
-    'WZTo3LNu_1Jets_MLL-50', 'WZTo3LNu_2Jets_MLL-4to50', 'WZTo3LNu_3Jets_MLL-50', 'WZTo3LNu_2Jets_MLL-50', 'WZTo3LNu_0Jets_MLL-50', 'WZTo3LNu_1Jets_MLL-4to50', #'WZTo3LNu_0Jets_MLL-4to50'
+    'WZTo3LNu_1Jets_MLL-50', 'WZTo3LNu_2Jets_MLL-50', 'WZTo3LNu_3Jets_MLL-50', 'WZTo3LNu_0Jets_MLL-50', 'WZTo3LNu', 
+    'WZTo3LNu_1Jets_MLL-4to50', 'WZTo3LNu_2Jets_MLL-4to50', 'WZTo3LNu_3Jets_MLL-4to50', #'WZTo3LNu_0Jets_MLL-4to50', ## poor event statistics   
     'TTZJets', #'TTWJets', #'TTWW',                                                                                                     
-    'VHToNonbb_M125',                                                                                                                                                                                 
-    'ttHToNonbb',
+    #'VHToNonbb_M125', ## Not to be used since used in analysis                                                                                                                                                                                
+    #'ttHToNonbb',     ## Not to be used since used in analysis
     'signal_ggf_spin0_250_hh_4t', #'signal_ggf_spin0_250_hh_2v2t',  'signal_ggf_spin0_250_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
     'signal_ggf_spin0_260_hh_4t', #'signal_ggf_spin0_260_hh_2v2t',  'signal_ggf_spin0_260_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
     'signal_ggf_spin0_270_hh_4t', #'signal_ggf_spin0_270_hh_2v2t',  'signal_ggf_spin0_270_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel

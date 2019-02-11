@@ -1,7 +1,11 @@
 hasHTT = False
 
 channelInTree='hh_2l_2tau_sumOS_forBDTtraining'
-inputPath='/hdfs/local/ram/hhAnalysis/2017/2018Dec29_2l_2tau_forBDTtraining/histograms/hh_2l_2tau/forBDTtraining_sumOS/'
+#inputPath='/hdfs/local/ram/hhAnalysis/2017/2018Dec29_2l_2tau_forBDTtraining/histograms/hh_2l_2tau/forBDTtraining_sumOS/' ## dR03mvaLoose Ntuples w/o DYJets_HT samples and mTauTau variable
+#inputPath='/hdfs/local/ram/hhAnalysis/2017/2019Feb4_2l_2tau_forBDTtraining_dR03mvaLoose_w_mTauTau/histograms/hh_2l_2tau/forBDTtraining_sumOS/' ## dR03mvaLoose Ntuples with DYJets_HT samples and mTauTau variable
+#inputPath='/hdfs/local/ram/hhAnalysis/2017/2019Feb4_2l_2tau_forBDTtraining_dR03mvaVLoose_w_mTauTau/histograms/hh_2l_2tau/forBDTtraining_sumOS/' ## dR03mvaVLoose Ntuples with DYJets_HT samples and mTauTau variable
+inputPath='/hdfs/local/ram/hhAnalysis/2017/2019Feb4_2l_2tau_forBDTtraining_dR03mvaVVLoose_w_mTauTau/histograms/hh_2l_2tau/forBDTtraining_sumOS/' ## dR03mvaVVLoose Ntuples with DYJets_HT samples and mTauTau variable
+
 
 ##-- 2l_2tau VALUES FOR dr03mvaLoose -- ##                                                                                                                                                                                                              
 fastsimTT=51.37+0.27+0.0
