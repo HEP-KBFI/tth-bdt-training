@@ -39,7 +39,7 @@ def trainVars(all):
        "genWeight", "evtWeight",
        "nJet", "nBJetLoose", "nBJetMedium",
       "isHbb_boosted",
-      "nJet_vbf", "isVBF"
+      "nJet_vbf", "isVBF", "event"
 		]
 
 	if trainvar=="noTopness"  and bdtType=="evtLevelSUM_HH_bb2l_res" and all==False :return [
