@@ -121,17 +121,33 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
     print 'bdttype= ', bdtType
     my_cols_list=variables+['proces', 'key', 'target', "totalWeight"]
     data = pandas.DataFrame(columns=my_cols_list)
-    if "evtLevelSUM_HH_bb2l" in bdtType :
+    if "evtLevelSUM_HH_bb2l_res" in bdtType :
         keys=[
             'TTToSemiLeptonic_PSweights',
             'TTToHadronic_PSweights','DY',
             'TTTo2L2Nu_PSweights',
-            'signal_vbf_spin0_400_hh_2b2v', 'signal_vbf_spin0_750_hh_2b2v',
-            'signal_vbf_spin0_300_hh_2b2v'
-            ]
-        masses = [300,400,750]
+            'signal_ggf_spin0_250_hh_2b2v','signal_ggf_spin0_270_hh_2b2v','signal_ggf_spin0_280_hh_2b2v',
+            'signal_ggf_spin0_320_hh_2b2v','signal_ggf_spin0_350_hh_2b2v',
+            'signal_ggf_spin0_400_hh_2b2v', #300 sample is missing for bb2v
+            'signal_ggf_spin0_450_hh_2b2v','signal_ggf_spin0_500_hh_2b2v','signal_ggf_spin0_600_hh_2b2v',
+            'signal_ggf_spin0_650_hh_2b2v','signal_ggf_spin0_750_hh_2b2v','signal_ggf_spin0_800_hh_2b2v',
+            'signal_ggf_spin0_850_hh_2b2v','signal_ggf_spin0_900_hh_2b2v','signal_ggf_spin0_1000_hh_2b2v',
 
-    elif "evtLevelSUM_HH_bb1l" in bdtType :
+            ]
+        masses = [250,270,280,320,350,400,450,500,600,650,750,800,850,900,1000]
+
+    elif "evtLevelSUM_HH_bb2l_nonres" in bdtType :
+        keys=[
+            'TTToSemiLeptonic_PSweights',
+            'TTToHadronic_PSweights','DY',
+            'TTTo2L2Nu_PSweights',
+            'signal_ggf_nonresonant_node_2_hh_2b2v','signal_ggf_nonresonant_node_3_hh_2b2v',
+            'signal_ggf_nonresonant_node_7_hh_2b2v','signal_ggf_nonresonant_node_9_hh_2b2v',
+            'signal_ggf_nonresonant_node_12_hh_2b2v','signal_ggf_nonresonant_node_sm_hh_2b2v'
+            ]
+        nodes = [2,3,7,9,12,20]
+
+    elif "evtLevelSUM_HH_bb1l_res" in bdtType :
         keys=[
             'W',
             'TTToSemiLeptonic_PSweights', 
@@ -144,14 +160,21 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
             'signal_ggf_spin0_450_hh_2b2v','signal_ggf_spin0_500_hh_2b2v','signal_ggf_spin0_600_hh_2b2v',
             'signal_ggf_spin0_650_hh_2b2v','signal_ggf_spin0_750_hh_2b2v','signal_ggf_spin0_800_hh_2b2v',
             'signal_ggf_spin0_850_hh_2b2v','signal_ggf_spin0_900_hh_2b2v','signal_ggf_spin0_1000_hh_2b2v',
-
-            #'signal_ggf_spin0_270_hh_2b2v','signal_ggf_spin0_400_hh_2b2v', 'signal_ggf_spin0_500_hh_2b2v','signal_ggf_spin0_750_hh_2b2v',
-            #'signal_ggf_spin0_400_hh_2b2v','signal_ggf_spin0_350_hh_2b2v','signal_ggf_spin0_900_hh_2b2v','signal_ggf_spin0_500_hh_2b2v',
-            #'signal_vbf_spin0_400_hh_2b2v', 'signal_vbf_spin0_750_hh_2b2v',
-            #'signal_vbf_spin0_300_hh_2b2v',
             ]
         masses = [250,270,280,320,350,400,450,500,600,650,750,800,850,900,1000]
-        #masses = [270,400,500,750]
+    elif "evtLevelSUM_HH_bb1l_nonres" in bdtType :
+        keys=[
+            'W',
+            'TTToSemiLeptonic_PSweights',
+            'TTToHadronic_PSweights',
+            'DY',
+            'TTTo2L2Nu_PSweights',
+            'signal_ggf_nonresonant_node_2_hh_2b2v','signal_ggf_nonresonant_node_3_hh_2b2v',
+            'signal_ggf_nonresonant_node_7_hh_2b2v','signal_ggf_nonresonant_node_9_hh_2b2v',
+            'signal_ggf_nonresonant_node_12_hh_2b2v','signal_ggf_nonresonant_node_sm_hh_2b2v'
+            ]
+        nodes = [2,3,7,9,12,20]
+
     
     for folderName in keys :
         print '(folderName, channelTree) = ', (folderName, channelInTree)
@@ -168,25 +191,39 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
             sampleName='W'
             target=0
         if "evtLevelSUM_HH_bb2l" in bdtType :
-            if 'signal_vbf_spin0' in folderName :
-                sampleName='signal_vbf_spin0_'
-                for mass in masses :
-                    if str(mass) in folderName : sampleName=sampleName+str(mass)
-                if '_2b2v' in folderName : sampleName=sampleName+'_hh_bbvv'
-                target=1
+            if 'signal_ggf' in folderName :
+                variable = []
+                variable = masses if "evtLevelSUM_HH_bb2l_res" in bdtType else nodes
+                sampleName='signal_ggf_spin0' if "evtLevelSUM_HH_bb2l_res" in bdtType else 'signal_ggf_nonresonant_node'
+                for var in variable :
+                    if var ==20 :
+                        sampleName=sampleName+'_'+'sm'+'_'
+                        break
+                    elif '_'+str(var)+"_" in folderName :
+                        sampleName=sampleName+'_'+str(var)+'_'
+                        break
+                if '_2b2v' in folderName : sampleName=sampleName+'hh_bbvv'
+                target =1
 
         elif "evtLevelSUM_HH_bb1l" in bdtType :
-            if 'signal_ggf_spin0' in folderName :
-                sampleName='signal_ggf_spin0_'
-                for mass in masses :
-                    if str(mass) in folderName : sampleName=sampleName+str(mass)
-                if '_2b2v' in folderName : sampleName=sampleName+'_hh_bbvv'
+            if 'signal_ggf' in folderName :
+                variable = []
+                variable = masses if "evtLevelSUM_HH_bb1l_res" in bdtType else nodes
+                sampleName='signal_ggf_spin0' if "evtLevelSUM_HH_bb1l_res" in bdtType else 'signal_ggf_nonresonant_node'
+                for var in variable :
+                    if var ==20 : 
+                        sampleName=sampleName+'_'+'sm'+'_'
+                        break
+                    elif '_'+str(var)+"_" in folderName : 
+                        sampleName=sampleName+'_'+str(var)+'_'
+                        break
+                if '_2b2v' in folderName : sampleName=sampleName+'hh_bbvv'
                 target=1
         if 'TTW' in folderName :
             sampleName='TTW'
             target=0
         inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
-        if 'signal_ggf_spin0' in folderName or 'signal_vbf_spin0' in folderName:
+        if 'signal_ggf' in folderName or 'signal_vbf' in folderName:
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
 
@@ -200,7 +237,7 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
         elif ('W' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            procP1=[w for w in glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root") if not os.path.basename(w).startswith('WZ') and w.find('part') ==-1]
             list=procP1
         elif ('TTW' in folderName) or ('TTZ' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"/"+folderName+"*.root")
@@ -221,7 +258,11 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
                     chunk_df['target']=target
                     chunk_df["totalWeight"] = chunk_df["evtWeight"]
                     #chunk_df["totalWeight"] = 1
-                    if "evtLevelSUM_HH_bb2l" in bdtType : chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep1","dR_b2lep1","dR_b2lep1","dR_b2lep2"]].max(axis=1)
+                    if "evtLevelSUM_HH_bb2l" in bdtType : 
+                        chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep1","dR_b2lep1","dR_b2lep1","dR_b2lep2"]].max(axis=1)
+                        chunk_df["max_lep_pt"] = chunk_df[["lep1_pt","lep2_pt"]].max(axis=1)
+                        chunk_df["max_dR_b1_lep"] = chunk_df[["dR_b1lep1","dR_b1lep2"]].max(axis=1)
+                        chunk_df["max_dR_b2_lep"] = chunk_df[["dR_b2lep1","dR_b2lep2"]].max(axis=1)
                     elif "evtLevelSUM_HH_bb1l" in bdtType : chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep","dR_b2lep"]].max(axis=1)
                     chunk_df["max_bjet_pt"] = chunk_df[["bjet1_pt","bjet2_pt"]].max(axis=1)
                     if "evtLevelSUM_HH_bb2l" in bdtType : chunk_df["max_lep_pt"] = chunk_df[["lep1_pt","lep2_pt"]].max(axis=1)
@@ -231,24 +272,33 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
                             if str(mass) in folderName :
                                 chunk_df["gen_mHH"]=mass
                                 foundMass = True
-                        if not foundMass : 
-                            #chunk_df["gen_mHH"]=masses[randint(0, len(masses)-1)]
-                            mass = []
-                            for i in range(len(chunk_df)) :
-                                mass.append(masses[randint(0,len(masses)-1)])
-                            #chunk_df['gen_mHH'] = pandas.Series(np.random.randint(masses[0],masses[len(masses)-1],len(chunk_df)), index=chunk_df.index)
-                            chunk_df['gen_mHH'] = pandas.Series(mass, index=chunk_df.index)
+                        if not foundMass : chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df)) 
                             #if folderName == 'TTToHadronic_PSweights' or folderName == 'TTTo2L2Nu_PSweights' or folderName == 'TTToSemiLeptonic_PSweights' : print folderName, '\t', len(chunk_df),'\t',chunk_df["gen_mHH"]
+                elif "evtLevelSUM_HH_bb2l_nonres" in bdtType or "evtLevelSUM_HH_bb1l_nonres" in bdtType :
+                        foundNode = False
+                        if folderName.startswith("signal") :
+                            for node in nodes :
+                                if '_'+str(node)+'_' in folderName:
+                                    chunk_df["node"]= node
+                                    foundNode = True
+                                    break
+                            if folderName.find('sm') !=-1 : 
+                                chunk_df["node"] = 20
+                                foundNode = True
+                        if not foundNode : chunk_df["node"]=np.random.choice(nodes, size=len(chunk_df))
+                        #if folderName == 'TTToHadronic_PSweights' or folderName == 'TTTo2L2Nu_PSweights' or folderName == 'TTToSemiLeptonic_PSweights' : print folderName, '\t', len(chunk_df),'\t',chunk_df["node"]
                 data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
         if len(data) == 0 : continue
-        if "evtLevelSUM_HH_bb2l_res" in bdtType and folderName == 'TTTo2L2Nu' : data.drop(data.tail(6000000).index,inplace = True)
-        elif "evtLevelSUM_HH_bb1l_res" in bdtType :
+        if "evtLevelSUM_HH_bb2l" in bdtType and folderName == 'TTTo2L2Nu' : data.drop(data.tail(6000000).index,inplace = True)
+        elif "evtLevelSUM_HH_bb1l" in bdtType :
             if folderName == 'TTToSemiLeptonic_PSweights' : data.drop(data.tail(24565062).index,inplace = True)
             if folderName == 'TTTo2L2Nu_PSweights' : data.drop(data.tail(11089852).index,inplace = True) #12089852
             if folderName.find('signal') !=-1 : 
                 if folderName.find('900') ==-1 and folderName.find('1000') ==-1 : data.drop(data.tail(15000).index,inplace = True)
+                if bdtType.find('nonres') != -1 :
+                    data.drop(data.tail(20000).index,inplace = True)
             elif folderName == 'W' : data.drop(data.tail(2933623).index,inplace = True)
         nS = len(data.ix[(data.target.values == 1) & (data.key.values==folderName) ])
         nB = len(data.ix[(data.target.values == 0) & (data.key.values==folderName) ])
