@@ -320,7 +320,7 @@ def load_data_2017_HH_2l_2tau(inputPath,channelInTree,variables,criteria,bdtType
     'signal_ggf_spin0_900_hh_4t', #'signal_ggf_spin0_900_hh_2v2t',  'signal_ggf_spin0_900_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
     'signal_ggf_spin0_1000_hh_4t', #'signal_ggf_spin0_1000_hh_2v2t',  'signal_ggf_spin0_1000_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
         ]
-        masses = [250,260,270,280,300,350,400,450,500, 550,600,650,700,750,800,850,900,1000]
+        masses = [250,260,270,280,300,350,400,450,500,550,600,650,700,750,800,850,900,1000]
 #        masses = [500]
     if channel in ["0l_2tau"] : keys = keys + ["DYJetsToLL"] ## list of channels to process DY for training
     if bdtType=="all" : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu', 'TTToHadronic', 'TTToSemiLeptonic']

@@ -1,7 +1,7 @@
 ## --- Choose Tau ID ----
 #tauID = "dR03mvaLoose"
-#tauID = "dR03mvaVLoose"
-tauID = "dR03mvaVVLoose"
+tauID = "dR03mvaVLoose"
+#tauID = "dR03mvaVVLoose"
 ## ---------------------
 
 

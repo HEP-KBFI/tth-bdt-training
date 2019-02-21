@@ -57,16 +57,14 @@ trainvar=options.variables
 hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(options.treeDeph)+"_mcw_"+str(options.mcw)+"_lr_0o0"+str(int(options.lr*100))
 
 ## --- OUTPUT DIRECTORY NAME----
-# channel=options.channel+"_HH"
-# channel=options.channel+"_HH_dR03mvaLoose"
-# channel=options.channel+"_HH_dR03mvaVLoose"
-channel=options.channel+"_HH_dR03mvaVVLoose_all"
-
+channel=options.channel+"_HH_dR03mvaVLoose"
 
 #if resonant bdtype
 if 'evtLevelSUM_HH_bb2l_res' in bdtType : file_ = open('roc_2lTT.log','w+')
 elif 'evtLevelSUM_HH_bb1l_res' in bdtType : file_ = open('roc_1lTT.log','w+')
+elif 'evtLevelSUM_HH_2l_2tau_res' in bdtType : file_ = open('roc_2l_2tau_dR03mvaVLoose.log','w+')
 else : file_ = open('roc.log','w+')
+
 
 if "bb2l" in channel   : execfile("../cards/info_bb2l_HH.py")
 elif "bb1l" in channel : execfile("../cards/info_bb1l_HH.py")
@@ -88,7 +86,7 @@ print "inputPath: ",inputPath,", channelInTree: ",channelInTree; sys.stdout.flus
 if "bb2l" in channel   : data=load_data_2017_HH(inputPath,channelInTree,trainVars(True),[],bdtType)
 elif "bb1l" in channel : data=load_data_2017_HH(inputPath,channelInTree,trainVars(True),[],bdtType)
 elif "2l_2tau" in channel: data=load_data_2017_HH_2l_2tau(inputPath,channelInTree,trainVars(True),[],bdtType)
-else : data=load_data_2017(inputPath,channelInTree,trainVars(True),[],bdtType)
+else : data=load_data_2017_HH(inputPath,channelInTree,trainVars(True),[],bdtType)
 #**********************
 
 weights="totalWeight"
@@ -102,7 +100,7 @@ target='target'
 #https://stackoverflow.com/questions/34803670/pandas-conditional-multiplication
 if "evtLevelSUM_HH_bb1l_res" in bdtType : masses = [250,270,280,320,350,400,450,500,600,650,750,800,850,900,1000]
 elif "evtLevelSUM_HH_bb2l_res" in bdtType : masses = [400,300,750]
-elif "evtLevelSUM_HH_2l_2tau_res" in bdtType : masses = [250,260,270,280,300,350,400,450,500, 550,600,650,700,750,800,850,900,1000]
+elif "evtLevelSUM_HH_2l_2tau_res" in bdtType : masses = [250,260,270,280,300,350,400,450,500,550,600,650,700,750,800,850,900,1000]
 #elif "evtLevelSUM_HH_2l_2tau_res" in bdtType : masses = [500]
 else : print '****************** please define your mass point**************'
 
@@ -313,9 +311,10 @@ file_.write('yval_all = ')
 file_.write(str(tprt.tolist()))
 file_.write('\n')
 
-#masses=[500]
-masses = [250,260,270,280,300,350,400,450,500, 550,600,650,700,750,800,850,900,1000]
+#masses=[300]
+masses = [250,260,270,280,300,350,400,450,500,550,600,650,700,750,800,850,900,1000]
 colors = ['b', 'g', 'r']
+
 for mm, mass in enumerate(masses) :
 	valdataset1= valdataset.loc[(valdataset["gen_mHH"]==mass) & (valdataset["target"]==0) & ((valdataset["key"] == "TTToHadronic_PSweights") | (valdataset["key"] == "TTToSemiLeptonic_PSweights") | (valdataset["key"] == "TTTo2L2Nu_PSweights"))]
 	valdataset1=valdataset1.append(valdataset.loc[(valdataset["gen_mHH"]==mass) & (valdataset["target"]==1)])
@@ -343,8 +342,8 @@ for mm, mass in enumerate(masses) :
 	file_.write('\n')
 
 for mm, mass in enumerate(masses) :
+	traindataset2= traindataset.loc[(traindataset["gen_mHH"]==mass)] ## Training and testing for only the mass point under study
 	valdataset2= valdataset.loc[(valdataset["gen_mHH"]==mass)]
-	traindataset2= traindataset.loc[(traindataset["gen_mHH"]==mass)]
         proba = cls.predict_proba(valdataset2[trainVars(False)].values )
         fprt, tprt, thresholds = roc_curve(valdataset2[target], proba[:,1], sample_weight=(valdataset2[weights].astype(np.float64))  )
         test_auct = auc(fprt, tprt, reorder = True)
@@ -363,7 +362,33 @@ for mm, mass in enumerate(masses) :
 	file_.write(str(fprt.tolist()))
 	file_.write('\n')
 	file_.write('yval = ')
-file_.write(str(tprt.tolist()))
+	file_.write(str(tprt.tolist()))
+	file_.write('\n')
+
+for mm, mass in enumerate(masses) :
+	traindataset3= traindataset.loc[~(traindataset["gen_mHH"]==mass)] ## Training for all masses except the one under study
+	valdataset3= traindataset.loc[(traindataset["gen_mHH"]==mass)]    ## Testing the resulting BDT (from the traning in the above line) on the masspoint under study
+	proba = cls.predict_proba(valdataset3[trainVars(False)].values )
+        fprt, tprt, thresholds = roc_curve(valdataset3[target], proba[:,1], sample_weight=(valdataset3[weights].astype(np.float64))  )
+        test_auct = auc(fprt, tprt, reorder = True)
+	proba = cls.predict_proba(traindataset3[trainVars(False)].values )
+	fpr, tpr, thresholds = roc_curve(traindataset3[target], proba[:,1],sample_weight=(traindataset3[weights].astype(np.float64)) )
+	train_auc = auc(fpr, tpr, reorder = True)
+	file_.write('train_aucNEW= %0.8f\n' %train_auc)
+	file_.write('test_aucNEW= %0.8f\n' %test_auct)
+	file_.write('xtrainNEW= ')
+	file_.write(str(fpr.tolist()))
+	file_.write('\n')
+	file_.write('ytrainNEW= ')
+	file_.write(str(tpr.tolist()))
+	file_.write('\n')
+	file_.write('xvalNEW= ')
+	file_.write(str(fprt.tolist()))
+	file_.write('\n')
+	file_.write('yvalNEW = ')
+	file_.write(str(tprt.tolist()))
+	file_.write('\n')
+
 
 #ax.plot(fprtightF, tprtightF, lw=1, label='XGB test - Fullsim All (area = %0.3f)'%(test_auctightF))
 ax.set_ylim([0.0,1.0])
