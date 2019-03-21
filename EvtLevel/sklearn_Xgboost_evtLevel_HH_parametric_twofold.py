@@ -4,7 +4,8 @@ import sys , time
 import sklearn
 from sklearn import datasets
 from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.cross_validation import train_test_split
+try: from sklearn.cross_validation import train_test_split
+except : from sklearn.model_selection import train_test_split
 import pandas
 import matplotlib.mlab as mlab
 from scipy.stats import norm
@@ -22,7 +23,7 @@ import pickle
 import root_numpy
 import xgboost as xgb
 from sklearn.metrics import roc_curve, auc
-from root_numpy import tree2array
+
 
 import ROOT
 import glob
@@ -39,12 +40,14 @@ parser.add_option("--HypOpt", action="store_true", dest="HypOpt", help="If you c
 parser.add_option("--doXML", action="store_true", dest="doXML", help="Do save not write the xml file", default=False)
 parser.add_option("--doPlots", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
 parser.add_option("--nonResonant", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
-parser.add_option("--ntrees ", type="int", dest="ntrees", help="hyp", default=1000)
+parser.add_option("--ntrees", type="int", dest="ntrees", help="hyp", default=1000)
 parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=2)
 parser.add_option("--lr", type="float", dest="lr", help="hyp", default=0.01)
 parser.add_option("--mcw", type="int", dest="mcw", help="hyp", default=1)
+parser.add_option("--tauID", type="string", dest="tauID", help="sample to pick training events", default='"dR03mvaVLoose"')
 (options, args) = parser.parse_args()
 
+tauID=options.tauID
 doPlots=options.doPlots
 bdtType=options.bdtType
 trainvar=options.variables
@@ -53,10 +56,8 @@ hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(option
 channel=options.channel+"_HH"
 print (startTime)
 
-if "bb2l" in channel   :
-    execfile("../cards/info_bb2l_HH.py")
-    masses = [400,300,750]
-
+if "bb2l" in channel       : execfile("../cards/info_bb2l_HH.py")
+if channel == '2l_2tau_HH' : execfile("../cards/info_2l_2tau_HH.py")
 
 import shutil,subprocess
 proc=subprocess.Popen(['mkdir '+channel],shell=True,stdout=subprocess.PIPE)
@@ -65,7 +66,17 @@ out = proc.stdout.read()
 weights="totalWeight"
 target='target'
 
-data=load_data_2017_HH(inputPath,channelInTree,trainVars(True),[],bdtType)
+output = read_from(tauID)
+data=load_data_2017(
+    output["inputPath"],
+    output["channelInTree"],
+    trainVars(True),
+    [],
+    bdtType,
+    channel,
+    output["keys"],
+    output["masses"],
+)
 data.dropna(subset=[weights],inplace = True)
 data.fillna(0)
 
@@ -73,7 +84,7 @@ data.fillna(0)
 
 hist_params = {'normed': True, 'histtype': 'bar', 'fill': False , 'lw':5}
 if 'evtLevelSUM' in bdtType :
-	labelBKG = "tt+ttV"
+	labelBKG = "SUM BKG"
 	if channel in ["3l_0tau_HH"]:
 		labelBKG = "WZ+tt+ttV"
 elif 'evtLevelWZ' in bdtType :
@@ -86,10 +97,10 @@ elif 'evtLevelSUM_HH_res' in bdtType :
         labelBKG = "TT+DY+VV"
 print "labelBKG: ",labelBKG
 
-printmin=False
+printmin=True
 plotResiduals=False
 plotAll=False
-nbins=8
+nbins=15
 colorFast='g'
 colorFastT='b'
 BDTvariables=trainVars(plotAll)
@@ -98,39 +109,41 @@ make_plots(BDTvariables, nbins,
     data.ix[data.target.values == 1],'Signal', colorFastT,
     channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT.pdf",
     printmin,
-    plotResiduals
+    plotResiduals,
+    output["masses_test"],
+    output["masses"]
     )
 
 print ("separate datasets odd/even")
 data_even = data.loc[(data["event"].values % 2 == 0) ]
 data_odd = data.loc[~(data["event"].values % 2 == 0) ]
 
+order_train = [data_odd, data_even]
+order_train_name = ["odd","even"]
+
 print ("balance datasets by even/odd chunck")
-for data_do in [data_odd, data_even] :
-    if 'evtLevelSUM' in bdtType :
-        data_do.loc[(data_do['key'].isin(['TTToHadronic_PSweights', 'TTToSemiLeptonic_PSweights', 'TTTo2L2Nu_PSweights'])), [weights]]*=TTdatacard/data_do.loc[(data_do['key'].isin(['TTToHadronic_PSweights', 'TTToSemiLeptonic_PSweights', 'TTTo2L2Nu_PSweights'])), [weights]].sum()
-        data_do.loc[(data_do['key']=='DY'), [weights]]*=DYdatacard/data_do.loc[(data_do['key']=='DY'), [weights]].sum()
+for data_do in order_train :
+    if 'SUM_HH' in bdtType :
+        ttbar_samples = ['TTToHadronic_PSweights', 'TTToSemiLeptonic_PSweights', 'TTTo2L2Nu_PSweights']
+        data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]]              *= output["TTdatacard"]/data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]].sum()
+        data_do.loc[(data_do['key']=='DY'), [weights]]                            *= output["DYdatacard"]/data_do.loc[(data_do['key']=='DY'), [weights]].sum()
         if "evtLevelSUM_HH_bb1l_res" in bdtType :
-            data_do.loc[(data_do['key']=='W'), [weights]]*=Wdatacard/data_do.loc[(data_do['key']=='W')].sum()
+            data_do.loc[(data_do['key']=='W'), [weights]]                         *= Wdatacard/data_do.loc[(data_do['key']=='W')].sum()
         if "evtLevelSUM_HH_res" in bdtType :
-            data_do.loc[(data_do['key'].isin(['TTToHadronic', 'TTToSemileptonic', 'TTTo2L2Nu'])), [weights]]*=TTdatacard/data_do.loc[(data_do['key'].isin(['TTToHadronic', 'TTToSemileptonic', 'TTTo2L2Nu'])), [weights]]/sum()
-            data_do.loc[(data_do['key'].isin(['TTWJets', 'TTZJets'])), [weights]]*=TTVdatacard/data_do.loc[(data_do['key'].isin(['TTWJets', 'TTZJets'])), [weights]].sum()
-            data_do.loc[(data_do['key']=='DY'), [weights]]*=DYdatacard/data_do.loc[(data_do['key']=='DY'), [weights]].sum()
-            data_do.loc[(data_do['key']=='VH'), [weights]]*=VHdatacard/data_do.loc[(data_do['key']=='VH'), [weights]].sum()
-            data_do.loc[(data_do['key']=='TTH'), [weights]]*=TTHdatacard/data_do.loc[(data_do['key']=='TTH'), [weights]].sum()
-            data_do.loc[(data_do['key'].isin(['WW','WZ','ZZ'])), [weights]]*=VVdatacard/data_do.loc[(data_do['key'].isin(['WW','WZ','ZZ']))]
-            data_do.loc[data_do[target]==1, [weights]] *= 100000./data_do.loc[data_do[target]==1][weights].sum()
-        for mass in range(len(masses)) :
-            data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"] == masses[mass]),[weights]] *= 100000./data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"]== masses[mass]),[weights]].sum()
-            data_do.loc[(data_do[target]==0) & (data_do["gen_mHH"] == masses[mass]),[weights]] *= 100000./data_do.loc[(data_do[target]==0) & (data_do["gen_mHH"]== masses[mass]),[weights]].sum()
+            data_do.loc[(data_do['key'].isin(['TTWJets', 'TTZJets'])), [weights]] *= output["TTVdatacard"]/data_do.loc[(data_do['key'].isin(['TTWJets', 'TTZJets'])), [weights]].sum() # consider do separatelly
+            data_do.loc[(data_do['key']=='VH'), [weights]]                        *= ["VHdatacard"]/data_do.loc[(data_do['key']=='VH'), [weights]].sum() # consider removing
+            data_do.loc[(data_do['key']=='TTH'), [weights]]                       *= ["TTHdatacard"]/data_do.loc[(data_do['key']=='TTH'), [weights]].sum() # consider removing
+            data_do.loc[(data_do['key'].isin(['WW','WZ','ZZ'])), [weights]]       *= ["VVdatacard"]/data_do.loc[(data_do['key'].isin(['WW','WZ','ZZ']))] # consider do separatelly
+        for mass in range(len(output["masses"])) :
+            data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"].astype(np.int) == int(output["masses"][mass])),[weights]] *= 100000./data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"]== output["masses"][mass]),[weights]].sum()
+            data_do.loc[(data_do[target]==0) & (data_do["gen_mHH"].astype(np.int) == int(output["masses"][mass])),[weights]] *= 100000./data_do.loc[(data_do[target]==0) & (data_do["gen_mHH"]== output["masses"][mass]),[weights]].sum()
     else :
         data_do.loc[data_do['target']==0, [weights]] *= 100000/data_do.loc[data_do['target']==0][weights].sum()
         data_do.loc[data_do['target']==1, [weights]] *= 100000/data_do.loc[data_do['target']==1][weights].sum()
 
-
-order_train = [data_odd, data_even]
-order_train_name = ["odd","even"]
-
+roc_test = []
+roc_train = []
+estimator = []
 for dd, data_do in  enumerate(order_train):
     cls = xgb.XGBClassifier(
     			n_estimators = options.ntrees,
@@ -160,33 +173,22 @@ for dd, data_do in  enumerate(order_train):
 
     proba = cls.predict_proba(data_do[trainVars(False)].values )
     fpr, tpr, thresholds = roc_curve(
-        data_do[target], proba[:,1],
+        data_do[target].astype(np.bool), proba[:,1],
         sample_weight=(data_do[weights].astype(np.float64))
     )
     train_auc = auc(fpr, tpr, reorder = True)
+    roc_train = roc_train + [ { "fpr":fpr, "tpr":tpr, "train_auc":train_auc }]
     print("XGBoost train set auc - {}".format(train_auc))
 
     proba = cls.predict_proba(order_train[val_data][trainVars(False)].values )
     fprt, tprt, thresholds = roc_curve(
-        order_train[val_data][target], proba[:,1],
+        order_train[val_data][target].astype(np.bool), proba[:,1],
         sample_weight=(order_train[val_data][weights].astype(np.float64))
     )
     test_auct = auc(fprt, tprt, reorder = True)
+    roc_test = roc_test + [ { "fprt":fprt, "tprt":tprt, "test_auct":test_auct }]
     print("XGBoost test set auc - {}".format(test_auct))
-
-    # overall ROC
-    fig, ax = plt.subplots(figsize=(6, 6))
-    train_auc = auc(fpr, tpr, reorder = True)
-    ax.plot(fpr, tpr, lw=1, label='XGB train (area = %0.3f)'%(train_auc))
-    ax.plot(fprt, tprt, lw=1, label='XGB test (area = %0.3f)'%(test_auct))
-    ax.set_ylim([0.0,1.0])
-    ax.set_xlim([0.0,1.0])
-    ax.set_xlabel('False Positive Rate')
-    ax.set_ylabel('True Positive Rate')
-    ax.legend(loc="lower right")
-    ax.grid()
-    fig.savefig("{}/{}_{}_{}_{}_{}_roc.png".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar,order_train_name[dd]))
-    fig.savefig("{}/{}_{}_{}_{}_{}_roc.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar, order_train_name[dd]))
+    estimator = estimator + [cls]
 
     ## feature importance plot
     fig, ax = plt.subplots()
@@ -197,26 +199,186 @@ for dd, data_do in  enumerate(order_train):
     feat_imp = pandas.Series(f_score_dict).sort_values(ascending=True)
     feat_imp.plot(kind='barh', title='Feature Importances')
     fig.tight_layout()
-    fig.savefig("{}/{}_{}_{}_{}_{}_XGB_importance.png".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar, order_train_name[dd]))
-    fig.savefig("{}/{}_{}_{}_{}_{}_XGB_importance.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar, order_train_name[dd]))
+    nameout = "{}/{}_{}_{}_{}_{}_XGB_importance.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar, order_train_name[dd])
+    fig.savefig(nameout)
+    #fig.savefig(nameout.replace(".pdf", ".png"))
 
-    ## classifier plot
-    hist_params = {'normed': True, 'bins': 10 , 'histtype':'step', "lw": 2}
+###############################
+# overall ROC
+styleline = ['-', '--']
+colorline = ['g', 'r']
+fig, ax = plt.subplots(figsize=(6, 6))
+for tt, rocs in enumerate(roc_test) :
+    ax.plot(
+        roc_train[tt]['fpr'],
+        roc_train[tt]['tpr'], color = colorline[tt],
+        lw = 2, linestyle = '-',
+        label = order_train_name[tt] + ' train (area = %0.3f)'%(roc_train[tt]['train_auc'])
+        )
+    ax.plot(
+        roc_test[tt]['fprt'],
+        roc_test[tt]['tprt'],
+        lw = 2, linestyle = '--', color = colorline[tt],
+        label = order_train_name[tt] + ' test (area = %0.3f)'%(roc_test[tt]['test_auct'])
+        )
+ax.set_ylim([0.0,1.0])
+ax.set_xlim([0.0,1.0])
+ax.set_xlabel('False Positive Rate')
+ax.set_ylabel('True Positive Rate')
+ax.legend(loc="lower right")
+ax.grid()
+nameout = "{}/{}_{}_{}_{}_roc.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar)
+fig.savefig(nameout)
+#fig.savefig(nameout.replace(".pdf", ".png"))
+
+###############################
+# by mass ROC
+styleline = ['-', '--', '-.', ':']
+colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c', ]
+fig, ax = plt.subplots(figsize=(6, 6))
+sl = 0
+for mm, mass in enumerate(output["masses_test"]) :
+    for dd, data_do in  enumerate(order_train) :
+        if dd == 0 : val_data = 1
+        else : val_data = 0
+        proba = estimator[dd].predict_proba(
+            data_do.loc[(data_do["gen_mHH"].astype(np.int) == int(mass)), trainVars(False)].values
+        )
+        fpr, tpr, thresholds = roc_curve(
+            data_do.loc[(data_do["gen_mHH"].astype(np.int) == int(mass)), target].astype(np.bool), proba[:,1],
+            sample_weight=(data_do.loc[(data_do["gen_mHH"].astype(np.int) == int(mass)), weights].astype(np.float64))
+        )
+        train_auc = auc(fpr, tpr, reorder = True)
+        print("train set auc " + str(train_auc) + " (mass = " + str(mass) + ")")
+        proba = estimator[dd].predict_proba(
+            order_train[val_data].loc[(order_train[val_data]["gen_mHH"].astype(np.int) == int(mass)), trainVars(False)].values
+        )
+        fprt, tprt, thresholds = roc_curve(
+            order_train[val_data].loc[(order_train[val_data]["gen_mHH"].astype(np.int) == int(mass)), target].astype(np.bool), proba[:,1],
+            sample_weight=(order_train[val_data].loc[(order_train[val_data]["gen_mHH"].astype(np.int) == int(mass)),weights].astype(np.float64))
+        )
+        test_auct = auc(fprt, tprt, reorder = True)
+        print("test set auc " + str(test_auct) + " (mass = " + str(mass) + ")")
+        ax.plot(
+            fpr, tpr,
+            lw = 2, linestyle = styleline[dd + dd*1], color = colors_mass[mm],
+            label = order_train_name[dd] + ' train (area = %0.3f)'%(train_auc) + " (mass = " + str(mass) + ")"
+            )
+        sl += 1
+        ax.plot(
+            fprt, tprt,
+            lw = 2, linestyle = styleline[dd + 1 + + dd*1], color = colors_mass[mm],
+            label = order_train_name[dd] + ' test (area = %0.3f)'%(test_auct) + " (mass = " + str(mass) + ")"
+            )
+        sl += 1
+ax.set_ylim([0.0,1.0])
+ax.set_xlim([0.0,1.0])
+ax.set_xlabel('False Positive Rate')
+ax.set_ylabel('True Positive Rate')
+ax.legend(loc="lower right", fontsize = 'small')
+ax.grid()
+nameout = "{}/{}_{}_{}_{}_roc_by_mass.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar)
+fig.savefig(nameout)
+
+###############################
+## classifier plot by mass
+hist_params = {'normed': True, 'bins': 8 , 'histtype':'step', "lw": 2}
+for mm, mass in enumerate(output["masses_test"]) :
     plt.clf()
-    y_pred = cls.predict_proba(order_train[val_data].ix[order_train[val_data].target.values == 0, trainVars(False)].values)[:, 1]
-    y_predS = cls.predict_proba(order_train[val_data].ix[order_train[val_data].target.values == 1, trainVars(False)].values)[:, 1]
-    y_pred_train = cls.predict_proba(data_do.ix[data_do.target.values == 0, trainVars(False)].values)[:, 1]
-    y_predS_train = cls.predict_proba(data_do.ix[data_do.target.values == 1, trainVars(False)].values)[:, 1]
-    fig = plt.figure('XGB',figsize=(6, 6))
-    plt.hist(y_pred, ls="-", color = "g" , label=("test %s" % labelBKG), **hist_params)
-    plt.hist(y_predS, ls="-", color = "b" , label="test signal", **hist_params)
-    plt.hist(y_pred_train, ls="--", color = "g" , label="train", **hist_params)
-    plt.hist(y_predS_train, ls="--", color = "b" , **hist_params )
+    colorcold = ['g', 'b']
+    colorhot = ['r', 'magenta']
+    fig, ax = plt.subplots(figsize=(6, 6))
+    for dd, data_do in  enumerate(order_train):
+        if dd == 0 : val_data = 1
+        else : val_data = 0
+        y_pred = estimator[dd].predict_proba(
+            order_train[val_data].loc[(order_train[val_data].target.values == 0) & (order_train[val_data]["gen_mHH"].astype(np.int) == int(mass)),
+            trainVars(False)].values
+        )[:, 1]
+        y_predS = estimator[dd].predict_proba(
+            order_train[val_data].loc[(order_train[val_data].target.values == 1) & (order_train[val_data]["gen_mHH"].astype(np.int) == int(mass)),
+            trainVars(False)].values
+        )[:, 1]
+        y_pred_train = estimator[dd].predict_proba(
+            data_do.ix[(data_do.target.values == 0) & (data_do["gen_mHH"].astype(np.int) == int(mass)),
+            trainVars(False)].values
+        )[:, 1]
+        y_predS_train = estimator[dd].predict_proba(
+            data_do.ix[(data_do.target.values == 1) & (data_do["gen_mHH"].astype(np.int) == int(mass)),
+            trainVars(False)].values
+        )[:, 1]
+        dict_plot = [
+           [y_pred, "-", colorcold[dd], order_train_name[dd] + " test " + labelBKG],
+           [y_predS, "-", colorhot[dd], order_train_name[dd] + " test signal"],
+           [y_pred_train, "--", colorcold[dd], order_train_name[dd] + " train " + labelBKG],
+           [y_predS_train, "--", colorhot[dd], order_train_name[dd] + " train signal"]
+        ]
+        for item in dict_plot :
+            values1, bins, _ = ax.hist(
+                item[0],
+                ls=item[1], color = item[2],
+                label=item[3],
+                **hist_params
+                )
+            normed = sum(y_pred)
+            mid = 0.5*(bins[1:] + bins[:-1])
+            err=np.sqrt(values1*normed)/normed # denominator is because plot is normalized
+            plt.errorbar(mid, values1, yerr=err, fmt='none', color= item[2], ecolor= item[2], edgecolor=item[2], lw=2)
+        #plt.xscale('log')
+        #plt.yscale('log')
+    ax.legend(loc='upper center', title="mass = "+str(mass)+" GeV", fontsize = 'small')
+    nameout = channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False)))+'_'+hyppar+'_mass_'+ str(mass)+'_XGBclassifier.pdf'
+    fig.savefig(nameout)
+    #fig.savefig(nameout.replace(".pdf", ".png"))
+
+###############################
+## classifier plot by mass
+plt.clf()
+colorcold = ['g', 'b']
+colorhot = ['r', 'magenta']
+fig, ax = plt.subplots(figsize=(6, 6))
+for dd, data_do in  enumerate(order_train):
+    if dd == 0 : val_data = 1
+    else : val_data = 0
+    y_pred = estimator[dd].predict_proba(
+        order_train[val_data].loc[(order_train[val_data].target.values == 0) & (order_train[val_data]["gen_mHH"].astype(np.int) == int(mass)),
+        trainVars(False)].values
+    )[:, 1]
+    y_predS = estimator[dd].predict_proba(
+        order_train[val_data].loc[(order_train[val_data].target.values == 1) & (order_train[val_data]["gen_mHH"].astype(np.int) == int(mass)),
+        trainVars(False)].values
+    )[:, 1]
+    y_pred_train = estimator[dd].predict_proba(
+        data_do.ix[(data_do.target.values == 0) & (data_do["gen_mHH"].astype(np.int) == int(mass)),
+        trainVars(False)].values
+    )[:, 1]
+    y_predS_train = estimator[dd].predict_proba(
+        data_do.ix[(data_do.target.values == 1) & (data_do["gen_mHH"].astype(np.int) == int(mass)),
+        trainVars(False)].values
+    )[:, 1]
+    dict_plot = [
+       [y_pred, "-", colorcold[dd], order_train_name[dd] + " test " + labelBKG],
+       [y_predS, "-", colorhot[dd], order_train_name[dd] + " test signal"],
+       [y_pred_train, "--", colorcold[dd], order_train_name[dd] + " train " + labelBKG],
+       [y_predS_train, "--", colorhot[dd], order_train_name[dd] + " train signal"]
+    ]
+    for item in dict_plot :
+        values1, bins, _ = ax.hist(
+            item[0],
+            ls=item[1], color = item[2],
+            label=item[3],
+            **hist_params
+            )
+        normed = sum(y_pred)
+        mid = 0.5*(bins[1:] + bins[:-1])
+        err=np.sqrt(values1*normed)/normed # denominator is because plot is normalized
+        plt.errorbar(mid, values1, yerr=err, fmt='none', color= item[2], ecolor= item[2], edgecolor=item[2], lw=2)
     #plt.xscale('log')
     #plt.yscale('log')
-    plt.legend(loc='best')
-    plt.savefig(channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False)))+'_'+hyppar+'_'+order_train_name[dd]+'_XGBclassifier.pdf')
-    plt.savefig(channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False)))+'_'+hyppar+'_'+order_train_name[dd]+'_XGBclassifier.png')
+ax.legend(loc='upper center', title="all masses", fontsize = 'small')
+nameout = channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False)))+'_'+hyppar+'_AllMass_'+'_XGBclassifier.pdf'
+fig.savefig(nameout)
+#fig.savefig(nameout.replace(".pdf", ".png"))
 
 ## the correlation matrix we do with all the data
 if options.HypOpt==False :
@@ -240,9 +402,9 @@ if options.HypOpt==False :
 		ax.set_yticklabels(trainVars(False))
 		fig.colorbar(cax)
 		fig.tight_layout()
-		#plt.subplots_adjust(left=0.9, right=0.9, top=0.9, bottom=0.1)
-		plt.savefig("{}/{}_{}_{}_corr_{}.png".format(channel,bdtType,trainvar,str(len(trainVars(False))),label))
-		plt.savefig("{}/{}_{}_{}_corr_{}.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),label))
+		nameout = "{}/{}_{}_{}_corr_{}.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),label)
+		plt.savefig(nameout)
+		#plt.savefig(namesave.replace(".pdf",".png"))
 		ax.clear()
 process = psutil.Process(os.getpid())
 print(process.memory_info().rss)

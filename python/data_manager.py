@@ -7,6 +7,9 @@ from ROOT.Math import PtEtaPhiEVector,VectorUtil
 import ROOT
 import math , array
 from random import randint
+import pandas
+import glob
+from root_numpy import tree2array
 
 def load_ttHGen() :
     procP1=glob.glob("/hdfs/cms/store/user/atiko/VHBBHeppyV25tthtautau/MC/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/VHBB_HEPPY_V25tthtautau_ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_Py8_mWCutfix__RunIISummer16MAv2-PUMoriond17_80r2as_2016_TrancheIV_v6_ext1-v1/170207_122849/0000/tree_*.root")
@@ -117,40 +120,20 @@ def load_dataGen(inputPath,channelInTree,variables,criteria,testtruth,folderName
     return data
 
 
-def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
+def load_data_2017(
+    inputPath,
+    channelInTree,
+    variables,
+    criteria,
+    bdtType,
+    channel,
+    keys,
+    masses = [],
+    mass_randomization = "default",
+    selection = "none") :
     print 'bdttype= ', bdtType
     my_cols_list=variables+['proces', 'key', 'target', "totalWeight"]
     data = pandas.DataFrame(columns=my_cols_list)
-    if "evtLevelSUM_HH_bb2l" in bdtType :
-        keys=[
-            'TTToSemiLeptonic_PSweights',
-            'TTToHadronic_PSweights','DY',
-            'TTTo2L2Nu_PSweights',
-            'signal_vbf_spin0_400_hh_2b2v', 'signal_vbf_spin0_750_hh_2b2v',
-            'signal_vbf_spin0_300_hh_2b2v'
-            ]
-        masses = [300,400,750]
-
-    elif "evtLevelSUM_HH_bb1l" in bdtType :
-        keys=[
-            'W',
-            'TTToSemiLeptonic_PSweights',
-            'TTToHadronic_PSweights',
-            'DY',
-            'TTTo2L2Nu_PSweights',
-            'signal_ggf_spin0_250_hh_2b2v','signal_ggf_spin0_270_hh_2b2v','signal_ggf_spin0_280_hh_2b2v',
-            'signal_ggf_spin0_320_hh_2b2v','signal_ggf_spin0_350_hh_2b2v',
-            'signal_ggf_spin0_400_hh_2b2v', #300 sample is missing for bb2v
-            'signal_ggf_spin0_450_hh_2b2v','signal_ggf_spin0_500_hh_2b2v','signal_ggf_spin0_600_hh_2b2v',
-            'signal_ggf_spin0_650_hh_2b2v','signal_ggf_spin0_750_hh_2b2v','signal_ggf_spin0_800_hh_2b2v',
-            'signal_ggf_spin0_850_hh_2b2v','signal_ggf_spin0_900_hh_2b2v','signal_ggf_spin0_1000_hh_2b2v',
-            #'signal_ggf_spin0_270_hh_2b2v','signal_ggf_spin0_400_hh_2b2v', 'signal_ggf_spin0_500_hh_2b2v','signal_ggf_spin0_750_hh_2b2v',
-            #'signal_ggf_spin0_400_hh_2b2v','signal_ggf_spin0_350_hh_2b2v','signal_ggf_spin0_900_hh_2b2v','signal_ggf_spin0_500_hh_2b2v',
-            #'signal_vbf_spin0_400_hh_2b2v', 'signal_vbf_spin0_750_hh_2b2v',
-            #'signal_vbf_spin0_300_hh_2b2v',
-            ]
-        masses = [250,270,280,320,350,400,450,500,600,650,750,800,850,900,1000]
-
     for folderName in keys :
         print '(folderName, channelTree) = ', (folderName, channelInTree)
         if 'TTT' in folderName :
@@ -165,69 +148,112 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
         if 'W' in folderName :
             sampleName='W'
             target=0
-        if "evtLevelSUM_HH_bb2l" in bdtType :
+        if folderName in ["THQ_ctcvcp"] :
+            sampleName="tHq"
+            target=0
+        if folderName in ["THW_ctcvcp"] :
+            sampleName="tHW"
+            target=0
+        if 'ZZ' in folderName :
+            sampleName='ZZ'
+            target=0
+        if 'WW' in folderName :
+            sampleName='WW'
+            target=0
+        if 'WpWp' in folderName :
+            sampleName='WpWp'
+            target=0
+        if 'WZ' in folderName :
+            sampleName='WZ'
+            target=0
+        if 'VH' in folderName :
+            sampleName='VH'
+            target=0
+        if 'TTW' in folderName :
+            sampleName='TTW'
+            target=0
+        if 'TTWW' in folderName :
+            sampleName='TTWW'
+            target=0
+        if "bb2l" in bdtType : #Sawati: take VBF to bb2l, is this still correct?
             if 'signal_vbf_spin0' in folderName :
                 sampleName='signal_vbf_spin0_'
                 for mass in masses :
                     if str(mass) in folderName : sampleName=sampleName+str(mass)
                 if '_2b2v' in folderName : sampleName=sampleName+'_hh_bbvv'
                 target=1
-
-        elif "evtLevelSUM_HH_bb1l" in bdtType :
+        elif "HH" in bdtType :
             if 'signal_ggf_spin0' in folderName :
                 sampleName='signal_ggf_spin0_'
                 for mass in masses :
                     if str(mass) in folderName : sampleName=sampleName+str(mass)
-                if '_2b2v' in folderName : sampleName=sampleName+'_hh_bbvv'
+                if '_4t' in folderName : sampleName=sampleName+'_hh_tttt'
+                if '_4v' in folderName : sampleName=sampleName+'_hh_wwww'
+                if '_2v2t' in folderName : sampleName=sampleName+'_hh_wwtt'
                 target=1
-        if 'TTW' in folderName :
-            sampleName='TTW'
-            target=0
+        if 'ttHToNonbb' in folderName:
+            if "HH" in bdtType :
+                target = 0
+                sampleName = "TTH"
+            else :
+                target = 1
+                sampleName = 'signal'
         inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
-        if 'signal_ggf_spin0' in folderName or 'signal_vbf_spin0' in folderName:
+        if "TTH"  in bdtType :
+            if folderName=='ttHToNonbb' :
+                procP1=glob.glob(inputPath+"/"+folderName+"_M125_powheg/"+folderName+"*.root")
+                list=procP1
+            elif ('TTW' in folderName) or ('TTZ' in folderName) :
+                procP1=glob.glob(inputPath+"/"+folderName+"_LO*/"+folderName+"*.root")
+                list=procP1
+        else :
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
-        elif ('TTT' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('TTZ' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('DY' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('W' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('TTW' in folderName) or ('TTZ' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"/"+folderName+"*.root")
-            list=procP1
+        if selection == "none" : selection = "(0 > 1)"
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
             except : continue
             try: tree = tfile.Get(inputTree)
             except : continue
             if tree is not None :
-                try: chunk_arr = tree2array(tree) #,  start=start, stop = stop)
-                except : continue
+                try: chunk_arr = tree2array(tree)
+                except :
+                    print (inputTree, "FAIL load inputTree", tfile)
+                    continue
                 else :
                     chunk_df = pandas.DataFrame(chunk_arr, columns=variables)
                     chunk_df['proces']=sampleName
                     chunk_df['key']=folderName
                     chunk_df['target']=target
                     chunk_df["totalWeight"] = chunk_df["evtWeight"]
-                    #chunk_df["totalWeight"] = 1
-                    if "evtLevelSUM_HH_bb2l" in bdtType : chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep1","dR_b2lep1","dR_b2lep1","dR_b2lep2"]].max(axis=1)
-                    elif "evtLevelSUM_HH_bb1l" in bdtType : chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep","dR_b2lep"]].max(axis=1)
-                    chunk_df["max_bjet_pt"] = chunk_df[["bjet1_pt","bjet2_pt"]].max(axis=1)
-                    if "evtLevelSUM_HH_bb2l" in bdtType : chunk_df["max_lep_pt"] = chunk_df[["lep1_pt","lep2_pt"]].max(axis=1)
-                if "evtLevelSUM_HH_bb2l_res" in bdtType or "evtLevelSUM_HH_bb1l_res" in bdtType :
+                    if "HH_bb2l" in bdtType :
+                        chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep1","dR_b2lep1","dR_b2lep1","dR_b2lep2"]].max(axis=1)
+                        chunk_df["max_lep_pt"] = chunk_df[["lep1_pt","lep2_pt"]].max(axis=1)
+                    if "HH_bb1l" in bdtType :
+                        chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep","dR_b2lep"]].max(axis=1)
+                        chunk_df["max_bjet_pt"] = chunk_df[["bjet1_pt","bjet2_pt"]].max(axis=1)
+                    if channel in ["2l_2tau_HH", "0l_2tau"] :
+                        chunk_df["tau1_eta"]=abs(chunk_df["tau1_eta"])
+                        chunk_df["tau2_eta"]=abs(chunk_df["tau2_eta"])
+                        chunk_df["max_tau_eta"]=chunk_df[["tau1_eta", "tau2_eta"]].max(axis=1)
+                    if channel == "2l_2tau_HH" :
+                        chunk_df["min_dr_lep_tau"] = chunk_df[["dr_lep1_tau1", "dr_lep1_tau2", "dr_lep2_tau1", "dr_lep2_tau2"]].min(axis=1)
+                        chunk_df["max_dr_lep_tau"] = chunk_df[["dr_lep1_tau1", "dr_lep1_tau2", "dr_lep2_tau1", "dr_lep2_tau2"]].max(axis=1)
+                        chunk_df["lep1_eta"]=abs(chunk_df["lep1_eta"])
+                        chunk_df["lep2_eta"]=abs(chunk_df["lep2_eta"])
+                        chunk_df["max_lep_eta"]=chunk_df[["lep1_eta", "lep2_eta"]].max(axis=1)
+                        chunk_df["sum_lep_charge"]=chunk_df["lep1_charge"] + chunk_df["lep2_charge"]
+                if "HH" in bdtType :
                         foundMass = False
                         for mass in masses :
                             if str(mass) in folderName :
                                 chunk_df["gen_mHH"]=mass
                                 foundMass = True
-                        if not foundMass : chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
+                        if not foundMass and mass_randomization == "default" :
+                            chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
+                        elif not foundMass and mass_randomization == "oversampling":
+                            #Ram: Implement the duplication algo
+                            chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
                 data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
@@ -250,224 +276,6 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
     nB = len(data.ix[data.target.values == 0])
     print channelInTree," size of sig, bkg: ", nS, nB
     return data
-
-
-
-
-def load_data_2017_HH_2l_2tau(inputPath,channelInTree,variables,criteria,bdtType) :
-    print bdtType
-    my_cols_list=variables+['proces', 'key', 'target', "totalWeight"]
-    data = pandas.DataFrame(columns=my_cols_list)
-    if "evtLevelSUM_HH_2l_2tau_res" in bdtType :
-        keys=[
-    'TTTo2L2Nu_PSweights', 'TTToSemiLeptonic_PSweights', 'TTToHadronic_PSweights',
-    'DYJetsToLL_M-50_LO_ext1', 'DY1JetsToLL_M-50_ext1', 'DY2JetsToLL_M-50_ext1', 'DY3JetsToLL_M-50_ext1',
-    'DYJetsToLL_M-4to50_HT-100to200_ext1', 'DYJetsToLL_M-4to50_HT-200to400_ext1', 'DYJetsToLL_M-4to50_HT-400to600_ext1',
-    'DYJetsToLL_M50_HT100to200_ext1', 'DYJetsToLL_M50_HT200to400_ext1', 'DYJetsToLL_M50_HT400to600_ext1',
-    'ZZTo4L_ext1',
-    'WWTo2L2Nu_PSweights', 'WWToLNuQQ_PSweights', 'WWToLNuQQ_ext1', 'WWTo4Q_PSweights',
-    'WZTo3LNu_1Jets_MLL-50', 'WZTo3LNu_2Jets_MLL-50', 'WZTo3LNu_3Jets_MLL-50', 'WZTo3LNu_0Jets_MLL-50',
-    'WZTo3LNu_1Jets_MLL-4to50', 'WZTo3LNu_2Jets_MLL-4to50', 'WZTo3LNu_3Jets_MLL-4to50', 'WZTo3LNu_0Jets_MLL-4to50',
-    'TTZJets_LO_ext1',
-    'TTWJets_LO_ext1',
-    'VHToNonbb_M125_v14-v2',
-    'ttHToNonbb_M125_powheg_ext1',
-    ### ---- ALL SAMPLES ---####
-    #'TTTo2L2Nu','TTToSemiLeptonic', 'TTTo2L2Nu_PSweights', 'TTToSemiLeptonic_PSweights', 'TTToHadronic, 'TTToHadronic_PSweights', ## 0 events selected
-    #'DYJetsToLL_M-50_LO', 'DYJetsToLL_M-50_LO_ext1',
-    #'DY1JetsToLL_M-50', 'DY1JetsToLL_M-50_ext1', ## poor event statistics
-    #'DY2JetsToLL_M-50', 'DY2JetsToLL_M-50_ext1', ## poor event statistics
-    #'DY3JetsToLL_M-50', 'DY3JetsToLL_M-50_ext1', ## poor event statistics
-    #'DY4JetsToLL_M-50',                          ## poor event statistics
-    #'DYJetsToLL_M-4to50_HT-100to200', 'DYJetsToLL_M-4to50_HT-100to200_ext1', 
-    #'DYJetsToLL_M-4to50_HT-200to400', 'DYJetsToLL_M-4to50_HT-200to400_ext1',   
-    #'DYJetsToLL_M-4to50_HT-400to600', 'DYJetsToLL_M-4to50_HT-400to600_ext1',
-    #'DYJetsToLL_M-4to50_HT-600toInf',
-    #'DYJetsToLL_M50_HT100to200', 'DYJetsToLL_M50_HT100to200_ext1', 
-    #'DYJetsToLL_M50_HT200to400', 'DYJetsToLL_M50_HT200to400_ext1',
-    #'DYJetsToLL_M50_HT400to600', 'DYJetsToLL_M50_HT400to600_ext1', 
-    #'DYJetsToLL_M50_HT600to800', 'DYJetsToLL_M50_HT800to1200', 
-    #'DYJetsToLL_M50_HT1200to2500', 'DYJetsToLL_M50_HT2500toInf',
-    #'ZZTo4L', ## Not to be used since used in analysis
-    #'ZZTo4L_ext1', 'ZZTo2L2Q', 'ZZTo2L2Nu', ## poor event statistics 
-    #'ZZZ',                                              ## poor event statistics 
-    #'WWTo2L2Nu', 'WWToLNuQQ', 'WWTo1L1Nu2Q', 'WWTo4Q',  ## poor event statistics 
-    #'WWW_4F', 'WWZ_4F', 'WZZ',                            ## poor event statistics                            
-    #'WWTo2L2Nu_PSweights', 'WWTo2L2Nu_DoubleScattering', 'WWToLNuQQ_PSweights', 'WWToLNuQQ_ext1', 'WWTo4Q_PSweights', 'WpWpJJ_EWK_QCD', 'WpWpJJ_EWK_QCD_v14-v1', ## poor event statistics   
-    #'WZTo3LNu_1Jets_MLL-50', 'WZTo3LNu_2Jets_MLL-50', 'WZTo3LNu_3Jets_MLL-50', 'WZTo3LNu_0Jets_MLL-50', 'WZTo3LNu', 
-    #'WZTo3LNu_1Jets_MLL-4to50', 'WZTo3LNu_2Jets_MLL-4to50', 'WZTo3LNu_3Jets_MLL-4to50', 'WZTo3LNu_0Jets_MLL-4to50', ## poor event statistics   
-    #'TTZJets', 'TTZJets_LO_ext1', 
-    #'TTWJets', 'TTWJets_LO_ext1', 
-    #'TTWW',
-    #'VHToNonbb_M125', 'VHToNonbb_M125_v14-v2',  ## Not to be used since used in analysis                                                                                                        
-    #'ttHToNonbb', 'ttHToNonbb_M125_powheg_ext1', 'ttHJetToNonbb_M125_amcatnlo',     ## Not to be used since used in analysis
-    'signal_ggf_spin0_250_hh_4t', #'signal_ggf_spin0_250_hh_2v2t',  'signal_ggf_spin0_250_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_260_hh_4t', #'signal_ggf_spin0_260_hh_2v2t',  'signal_ggf_spin0_260_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_270_hh_4t', #'signal_ggf_spin0_270_hh_2v2t',  'signal_ggf_spin0_270_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_280_hh_4t', #'signal_ggf_spin0_280_hh_2v2t',  'signal_ggf_spin0_280_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_300_hh_4t', #'signal_ggf_spin0_300_hh_2v2t',  'signal_ggf_spin0_300_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_350_hh_4t', #'signal_ggf_spin0_350_hh_2v2t',  'signal_ggf_spin0_350_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_400_hh_4t', #'signal_ggf_spin0_400_hh_2v2t',  'signal_ggf_spin0_400_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_450_hh_4t', #'signal_ggf_spin0_450_hh_2v2t',  'signal_ggf_spin0_450_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_500_hh_4t', #'signal_ggf_spin0_500_hh_2v2t',  'signal_ggf_spin0_500_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_550_hh_4t', #'signal_ggf_spin0_550_hh_2v2t',  'signal_ggf_spin0_550_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_600_hh_4t', #'signal_ggf_spin0_600_hh_2v2t',  'signal_ggf_spin0_600_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_650_hh_4t', #'signal_ggf_spin0_650_hh_2v2t',  'signal_ggf_spin0_650_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_700_hh_4t', #'signal_ggf_spin0_700_hh_2v2t',  'signal_ggf_spin0_700_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_750_hh_4t', #'signal_ggf_spin0_750_hh_2v2t',  'signal_ggf_spin0_750_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_800_hh_4t', #'signal_ggf_spin0_800_hh_2v2t',  'signal_ggf_spin0_800_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_850_hh_4t', #'signal_ggf_spin0_850_hh_2v2t',  'signal_ggf_spin0_850_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_900_hh_4t', #'signal_ggf_spin0_900_hh_2v2t',  'signal_ggf_spin0_900_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-    'signal_ggf_spin0_1000_hh_4t', #'signal_ggf_spin0_1000_hh_2v2t',  'signal_ggf_spin0_1000_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
-        ]
-        masses = [250,260,270,280,300,350,400,450,500,550,600,650,700,750,800,850,900,1000]
-#        masses = [500]
-    if channel in ["0l_2tau"] : keys = keys + ["DYJetsToLL"] ## list of channels to process DY for training
-    if bdtType=="all" : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu', 'TTToHadronic', 'TTToSemiLeptonic']
-    for folderName in keys :
-        print (folderName, channelInTree)
-        if 'TTT' in folderName :
-                sampleName='TT'
-                target=0
-        if "evtLevelSUM_HH" in bdtType :
-            if 'signal_ggf_spin0' in folderName :
-                sampleName='signal_ggf_spin0_'
-                for mass in masses :
-                    if str(mass) in folderName : sampleName=sampleName+str(mass)
-                if '_4t' in folderName : sampleName=sampleName+'_hh_tttt'
-                if '_4v' in folderName : sampleName=sampleName+'_hh_wwww'
-                if '_2v2t' in folderName : sampleName=sampleName+'_hh_wwtt'
-                target=1
-        elif folderName=='ttHToNonbb' :
-                sampleName='signal'
-                target=1
-        if 'TTW' in folderName :
-                sampleName='TTW'
-                target=0
-        if 'TTWW' in folderName :
-                sampleName='TTWW'
-                target=0
-        if 'TTZ' in folderName :
-                sampleName='TTZ'
-                target=0
-        if 'DY' in folderName :
-                sampleName='DY'
-                target=0
-        if 'ZZ' in folderName :
-                sampleName='ZZ'
-                target=0
-        if 'WW' in folderName :
-                sampleName='WW'
-                target=0
-        if 'WpWp' in folderName :
-                sampleName='WpWp'
-                target=0
-        if 'WZ' in folderName :
-                sampleName='WZ'
-                target=0
-        if 'VH' in folderName :
-                sampleName='VH'
-                target=0
-        if 'ttH' in folderName : ## check true folderName inside the bdt training Ntuples !!!
-                sampleName='TTH'
-                target=0
-        inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
-        if ('ttHToNonbb' in folderName) or ('ttHJetToNonbb' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif 'signal_ggf_spin0' in folderName :
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('TTT' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('TTWW' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('TTW' in folderName) or ('TTZ' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('DY' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('ZZ' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('WW' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('WpWp' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('WZ' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        elif ('VH' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
-            list=procP1
-        print '======= list ==== ', list
-        for ii in range(0, len(list)) :
-            #print (list[ii], inputTree)
-            try: tfile = ROOT.TFile(list[ii])
-            except : continue
-            try: tree = tfile.Get(inputTree)
-            except : continue
-            if tree is not None :
-                try: chunk_arr = tree2array(tree) #,  start=start, stop = stop)
-                except : continue
-                else :
-                    chunk_df = pandas.DataFrame(chunk_arr, columns=variables)
-                    #print (len(chunk_df))
-                    #print (chunk_df.columns.tolist())
-                    chunk_df['proces']=sampleName
-                    chunk_df['key']=folderName
-                    chunk_df['target']=target
-                    if channel=="2los_1tau": chunk_df["totalWeight"] = 1
-                    else : chunk_df["totalWeight"] = chunk_df["evtWeight"]
-                    #if channel=="0l_2tau" :
-                    #    chunk_df["tau1_eta"]=abs(chunk_df["tau1_eta"])
-                    #    chunk_df["tau2_eta"]=abs(chunk_df["tau2_eta"])
-                    #    chunk_df["HadTop1_eta"]=abs(chunk_df["HadTop1_eta"])
-                    #    chunk_df["HadTop2_eta"]=abs(chunk_df["HadTop2_eta"])
-                    if channel in ["2l_2tau_HH", "0l_2tau"] :
-                        chunk_df["tau1_eta"]=abs(chunk_df["tau1_eta"])
-                        chunk_df["tau2_eta"]=abs(chunk_df["tau2_eta"])
-                        chunk_df["max_tau_eta"]=chunk_df[["tau1_eta", "tau2_eta"]].max(axis=1)
-                    if channel == "3l_0tau" :
-                        chunk_df["lep1_eta"] = abs(chunk_df["lep1_eta"])
-                        chunk_df["lep2_eta"] = abs(chunk_df["lep2_eta"])
-                        chunk_df["lep3_eta"] = abs(chunk_df["lep3_eta"])
-                        chunk_df["max_lep_eta"]=chunk_df[["lep1_eta","lep2_eta","lep3_eta"]].max(axis=1)
-                        chunk_df["max_lep_mT"]=chunk_df[["mT_lep1", "mT_lep2", "mT_lep3"]].max(axis=1)
-                        chunk_df["min_lep_mT"]=chunk_df[["mT_lep1", "mT_lep2", "mT_lep3"]].min(axis=1)
-                        chunk_df["max_lep_dr_os"]=chunk_df[["dr_los1","dr_los2"]].max(axis=1)
-                        chunk_df["min_lep_dr_os"]=chunk_df[["dr_los1","dr_los2"]].min(axis=1)
-                    ### gen- level info
-                    if "evtLevelSUM_HH_2l_2tau_res" in bdtType :
-                        foundMass = False
-                        for mass in masses :
-                            if str(mass) in folderName :
-                                chunk_df["gen_mHH"]=mass
-                                foundMass = True
-                        if not foundMass : chunk_df["gen_mHH"]=masses[randint(0, len(masses)-1)]
-                    data=data.append(chunk_df, ignore_index=True)
-            else : print ("file "+list[ii]+"was empty")
-            tfile.Close()
-        if len(data) == 0 : continue
-        #print 'fffffffffffffffffffffffffff = ', data.key
-        #print 'foldername===========' ,folderName, '\t', data.key.values==folderName
-        nS = len(data.ix[(data.target.values == 1) & (data.key.values==folderName) ])
-        nB = len(data.ix[(data.target.values == 0) & (data.key.values==folderName) ])
-        print folderName,"length of sig, bkg: ", nS, nB , data.ix[ (data.key.values==folderName)]["totalWeight"].sum(), data.ix[(data.key.values==folderName)]["totalWeight"].sum()
-        nNW = len(data.ix[(data["totalWeight"].values < 0) & (data.key.values==folderName) ])
-        print folderName, "events with -ve weights", nNW
-    print (data.columns.values.tolist())
-    n = len(data)
-    nS = len(data.ix[data.target.values == 1])
-    nB = len(data.ix[data.target.values == 0])
-    print channelInTree," length of sig, bkg: ", nS, nB
-    return data
-
 
 def load_data(inputPath,channelInTree,variables,criteria,testtruth,bdtType) :
     print variables
@@ -757,50 +565,92 @@ def make_plots(
     data2,label2,color2,
     plotname,
     printmin,
-    plotResiduals
+    plotResiduals,
+    masses = [],
+    masses_all = []
     ) :
     print 'length of features to plot and features to plot', (len(featuresToPlot), featuresToPlot)
-    hist_params = {'normed': True, 'histtype': 'bar', 'fill': True , 'lw':3}
+    hist_params = {'normed': True, 'histtype': 'bar', 'fill': True , 'lw':3, 'alpha' : 0.4}
     sizeArray=int(math.sqrt(len(featuresToPlot))) if math.sqrt(len(featuresToPlot)) % int(math.sqrt(len(featuresToPlot))) == 0 else int(math.sqrt(len(featuresToPlot)))+1
     drawStatErr=True
     residuals=[]
     plt.figure(figsize=(5*sizeArray, 5*sizeArray))
+    to_ymax = 10.
+    to_ymin = 0.0001
     for n, feature in enumerate(featuresToPlot):
         # add sub plot on our figure
         plt.subplot(sizeArray, sizeArray, n+1)
         # define range for histograms by cutting 1% of data from both ends
         min_value, max_value = np.percentile(data1[feature], [0.0, 99])
         min_value2, max_value2 = np.percentile(data2[feature], [0.0, 99])
+        if feature == "gen_mHH" :
+            nbin_local = 10*len(masses_all)
+            range_local = [masses_all[0]-20, masses_all[len(masses_all)-1]+20]
+        else :
+            nbin_local = nbin
+            range_local = (min(min_value,min_value2),  max(max_value,max_value2))
         if printmin : print 'printing min and max value= ', (min_value, max_value,feature)
-        values1, bins, _ = plt.hist(data1[feature].values, weights= data1[weights].values.astype(np.float64) ,
-                                   #range=(max(min(min_value,min_value2),0),  max(max_value,max_value2)), #  0.5 ),#
-                                   range=(min(min_value,min_value2),  max(max_value,max_value2)), #  0.5 ),#
-                                   bins=nbin, edgecolor=color1, color=color1, alpha = 0.4,
-                                   label=label1, **hist_params )
+        values1, bins, _ = plt.hist(
+                                   data1[feature].values,
+                                   weights = data1[weights].values.astype(np.float64),
+                                   range = range_local,
+                                   bins = nbin_local, edgecolor=color1, color=color1,
+                                   label = label1, **hist_params
+                                   )
+        to_ymax = max(values1)
+        to_ymin = min(values1)
         if drawStatErr:
             normed = sum(data1[feature].values)
             mid = 0.5*(bins[1:] + bins[:-1])
             err=np.sqrt(values1*normed)/normed # denominator is because plot is normalized
             plt.errorbar(mid, values1, yerr=err, fmt='none', color= color1, ecolor= color1, edgecolor=color1, lw=2)
-        if 1>0 : #'gen' not in feature:
-            values2, bins, _ = plt.hist(data2[feature].values, weights= data2[weights].values.astype(np.float64) ,
-                                   #range=(max(min(min_value,min_value2),0),  max(max_value,max_value2)), # 0.5 ),#
-                                   range=(min(min_value,min_value2),  max(max_value,max_value2)), # 0.5 ),#
-                                   bins=nbin, edgecolor=color2, color=color2, alpha = 0.3,
-                                   label=label2, **hist_params)
-        if drawStatErr :
-            normed = sum(data2[feature].values)
-            mid = 0.5*(bins[1:] + bins[:-1])
-            err=np.sqrt(values2*normed)/normed # denominator is because plot is normalized
-            plt.errorbar(mid, values2, yerr=err, fmt='none', color= color2, ecolor= color2, edgecolor=color2, lw=2)
+        if len(masses) == 0 : #'gen' not in feature:
+            values2, bins, _ = plt.hist(
+                                   data2[feature].values,
+                                   weights= data2[weights].values.astype(np.float64),
+                                   range=range_local,
+                                   bins=nbin_local, edgecolor=color2, color=color2,
+                                   label=label2, **hist_params
+                                   )
+            to_ymax2 = max(values2)
+            to_ymax = max([to_ymax2, to_ymax])
+            to_ymin2 = min(values2)
+            to_ymin = max([to_ymin2, to_ymin])
+            if drawStatErr :
+                normed = sum(data2[feature].values)
+                mid = 0.5*(bins[1:] + bins[:-1])
+                err=np.sqrt(values2*normed)/normed # denominator is because plot is normalized
+                plt.errorbar(mid, values2, yerr=err, fmt='none', color= color2, ecolor= color2, edgecolor=color2, lw=2)
+        else :
+            hist_params2 = {'normed': True, 'histtype': 'step', 'fill': False , 'lw':3}
+            colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c', ]
+            for mm, mass in enumerate(masses) :
+                values2, bins, _ = plt.hist(
+                                       data2.loc[ (data2["gen_mHH"].astype(np.int) == int(mass)), feature].values,
+                                       weights = data2.loc[ (data2["gen_mHH"].astype(np.int) == int(mass)), weights].values.astype(np.float64),
+                                       range = range_local,
+                                       bins = nbin_local, edgecolor=colors_mass[mm], color=colors_mass[mm],
+                                       label = label2 + "gen_mHH = " + str(mass), **hist_params2
+                                       )
+                to_ymax2 = max(values2)
+                to_ymax = max([to_ymax2, to_ymax])
+                to_ymin2 = min(values2)
+                to_ymin = max([to_ymin2, to_ymin])
+                if drawStatErr :
+                    normed = sum(data2[feature].values)
+                    mid = 0.5*(bins[1:] + bins[:-1])
+                    err=np.sqrt(values2*normed)/normed # denominator is because plot is normalized
+                    plt.errorbar(mid, values2, yerr=err, fmt='none', color= colors_mass[mm], ecolor= colors_mass[mm], edgecolor=colors_mass[mm], lw=2)
         #areaSig = sum(np.diff(bins)*values)
         #print areaBKG, " ",areaBKG2 ," ",areaSig
         if plotResiduals : residuals=residuals+[(plot1[0]-plot2[0])/(plot1[0])]
-        plt.ylim(ymin=0.00001)
+        plt.ylim(ymin=to_ymin*0.1, ymax=to_ymax*1.2)
+        if feature == "avg_dr_jet" : plt.yscale('log')
+        else : plt.yscale('linear')
         if n == len(featuresToPlot)-1 : plt.legend(loc='best')
         plt.xlabel(feature)
         #plt.xscale('log')
-        #plt.yscale('log')
+        #
     plt.ylim(ymin=0)
     plt.savefig(plotname)
     plt.clf()
