@@ -133,7 +133,7 @@ def load_data_2017(
     selection = "none") :
     print 'bdttype= ', bdtType
     my_cols_list=variables+['proces', 'key', 'target', "totalWeight"]
-    data = pandas.DataFrame(columns=my_cols_list)
+    data = pandas.DataFrame(columns=my_cols_list) ## right now an empty dataframe with columns = my_cols_list
     for folderName in keys :
         print '(folderName, channelTree) = ', (folderName, channelInTree)
         if 'TTT' in folderName :
@@ -157,14 +157,17 @@ def load_data_2017(
         if 'ZZ' in folderName :
             sampleName='ZZ'
             target=0
-        if 'WW' in folderName :
+        if ('WW' in folderName) or ('WWZ' in folderName) :
             sampleName='WW'
             target=0
         if 'WpWp' in folderName :
-            sampleName='WpWp'
+            sampleName='Other'
             target=0
         if 'WZ' in folderName :
             sampleName='WZ'
+            target=0
+        if 'WWZ' in folderName :
+            sampleName='WW'
             target=0
         if 'VH' in folderName :
             sampleName='VH'
@@ -244,17 +247,26 @@ def load_data_2017(
                         chunk_df["max_lep_eta"]=chunk_df[["lep1_eta", "lep2_eta"]].max(axis=1)
                         chunk_df["sum_lep_charge"]=chunk_df["lep1_charge"] + chunk_df["lep2_charge"]
                 if "HH" in bdtType :
-                        foundMass = False
-                        for mass in masses :
-                            if str(mass) in folderName :
-                                chunk_df["gen_mHH"]=mass
-                                foundMass = True
-                        if not foundMass and mass_randomization == "default" :
-                            chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
-                        elif not foundMass and mass_randomization == "oversampling":
-                            #Ram: Implement the duplication algo
-                            chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
-                data=data.append(chunk_df, ignore_index=True)
+                    if target == 1:
+                        for mass in masses:
+                            if str(mass) in folderName:
+                             chunk_df["gen_mHH"]=mass
+                             data=data.append(chunk_df, ignore_index=True)
+                    elif target == 0:
+                        if mass_randomization == "default":
+                            chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df)) 
+                            data=data.append(chunk_df, ignore_index=True)   ## Adding 1 rows/events in the data-frame which have "gen_mHH" values randomly chosen from masses array  
+                        elif mass_randomization == "oversampling":
+                            for mass in masses:
+                                chunk_df["gen_mHH"] = mass
+                                ## ---- Adding rows/events (No. of rows = "len(masses)") in the data-frame  ---###
+                                ## ---- which differ only in their "gen_mHH" values => [evtWeight for each   ---###
+                                ## ----- row should be scaled by "1/len(masses)" in the sklearn script]     ---###
+                                data=data.append(chunk_df, ignore_index=True) 
+                        else:
+                            raise ValueError("Invalid parameter mass_randomization = '%s' !!" % mass_randomization)
+                    else:
+                        raise ValueError("Invalid target = %i !!" % target)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
         if len(data) == 0 : continue
