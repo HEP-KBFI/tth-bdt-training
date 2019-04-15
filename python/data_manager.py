@@ -130,7 +130,7 @@ def load_data_2017(
     keys,
     masses = [],
     mass_randomization = "default",
-    selection = "none") :
+    sel = None) :
     print 'bdttype= ', bdtType
     my_cols_list=variables+['proces', 'key', 'target', "totalWeight"]
     data = pandas.DataFrame(columns=my_cols_list) ## right now an empty dataframe with columns = my_cols_list
@@ -223,7 +223,7 @@ def load_data_2017(
             try: tree = tfile.Get(inputTree)
             except : continue
             if tree is not None :
-                try: chunk_arr = tree2array(tree, selection=selection)
+                try: chunk_arr = tree2array(tree, selection=sel)
                 except :
                     print (inputTree, "FAIL load inputTree", tfile)
                     continue
