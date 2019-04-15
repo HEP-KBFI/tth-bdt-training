@@ -150,9 +150,11 @@ def load_data_2017(
             target=0
         if folderName in ["THQ_ctcvcp"] :
             sampleName="tHq"
+            sampleNameF="tHq"
             target=0
         if folderName in ["THW_ctcvcp"] :
             sampleName="tHW"
+            sampleNameF="tHW"
             target=0
         if 'ZZ' in folderName :
             sampleName='ZZ'
@@ -209,17 +211,19 @@ def load_data_2017(
             elif ('TTW' in folderName) or ('TTZ' in folderName) :
                 procP1=glob.glob(inputPath+"/"+folderName+"_LO*/"+folderName+"*.root")
                 list=procP1
+            else :
+                procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+                list=procP1
         else :
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"*/*.root")
             list=procP1
-        if selection == "none" : selection = "(0 > 1)"
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
             except : continue
             try: tree = tfile.Get(inputTree)
             except : continue
             if tree is not None :
-                try: chunk_arr = tree2array(tree)
+                try: chunk_arr = tree2array(tree, selection=selection)
                 except :
                     print (inputTree, "FAIL load inputTree", tfile)
                     continue
@@ -251,22 +255,22 @@ def load_data_2017(
                         for mass in masses:
                             if str(mass) in folderName:
                              chunk_df["gen_mHH"]=mass
-                             data=data.append(chunk_df, ignore_index=True)
                     elif target == 0:
                         if mass_randomization == "default":
-                            chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df)) 
-                            data=data.append(chunk_df, ignore_index=True)   ## Adding 1 rows/events in the data-frame which have "gen_mHH" values randomly chosen from masses array  
+                            chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
+                            ## Adding 1 rows/events in the data-frame which have "gen_mHH" values randomly chosen from masses array
                         elif mass_randomization == "oversampling":
                             for mass in masses:
                                 chunk_df["gen_mHH"] = mass
                                 ## ---- Adding rows/events (No. of rows = "len(masses)") in the data-frame  ---###
                                 ## ---- which differ only in their "gen_mHH" values => [evtWeight for each   ---###
                                 ## ----- row should be scaled by "1/len(masses)" in the sklearn script]     ---###
-                                data=data.append(chunk_df, ignore_index=True) 
+
                         else:
                             raise ValueError("Invalid parameter mass_randomization = '%s' !!" % mass_randomization)
                     else:
                         raise ValueError("Invalid target = %i !!" % target)
+                data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
         if len(data) == 0 : continue
