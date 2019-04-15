@@ -55,9 +55,10 @@ with K.get_session() as sess:
     # final_graph = const_graph
     final_graph = const_graph
 
-    for node in model.outputs :
-        shapes = node.op.attr[model.outputs[0].name]
-        print (shapes.list.shape[0].dim[0].size)
+
+    #for node in model.outputs :
+    #    shapes = node.op.attr[model.outputs[0].name]
+    #    print (shapes.list.shape[0].dim[0].size)
     #shape = final_graph.get_tensor_by_name(model.outputs[0].name) #.node(0) #final_graph.node(0).attr().at("shape").shape();
     #print ("read input layer shape  " , shape) #shape.dim_size() , graphDef.node(0).name())
 
