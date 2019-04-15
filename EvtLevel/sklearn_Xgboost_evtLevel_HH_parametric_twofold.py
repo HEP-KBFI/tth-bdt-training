@@ -201,7 +201,7 @@ for dd, data_do in  enumerate(order_train):
     fig.tight_layout()
     nameout = "{}/{}_{}_{}_{}_{}_XGB_importance.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar, order_train_name[dd])
     fig.savefig(nameout)
-    #fig.savefig(nameout.replace(".pdf", ".png"))
+    fig.savefig(nameout.replace(".pdf", ".png"))
 
 ###############################
 # overall ROC
@@ -229,7 +229,7 @@ ax.legend(loc="lower right")
 ax.grid()
 nameout = "{}/{}_{}_{}_{}_roc.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar)
 fig.savefig(nameout)
-#fig.savefig(nameout.replace(".pdf", ".png"))
+fig.savefig(nameout.replace(".pdf", ".png"))
 
 ###############################
 # by mass ROC
@@ -279,6 +279,7 @@ ax.legend(loc="lower right", fontsize = 'small')
 ax.grid()
 nameout = "{}/{}_{}_{}_{}_roc_by_mass.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar)
 fig.savefig(nameout)
+fig.savefig(nameout.replace(".pdf", ".png"))
 
 ###############################
 ## classifier plot by mass
@@ -329,7 +330,7 @@ for mm, mass in enumerate(output["masses_test"]) :
     ax.legend(loc='upper center', title="mass = "+str(mass)+" GeV", fontsize = 'small')
     nameout = channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False)))+'_'+hyppar+'_mass_'+ str(mass)+'_XGBclassifier.pdf'
     fig.savefig(nameout)
-    #fig.savefig(nameout.replace(".pdf", ".png"))
+    fig.savefig(nameout.replace(".pdf", ".png"))
 
 ###############################
 ## classifier plot by mass
@@ -378,7 +379,7 @@ for dd, data_do in  enumerate(order_train):
 ax.legend(loc='upper center', title="all masses", fontsize = 'small')
 nameout = channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False)))+'_'+hyppar+'_AllMass_'+'_XGBclassifier.pdf'
 fig.savefig(nameout)
-#fig.savefig(nameout.replace(".pdf", ".png"))
+fig.savefig(nameout.replace(".pdf", ".png"))
 
 ## the correlation matrix we do with all the data
 if options.HypOpt==False :
@@ -404,7 +405,7 @@ if options.HypOpt==False :
 		fig.tight_layout()
 		nameout = "{}/{}_{}_{}_corr_{}.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),label)
 		plt.savefig(nameout)
-		#plt.savefig(namesave.replace(".pdf",".png"))
+		plt.savefig(nameout.replace(".pdf",".png"))
 		ax.clear()
 process = psutil.Process(os.getpid())
 print(process.memory_info().rss)
