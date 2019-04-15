@@ -10,4 +10,4 @@ Open the link created on a browser and have fun!
 
 Do it preferentially on this folder, otherwhise you will just have to browse up to this folder on the browser.
 
-Tip: after open a notebook once you can leave it open in your browser and just ask to reconect the kernel everytime you open it again in a ssh sessrion.
+Tip: after open a notebook once you can leave it open in your browser and just ask to reconect the kernel everytime you open it again in a ssh session.
