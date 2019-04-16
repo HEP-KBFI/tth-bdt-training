@@ -196,7 +196,7 @@ def load_data_2017(
                 if '_4v' in folderName : sampleName=sampleName+'_hh_wwww'
                 if '_2v2t' in folderName : sampleName=sampleName+'_hh_wwtt'
                 target=1
-        if 'ttHToNonbb' in folderName:
+        if 'ttH' in folderName :
             if "HH" in bdtType :
                 target = 0
                 sampleName = "TTH"
@@ -212,11 +212,14 @@ def load_data_2017(
                 procP1=glob.glob(inputPath+"/"+folderName+"_LO*/"+folderName+"*.root")
                 list=procP1
             else :
+                if 'ttH' in folderName :
+                    procP1=glob.glob(inputPath+"/"+folderName+"*Nonbb*/"+folderName+"*.root")
                 procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
                 list=procP1
         else :
             procP1=glob.glob(inputPath+"/"+folderName+"*/*.root")
             list=procP1
+        #print (list)
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
             except : continue
