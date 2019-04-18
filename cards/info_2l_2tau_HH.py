@@ -31,28 +31,31 @@ def read_from(
 	# I am guessing one, fix with the suitable case
 	TTdatacard = 1.0
 	DYdatacard = 1.0
-	TTVdatacard = 1.0
-	VVdatacard = 1.0
+	TTZdatacard = 1.0
+	TTWdatacard = 1.0
+	WWdatacard = 1.0
+	WZdatacard = 1.0
+	ZZdatacard = 1.0
 	VHdatacard = 1.0
 	TTHdatacard = 1.0
 	if tauID_application == "dR03mvaLoose" :
 		TTdatacard=43.65
 		DYdatacard=31.11
-		TTZdatacard=0.38 ## =TTZ+TTW+TTWW
-		TTWdatacard=0.14 ## =TTZ+TTW+TTWW
-		WWdatacard=0.30 ## = WW+WZ+ZZ
-		WZdatacard=1.94 ## = WW+WZ+ZZ
-		ZZdatacard=6.05  ## = WW+WZ+ZZ
+		TTZdatacard=0.38 ## =TTZ
+		TTWdatacard=(0.14+0.01) ## =TTW+TTWW
+		WWdatacard=0.30 ##  = WW
+		WZdatacard=1.94 ##  = WZ 
+		ZZdatacard=6.05  ## = ZZ
 		VHdatacard=1.23
 		TTHdatacard=0.47
 	elif tauID_application == "dR03mvaMedium" :
 		TTdatacard=15.94
 		DYdatacard=15.73
-		TTZdatacard=0.27 ## =TTZ+TTW+TTWW
-		TTWdatacard=0.05 ## =TTZ+TTW+TTWW
-		WWdatacard=0.23 ## = WW+WZ+ZZ
-		WZdatacard=1.08 ## = WW+WZ+ZZ
-		ZZdatacard=4.78 ## = WW+WZ+ZZ
+		TTZdatacard=0.27 ## = TTZ
+		TTWdatacard=0.05 ## = TTW+TTWW
+		WWdatacard=0.23 ##  = WW
+		WZdatacard=1.08 ##  = WZ
+		ZZdatacard=4.78 ##  = ZZ
 		VHdatacard=1.19
 		TTHdatacard=0.28
 	else : print ("Warning: you did not defined datacard normalization")
@@ -65,11 +68,11 @@ def read_from(
 				#'TTToHadronic', -- there is zero events in this sample
                 'DY', ## It does have a * on the loading, it will load all DY
                 'ZZ', ## ZZ inclusive samples + ZZZ
-                #'WW',  ## WW inclusive samples -1
-				#'WpWpJJ_EWK_QCD', ## WW inclusive samples -- there is only one event on this samples -- you should not use it for training
+                'WW',  ## WW inclusive samples -1
+		#'WpWpJJ_EWK_QCD', ## WW inclusive samples -- there is only one event on this samples -- you should not use it for training
                 'WZ', ## WZ inclusive sample + WZZ
                 #'TTZJets',  ## TTV inclusive samples
-				#'TTWJets', there is no representative yield neither stats
+		#'TTWJets', there is no representative yield neither stats
                 ##'TTWW', ## TTWW inclusive sample -- the yield is negligible, it will just add noise
                 #'VHToNonbb_M125',  ## VH inclusive samples
                 #'ttH', ## TTH inclusive samples
@@ -119,28 +122,28 @@ def read_from(
 def trainVars(all, trainvar = None, bdtType="evtLevelSUM_HH_2l_2tau_res"):
 	if all==True :return [ ## add all variavles to be read from the tree
 	"lep1_pt", "lep1_conePt", "lep1_eta", "lep1_tth_mva", "mT_lep1",
-      "lep2_pt", "lep2_conePt", "lep2_eta", "lep2_tth_mva", "mT_lep2",
-      "tau1_pt", "tau1_eta", "tau1_mva",
-      "tau2_pt", "tau2_eta", "tau2_mva",
-      "dr_lep1_tau1", "dr_lep1_tau2", "dr_lep2_tau1", "dr_lep2_tau2",
-	  "min_dr_lep_tau", "max_dr_lep_tau",
-      "dr_leps", "dr_taus", "avg_dr_jet",
-      "met", "mht", "met_LD", "HT", "STMET",
-      "Smin_llMEt", "m_ll", "pT_ll", "pT_llMEt", "Smin_lltautau",
-      "mTauTauVis", "ptTauTauVis", "diHiggsVisMass", 	"diHiggsMass",
-      "logTopness_publishedChi2", "logTopness_fixedChi2",
-      "genWeight", "evtWeight",
-      "nJet", "nBJet_loose", "nBJet_medium",
-      "lep1_isElectron", "lep1_charge", "lep2_isElectron", "lep2_charge", "sum_lep_charge",
-      "nElectron", "nMuon", "gen_mHH",
-      "lep1_phi", "lep2_phi", "tau1_phi", "tau2_phi",
-      "m_lep1_tau1", "m_lep1_tau2", "m_lep2_tau1", "m_lep2_tau2", "mTauTau",
-      "deltaEta_lep1_tau1", "deltaEta_lep1_tau2", "deltaEta_lep2_tau1", "deltaEta_lep2_tau2", "deltaEta_lep1_lep2", "deltaEta_tau1_tau2",
-      "deltaPhi_lep1_tau1", "deltaPhi_lep1_tau2", "deltaPhi_lep2_tau1", "deltaPhi_lep2_tau2", "deltaPhi_lep1_lep2", "deltaPhi_tau1_tau2",
-      "dr_lep1_tau1_tau2_min", "dr_lep1_tau1_tau2_max", "dr_lep2_tau1_tau2_min", "dr_lep2_tau1_tau2_max",
-      "dr_lep_tau_min_OS", "dr_lep_tau_min_SS",
-	  "max_tau_eta", "max_lep_eta",
-	  "event"
+	"lep2_pt", "lep2_conePt", "lep2_eta", "lep2_tth_mva", "mT_lep2",
+	"tau1_pt", "tau1_eta", "tau1_mva",
+	"tau2_pt", "tau2_eta", "tau2_mva",
+	"dr_lep1_tau1", "dr_lep1_tau2", "dr_lep2_tau1", "dr_lep2_tau2",
+	"min_dr_lep_tau", "max_dr_lep_tau",
+	"dr_leps", "dr_taus", "avg_dr_jet",
+	"met", "mht", "met_LD", "HT", "STMET",
+	"Smin_llMEt", "m_ll", "pT_ll", "pT_llMEt", "Smin_lltautau",
+	"mTauTauVis", "ptTauTauVis", "diHiggsVisMass", 	"diHiggsMass",
+	"logTopness_publishedChi2", "logTopness_fixedChi2",
+	"genWeight", "evtWeight",
+	"nJet", "nBJet_loose", "nBJet_medium",
+	"lep1_isElectron", "lep1_charge", "lep2_isElectron", "lep2_charge", "sum_lep_charge",
+	"nElectron", "nMuon", "gen_mHH",
+	"lep1_phi", "lep2_phi", "tau1_phi", "tau2_phi",
+	"m_lep1_tau1", "m_lep1_tau2", "m_lep2_tau1", "m_lep2_tau2", "mTauTau",
+	"deltaEta_lep1_tau1", "deltaEta_lep1_tau2", "deltaEta_lep2_tau1", "deltaEta_lep2_tau2", "deltaEta_lep1_lep2", "deltaEta_tau1_tau2",
+	"deltaPhi_lep1_tau1", "deltaPhi_lep1_tau2", "deltaPhi_lep2_tau1", "deltaPhi_lep2_tau2", "deltaPhi_lep1_lep2", "deltaPhi_tau1_tau2",
+	"dr_lep1_tau1_tau2_min", "dr_lep1_tau1_tau2_max", "dr_lep2_tau1_tau2_min", "dr_lep2_tau1_tau2_max",
+	"dr_lep_tau_min_OS", "dr_lep_tau_min_SS",
+	"max_tau_eta", "max_lep_eta",
+	"event"
 	]
 
 	if trainvar=="noTopness"  and bdtType=="evtLevelSUM_HH_2l_2tau_res" and all==False :return [
@@ -219,7 +222,7 @@ def trainVars(all, trainvar = None, bdtType="evtLevelSUM_HH_2l_2tau_res"):
         if trainvar=="testVars2"  and bdtType=="evtLevelSUM_HH_2l_2tau_res" and all==False :return [
                 "diHiggsMass", "nBJet_medium", "tau1_pt", "dr_lep_tau_min_SS", "met_LD", "diHiggsVisMass", "m_ll", "tau2_pt", "dr_taus",
                 "mTauTau", "gen_mHH", "mT_lep1", "mT_lep2", "deltaEta_lep1_tau2", "dr_lep1_tau1_tau2_min", "max_tau_eta", "max_lep_eta", "nElectron",
-		"dr_lep_tau_min_OS", "mht", "met", "dr_lep1_tau1_tau2_max"
+		"dr_lep_tau_min_OS", "mht", "met", "dr_lep1_tau1_tau2_max", "dr_leps", "tau1_eta", "deltaEta_lep1_tau1", "m_lep1_tau2"
 		#"lep2_eta", "dr_leps",
                 # "diHiggsMass", "m_ll", "met_LD", "gen_mHH", "tau1_pt", "dr_lep_tau_min_SS", "dr_leps", "dr_taus", "lep1_conePt", "mTauTau"
                 #"diHiggsVisMass",
