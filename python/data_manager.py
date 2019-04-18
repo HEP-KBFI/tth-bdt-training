@@ -219,7 +219,7 @@ def load_data_2017(
         else :
             procP1=glob.glob(inputPath+"/"+folderName+"*/*.root")
             list=procP1
-        #print (list)
+        print (list)
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
             except : continue
@@ -260,15 +260,15 @@ def load_data_2017(
                              chunk_df["gen_mHH"]=mass
                     elif target == 0:
                         if mass_randomization == "default":
-                            chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
                             ## Adding 1 rows/events in the data-frame which have "gen_mHH" values randomly chosen from masses array
+                            chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
                         elif mass_randomization == "oversampling":
                             for mass in masses:
-                                chunk_df["gen_mHH"] = mass
                                 ## ---- Adding rows/events (No. of rows = "len(masses)") in the data-frame  ---###
                                 ## ---- which differ only in their "gen_mHH" values => [evtWeight for each   ---###
                                 ## ----- row should be scaled by "1/len(masses)" in the sklearn script]     ---###
-
+                                chunk_df["gen_mHH"] = mass
+                                data=data.append(chunk_df, ignore_index=True)
                         else:
                             raise ValueError("Invalid parameter mass_randomization = '%s' !!" % mass_randomization)
                     else:
