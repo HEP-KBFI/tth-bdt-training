@@ -150,7 +150,7 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
     elif "evtLevelSUM_HH_bb1l_res" in bdtType :
         keys=[
             'W',
-            'TTToSemiLeptonic_PSweights', 
+            'TTToSemiLeptonic_PSweights',
             'TTToHadronic_PSweights',
             'DY',
             'TTTo2L2Nu_PSweights',
@@ -224,32 +224,30 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
             target=0
         inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
         if 'signal_ggf' in folderName or 'signal_vbf' in folderName:
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+"central/"+"*.root")
             list=procP1
-
         elif ('TTT' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+"/central/"+"*.root")
             list=procP1
         elif ('TTZ' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+"central/"+"*.root")
             list=procP1
         elif ('DY' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+"central/"+"*.root")
             list=procP1
         elif ('W' in folderName):
-            procP1=[w for w in glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root") if not os.path.basename(w).startswith('WZ') and w.find('part') ==-1]
+            procP1=[w for w in glob.glob(inputPath+"/"+folderName+"*/"+"central/"+"*.root") if not os.path.basename(w).startswith('WZ') and w.find('part') ==-1]
             list=procP1
         elif ('TTW' in folderName) or ('TTZ' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"/"+folderName+"*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"/"+"central/"+"*.root")
             list=procP1
         for ii in range(0, len(list)) :
-            print 'root file========', list[ii]
             try: tfile = ROOT.TFile(list[ii])
             except : continue
             try: tree = tfile.Get(inputTree)
             except : continue
             if tree is not None :
-                try: chunk_arr = tree2array(tree) #,  start=start, stop = stop) 
+                try: chunk_arr = tree2array(tree) #,  start=start, stop = stop)
                 except : continue
                 else :
                     chunk_df = pandas.DataFrame(chunk_arr, columns=variables)
@@ -295,7 +293,7 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
         elif "evtLevelSUM_HH_bb1l" in bdtType :
             if folderName == 'TTToSemiLeptonic_PSweights' : data.drop(data.tail(24565062).index,inplace = True)
             if folderName == 'TTTo2L2Nu_PSweights' : data.drop(data.tail(11089852).index,inplace = True) #12089852
-            if folderName.find('signal') !=-1 : 
+            if folderName.find('signal') !=-1 :
                 if folderName.find('900') ==-1 and folderName.find('1000') ==-1 : data.drop(data.tail(15000).index,inplace = True)
                 if bdtType.find('nonres') != -1 :
                     data.drop(data.tail(20000).index,inplace = True)
@@ -315,22 +313,74 @@ def load_data_2017_HH(inputPath,channelInTree,variables,criteria,bdtType) :
 
 
 
-def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
+def load_data_2017_HH_2l_2tau(inputPath,channelInTree,variables,criteria,bdtType) :
     print bdtType
     my_cols_list=variables+['proces', 'key', 'target', "totalWeight"]
     data = pandas.DataFrame(columns=my_cols_list)
-    if bdtType=="evtLevelTT_TTH" : keys=['ttHToNonbb','TTTo2L2Nu', 'TTToHadronic','TTToSemiLeptonic']
-    if bdtType=="evtLevelTTV_TTH" : keys=['ttHToNonbb','TTWJets','TTZJets']
-    if bdtType=="evtLevelDY_TTH" : keys=['ttHToNonbb','DYJetsToLL', 'DY1JetsToLL', 'DY2JetsToLL', 'DY3JetsToLL', 'DY4JetsToLL']
-    if "evtLevelSUM_TTH" in bdtType : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic'] # 'TTToHadronic',
-    if "evtLevelSUM_HH" in bdtType :
+    if "evtLevelSUM_HH_2l_2tau_res" in bdtType :
         keys=[
-    'TTWJets','TTZJets','TTTo2L2Nu','TTToSemiLeptonic', 'TTToHadronic',
-    'signal_ggf_spin0_400_hh_2v2t', 'signal_ggf_spin0_400_hh_4t',  'signal_ggf_spin0_400_hh_4v',
-    'signal_ggf_spin0_700_hh_2v2t', 'signal_ggf_spin0_700_hh_4t',   'signal_ggf_spin0_700_hh_4v',
-    ## missing: diboson/ singleH
+    'TTTo2L2Nu_PSweights', 'TTToSemiLeptonic_PSweights', 'TTToHadronic_PSweights',
+    'DYJetsToLL_M-50_LO_ext1', 'DY1JetsToLL_M-50_ext1', 'DY2JetsToLL_M-50_ext1', 'DY3JetsToLL_M-50_ext1',
+    'DYJetsToLL_M-4to50_HT-100to200_ext1', 'DYJetsToLL_M-4to50_HT-200to400_ext1', 'DYJetsToLL_M-4to50_HT-400to600_ext1',
+    'DYJetsToLL_M50_HT100to200_ext1', 'DYJetsToLL_M50_HT200to400_ext1', 'DYJetsToLL_M50_HT400to600_ext1',
+    'ZZTo4L_ext1',
+    'WWTo2L2Nu_PSweights', 'WWToLNuQQ_PSweights', 'WWToLNuQQ_ext1', 'WWTo4Q_PSweights',
+    'WZTo3LNu_1Jets_MLL-50', 'WZTo3LNu_2Jets_MLL-50', 'WZTo3LNu_3Jets_MLL-50', 'WZTo3LNu_0Jets_MLL-50',
+    'WZTo3LNu_1Jets_MLL-4to50', 'WZTo3LNu_2Jets_MLL-4to50', 'WZTo3LNu_3Jets_MLL-4to50', 'WZTo3LNu_0Jets_MLL-4to50',
+    'TTZJets_LO_ext1',
+    'TTWJets_LO_ext1',
+    'VHToNonbb_M125_v14-v2',
+    'ttHToNonbb_M125_powheg_ext1',
+    ### ---- ALL SAMPLES ---####
+    #'TTTo2L2Nu','TTToSemiLeptonic', 'TTTo2L2Nu_PSweights', 'TTToSemiLeptonic_PSweights', 'TTToHadronic, 'TTToHadronic_PSweights', ## 0 events selected
+    #'DYJetsToLL_M-50_LO', 'DYJetsToLL_M-50_LO_ext1',
+    #'DY1JetsToLL_M-50', 'DY1JetsToLL_M-50_ext1', ## poor event statistics
+    #'DY2JetsToLL_M-50', 'DY2JetsToLL_M-50_ext1', ## poor event statistics
+    #'DY3JetsToLL_M-50', 'DY3JetsToLL_M-50_ext1', ## poor event statistics
+    #'DY4JetsToLL_M-50',                          ## poor event statistics
+    #'DYJetsToLL_M-4to50_HT-100to200', 'DYJetsToLL_M-4to50_HT-100to200_ext1', 
+    #'DYJetsToLL_M-4to50_HT-200to400', 'DYJetsToLL_M-4to50_HT-200to400_ext1',   
+    #'DYJetsToLL_M-4to50_HT-400to600', 'DYJetsToLL_M-4to50_HT-400to600_ext1',
+    #'DYJetsToLL_M-4to50_HT-600toInf',
+    #'DYJetsToLL_M50_HT100to200', 'DYJetsToLL_M50_HT100to200_ext1', 
+    #'DYJetsToLL_M50_HT200to400', 'DYJetsToLL_M50_HT200to400_ext1',
+    #'DYJetsToLL_M50_HT400to600', 'DYJetsToLL_M50_HT400to600_ext1', 
+    #'DYJetsToLL_M50_HT600to800', 'DYJetsToLL_M50_HT800to1200', 
+    #'DYJetsToLL_M50_HT1200to2500', 'DYJetsToLL_M50_HT2500toInf',
+    #'ZZTo4L', ## Not to be used since used in analysis
+    #'ZZTo4L_ext1', 'ZZTo2L2Q', 'ZZTo2L2Nu', ## poor event statistics 
+    #'ZZZ',                                              ## poor event statistics 
+    #'WWTo2L2Nu', 'WWToLNuQQ', 'WWTo1L1Nu2Q', 'WWTo4Q',  ## poor event statistics 
+    #'WWW_4F', 'WWZ_4F', 'WZZ',                            ## poor event statistics                            
+    #'WWTo2L2Nu_PSweights', 'WWTo2L2Nu_DoubleScattering', 'WWToLNuQQ_PSweights', 'WWToLNuQQ_ext1', 'WWTo4Q_PSweights', 'WpWpJJ_EWK_QCD', 'WpWpJJ_EWK_QCD_v14-v1', ## poor event statistics   
+    #'WZTo3LNu_1Jets_MLL-50', 'WZTo3LNu_2Jets_MLL-50', 'WZTo3LNu_3Jets_MLL-50', 'WZTo3LNu_0Jets_MLL-50', 'WZTo3LNu', 
+    #'WZTo3LNu_1Jets_MLL-4to50', 'WZTo3LNu_2Jets_MLL-4to50', 'WZTo3LNu_3Jets_MLL-4to50', 'WZTo3LNu_0Jets_MLL-4to50', ## poor event statistics   
+    #'TTZJets', 'TTZJets_LO_ext1', 
+    #'TTWJets', 'TTWJets_LO_ext1', 
+    #'TTWW',
+    #'VHToNonbb_M125', 'VHToNonbb_M125_v14-v2',  ## Not to be used since used in analysis                                                                                                        
+    #'ttHToNonbb', 'ttHToNonbb_M125_powheg_ext1', 'ttHJetToNonbb_M125_amcatnlo',     ## Not to be used since used in analysis
+    'signal_ggf_spin0_250_hh_4t', #'signal_ggf_spin0_250_hh_2v2t',  'signal_ggf_spin0_250_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_260_hh_4t', #'signal_ggf_spin0_260_hh_2v2t',  'signal_ggf_spin0_260_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_270_hh_4t', #'signal_ggf_spin0_270_hh_2v2t',  'signal_ggf_spin0_270_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_280_hh_4t', #'signal_ggf_spin0_280_hh_2v2t',  'signal_ggf_spin0_280_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_300_hh_4t', #'signal_ggf_spin0_300_hh_2v2t',  'signal_ggf_spin0_300_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_350_hh_4t', #'signal_ggf_spin0_350_hh_2v2t',  'signal_ggf_spin0_350_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_400_hh_4t', #'signal_ggf_spin0_400_hh_2v2t',  'signal_ggf_spin0_400_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_450_hh_4t', #'signal_ggf_spin0_450_hh_2v2t',  'signal_ggf_spin0_450_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_500_hh_4t', #'signal_ggf_spin0_500_hh_2v2t',  'signal_ggf_spin0_500_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_550_hh_4t', #'signal_ggf_spin0_550_hh_2v2t',  'signal_ggf_spin0_550_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_600_hh_4t', #'signal_ggf_spin0_600_hh_2v2t',  'signal_ggf_spin0_600_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_650_hh_4t', #'signal_ggf_spin0_650_hh_2v2t',  'signal_ggf_spin0_650_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_700_hh_4t', #'signal_ggf_spin0_700_hh_2v2t',  'signal_ggf_spin0_700_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_750_hh_4t', #'signal_ggf_spin0_750_hh_2v2t',  'signal_ggf_spin0_750_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_800_hh_4t', #'signal_ggf_spin0_800_hh_2v2t',  'signal_ggf_spin0_800_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_850_hh_4t', #'signal_ggf_spin0_850_hh_2v2t',  'signal_ggf_spin0_850_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_900_hh_4t', #'signal_ggf_spin0_900_hh_2v2t',  'signal_ggf_spin0_900_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
+    'signal_ggf_spin0_1000_hh_4t', #'signal_ggf_spin0_1000_hh_2v2t',  'signal_ggf_spin0_1000_hh_4v', ## 2v2t and 4v not a major contribution to signal in the 2l_2tau channel
         ]
-        masses = [400, 700]
+        masses = [250,260,270,280,300,350,400,450,500, 550,600,650,700,750,800,850,900,1000]
+#        masses = [500]
     if channel in ["0l_2tau"] : keys = keys + ["DYJetsToLL"] ## list of channels to process DY for training
     if bdtType=="all" : keys=['ttHToNonbb','TTWJets','TTZJets','TTTo2L2Nu', 'TTToHadronic', 'TTToSemiLeptonic']
     for folderName in keys :
@@ -353,15 +403,36 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
         if 'TTW' in folderName :
                 sampleName='TTW'
                 target=0
+        if 'TTWW' in folderName :
+                sampleName='TTWW'
+                target=0
         if 'TTZ' in folderName :
                 sampleName='TTZ'
                 target=0
         if 'DY' in folderName :
-                sampleName='EWK'
+                sampleName='DY'
+                target=0
+        if 'ZZ' in folderName :
+                sampleName='ZZ'
+                target=0
+        if 'WW' in folderName :
+                sampleName='WW'
+                target=0
+        if 'WpWp' in folderName :
+                sampleName='WpWp'
+                target=0
+        if 'WZ' in folderName :
+                sampleName='WZ'
+                target=0
+        if 'VH' in folderName :
+                sampleName='VH'
+                target=0
+        if 'ttH' in folderName : ## check true folderName inside the bdt training Ntuples !!!
+                sampleName='TTH'
                 target=0
         inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
-        if folderName=='ttHToNonbb' :
-            procP1=glob.glob(inputPath+"/"+folderName+"_M125_powheg/"+folderName+"*.root")
+        if ('ttHToNonbb' in folderName) or ('ttHJetToNonbb' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
         elif 'signal_ggf_spin0' in folderName :
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
@@ -369,10 +440,28 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
         elif ('TTT' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
+        elif ('TTWW' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
         elif ('TTW' in folderName) or ('TTZ' in folderName):
-            procP1=glob.glob(inputPath+"/"+folderName+"_LO/"+folderName+"*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
         elif ('DY' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+        elif ('ZZ' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+        elif ('WW' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+        elif ('WpWp' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+        elif ('WZ' in folderName):
+            procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
+            list=procP1
+        elif ('VH' in folderName):
             procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
             list=procP1
         print '======= list ==== ', list
@@ -413,7 +502,7 @@ def load_data_2017(inputPath,channelInTree,variables,criteria,bdtType) :
                         chunk_df["max_lep_dr_os"]=chunk_df[["dr_los1","dr_los2"]].max(axis=1)
                         chunk_df["min_lep_dr_os"]=chunk_df[["dr_los1","dr_los2"]].min(axis=1)
                     ### gen- level info
-                    if "evtLevelSUM_HH_res" in bdtType :
+                    if "evtLevelSUM_HH_2l_2tau_res" in bdtType :
                         foundMass = False
                         for mass in masses :
                             if str(mass) in folderName :
@@ -1240,11 +1329,11 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                    if not hSumAll.Integral()>0 :
                        hSumAll=h2.Clone()
                        hSumAll.SetName("hSumAllBk1")
-                   else : hSumAll.Add(h2)            
+                   else : hSumAll.Add(h2)
             #################################################
             print ("hSumAll.Integral: ", hSumAll.Integral(), ", hFakes.Integral: ",hFakes.Integral())
             nbinsQuant= getQuantiles(hFakes,nbins,xmax) # getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero
-            print ("Bins by quantiles ",nbins,nbinsQuant)            
+            print ("Bins by quantiles ",nbins,nbinsQuant)
             if withFolder: fileOut.mkdir(keyF.GetName()+"/")
             hTTi = TH1F()
             hTTHi = TH1F()
@@ -1316,7 +1405,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                     histo.SetBinContent(newbin, content+contentNew)
                     histo.SetBinError(newbin, sqrt(binError*binError+binErrorCopy*binErrorCopy))
                     #if histogramCopy.GetBinCenter(place) > 0.174 and  content>0 and bdtType=="1B" and nbins==20 : print ("overflow bin", histogramCopy.GetBinCenter(place),content,nameHisto)
-                #if not histo.GetSumw2N() : histo.Sumw2()                         
+                #if not histo.GetSumw2N() : histo.Sumw2()
                 #if "fakes_data" in histogramCopy.GetName() or "TTZ" in histogramCopy.GetName() or "TTW" in histogramCopy.GetName() or "EWK" in histogramCopy.GetName()  :
                     #print ("rebinned",histo.GetName(),histo.Integral())
                 if "fakes_data" in histo.GetName() and nkey == 0 :
@@ -1354,13 +1443,13 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                     print ("histo.Write("",TObject.kOverwrite) withFolder :: histoName: ",histo.GetName())
                 else :
                     histogram.Write("",TObject.kOverwrite)
-                    histo.Write("",TObject.kOverwrite)                    
+                    histo.Write("",TObject.kOverwrite)
                     print ("histo.Write("",TObject.kOverwrite) :: histoName: ",histo.GetName())
                     if "fakes_data" in histo.GetName():
                         histoClone1 = histo.Clone(histo.GetName()+"_Norm")
                         histoClone1.Scale(1./histoClone1.Integral())
                         histoCumulative = histoClone1.GetCumulative()
-                        histoCumulative.Write("",TObject.kOverwrite)     
+                        histoCumulative.Write("",TObject.kOverwrite)
             print (name+" created")
             if nkey == 0 :
                 if doplots and bdtType=="1B_VT":
@@ -1402,7 +1491,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                     fileOut.cd()
                     hSumCopy.Write()
                     hSumi.Write()
-                
+
                 if BINtype=="quantiles" :
                     print "nbins: ",nbins
                     print "nbinsQuant: ",nbinsQuant

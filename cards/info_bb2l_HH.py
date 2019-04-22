@@ -1,7 +1,7 @@
 hasHTT = False
 
 channelInTree='hh_bb2l_OS_Tight'
-inputPath='/hdfs/local/snandan/hhAnalysis/2017/bb2l_forBDTtraining_2019Jan28/histograms/hh_bb2l/Tight_OS/'
+inputPath='/hdfs/local/snandan/hhAnalysis/2017/bb2l_bdt20April2017/histograms/hh_bb2l/Tight_OS/'
 #inputPath='/hdfs/local/snandan/hhAnalysis/2017/2018Oct17_forBDTtraining/histograms/hh_bb2l/Tight_OS/'
 
 ## to make balancing of BKGs
@@ -51,13 +51,13 @@ def trainVars(all):
       "mht",
       "m_Hbb",
 #	      "dR_b1lep1", "dR_b1lep2", "dR_b2lep1", "dR_b2lep2",
-         'm_ll',   "dR_ll",
+         'm_ll',   #"dR_ll",
       "Smin_Hww",
       "m_HHvis",
       "pT_HH",
       "mT2_top_2particle",
       "m_HH_hme",
-#      "logTopness_fixedChi2", "logHiggsness_fixedChi2",
+  #    "logTopness_fixedChi2", "logHiggsness_fixedChi2",
        "nBJetLoose", 
       variable
 
@@ -70,10 +70,10 @@ def trainVars(all):
 
       "mht",
       "m_Hbb",
-         'm_ll',      "dR_ll",
+         'm_ll', #     "dR_ll",
       "Smin_Hww",
       "dR_b1lep1", "dR_b2lep1",
-      "m_HHvis",
+ #     "m_HHvis",
       "pT_HH",
       "mT2_top_2particle", 
       "m_HH_hme",

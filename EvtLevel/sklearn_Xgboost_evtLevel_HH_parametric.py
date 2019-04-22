@@ -56,7 +56,13 @@ bdtType=options.bdtType
 trainvar=options.variables
 hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(options.treeDeph)+"_mcw_"+str(options.mcw)+"_lr_0o0"+str(int(options.lr*100))
 
+## --- OUTPUT DIRECTORY NAME----
 channel=options.channel+"_HH"
+# channel=options.channel+"_HH_dR03mvaLoose"
+# channel=options.channel+"_HH_dR03mvaVLoose"
+#channel=options.channel+"_HH_dR03mvaVVLoose_all"
+
+
 #if resonant bdtype
 file_ = open('roc_%s.log'%channel,'w+')
 if "bb2l" in channel   : execfile("../cards/info_bb2l_HH.py")
@@ -73,67 +79,40 @@ else :
         variable = 'node'
 
 import shutil,subprocess
-proc=subprocess.Popen(['mkdir '],shell=True,stdout=subprocess.PIPE)
+proc=subprocess.Popen(['mkdir '+channel],shell=True,stdout=subprocess.PIPE)
 out = proc.stdout.read()
 
-print "Siddh:: inputPath: ",inputPath,", channelInTree: ",channelInTree; sys.stdout.flush()
+print "inputPath: ",inputPath,", channelInTree: ",channelInTree; sys.stdout.flush()
 ####################################################################################################
 ## Load data
 #data=load_data_2017(inputPath,channelInTree,trainVars(True),[],bdtType)
 if "bb2l" in channel   : data=load_data_2017_HH(inputPath,channelInTree,trainVars(True),[],bdtType)
 elif "bb1l" in channel : data=load_data_2017_HH(inputPath,channelInTree,trainVars(True),[],bdtType)
+elif "2l_2tau" in channel: data=load_data_2017_HH_2l_2tau(inputPath,channelInTree,trainVars(True),[],bdtType)
 else : data=load_data_2017(inputPath,channelInTree,trainVars(True),[],bdtType)
 #**********************
 
 #################################################################################
 #print ("Sum of weights:", data.loc[data['target']==0][weights].sum())
 
-#print "Siddh:: data.loc[(data['key']=='TTTo2L2Nu')]: ",data.loc[(data['key']=='TTTo2L2Nu')]; sys.stdout.flush()
-#print "Siddh:: data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton')]: ",data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton')]; sys.stdout.flush()
-#print "Siddh:: data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton'), [weights]]: ",data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton'), [weights]]; sys.stdout.flush()
-
-#print "\n\nSiddh:: data:",data.to_string(),"\n\n"; sys.stdout.flush()
-
 
 
 ## Balance datasets
 #https://stackoverflow.com/questions/34803670/pandas-conditional-multiplication
-if "evtLevelSUM_HH_bb1l_res" in bdtType or "evtLevelSUM_HH_bb2l_res" in bdtType  : variables = [250,270,280,320,350,400,450,500,600,650,750,800,850,900,1000]
-elif "evtLevelSUM_HH_bb2l_nonres" in bdtType or "evtLevelSUM_HH_bb1l_nonres" in bdtType : variables = [2,3,7,9,12,20]
-else : print '****************** please define your variables **************'
+if "evtLevelSUM_HH_bb1l_res" in bdtType : variables = [250,270,280,320,350,400,450,500,600,650,750,800,850,900,1000]
+elif "evtLevelSUM_HH_bb2l_res" in bdtType : variables = [250,270,280,320,350,400,450,500,600,650,750,800,850,900,1000]
+elif "evtLevelSUM_HH_bb2l_nonres" in bdtType : variables = [2,3,7,9,12,20]
+elif "evtLevelSUM_HH_2l_2tau_res" in bdtType : variables = [250,260,270,280,300,350,400,450,500, 550,600,650,700,750,800,850,900,1000]
+#elif "evtLevelSUM_HH_2l_2tau_res" in bdtType : variables = [500]
+else : print '****************** please define your mass point**************'
 
-#masses = [270,400,500,750]
+
 if 'evtLevelSUM' in bdtType :
 	data.loc[(data['key']=='TTToHadronic_PSweights') | (data['key']=='TTToSemiLeptonic_PSweights') | (data['key']=='TTTo2L2Nu_PSweights'), [weights]]*=TTdatacard/fastsimTT
 	#fastsimTT=data.loc[(data['key']=='TTToHadronic_PSweights'),[weights]].sum()+ data.loc[(data['key']=='TTToSemiLeptonic_PSweights'),[weights]].sum() + data.loc[(data['key']=='TTTo2L2Nu_PSweights'), [weights]].sum()
 	#print 'fastsimTT = ', fastsimTT
 	#data.loc[(data['key']=='TTToHadronic_PSweights') | (data['key']=='TTToSemiLeptonic_PSweights') | (data['key']=='TTTo2L2Nu_PSweights'), [weights]]*=TTdatacard/fastsimTT
-        '''
-	data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton'), [weights]]*=TTdatacard/fastsimTT
-	#data.loc[(data['key']=='TTWJetsToLNu') | (data['key']=='TTZToLLNuNu'), [weights]]*=TTVdatacard/fastsimTTV
-	data.loc[(data['key']=='TTWJets') | (data['key']=='TTZJets'), [weights]]*=TTVdatacard/fastsimTTV
-	data.loc[(data['key']=='WZ'), [weights]]*=WZdatacard/fastsimWZ
-	data.loc[(data['key']=='DY'), [weights]]*=DYdatacard/fastsimDY
-	data.loc[data[target]==0, [weights]] *= 100000/data.loc[data[target]==0][weights].sum()
-	data.loc[data[target]==1, [weights]] *= 100000/data.loc[data[target]==1][weights].sum()
-elif 'evtLevelWZ' in bdtType :
-	data.loc[(data['key']=='WZ'), [weights]]*=WZdatacard/fastsimWZ
-        data.loc[data[target]==0, [weights]] *= 100000/data.loc[data[target]==0][weights].sum()
-        data.loc[data[target]==1, [weights]] *= 100000/data.loc[data[target]==1][weights].sum()
-elif 'evtLevelDY' in bdtType :
-	data.loc[(data['key']=='DYJetsToLL'), [weights]]*=DYdatacard/fastsimDY
-        data.loc[data[target]==0, [weights]] *= 100000/data.loc[data[target]==0][weights].sum()
-        data.loc[data[target]==1, [weights]] *= 100000/data.loc[data[target]==1][weights].sum()
-elif 'evtLevelTT' in bdtType :
-	data.loc[(data['key']=='TTTo2L2Nu') | (data['key']=='TTToSemilepton'), [weights]]*=TTdatacard/fastsimTT
-        data.loc[data[target]==0, [weights]] *= 100000/data.loc[data[target]==0][weights].sum()
-        data.loc[data[target]==1, [weights]] *= 100000/data.loc[data[target]==1][weights].sum()
-else :
-	data.loc[data['target']==0, [weights]] *= 100000/data.loc[data['target']==0][weights].sum()
-	data.loc[data['target']==1, [weights]] *= 100000/data.loc[data['target']==1][weights].sum()
-print "data.columns.values.tolist(): ",data.columns.values.tolist()
-        '''
-	#data.loc[(data['key']=='TTWJetsToLNu') | (data['key']=='TTZ'), [weights]]*=TTVdatacard/fastsimTTV
+        #data.loc[(data['key']=='TTWJetsToLNu') | (data['key']=='TTZ'), [weights]]*=TTVdatacard/fastsimTTV
 	data.loc[(data['key']=='DY'), [weights]]*=DYdatacard/fastsimDY
 	#fastsimDY=data.loc[(data['key']=='DY'), [weights]].sum()
 	#print 'fastsimDY= ', fastsimDY
@@ -144,23 +123,30 @@ print "data.columns.values.tolist(): ",data.columns.values.tolist()
 		#data.loc[(data['key']=='W'), [weights]]*=Wdatacard/fastsimW
 		data.loc[(data['key']=='W'), [weights]]*=Wdatacard/fastsimW
 
+
+	if"evtLevelSUM_HH_2l_2tau_res" in bdtType : 
+	        data.loc[(data['key']=='TTToHadronic') | (data['key']=='TTToSemileptonic') | (data['key']=='TTTo2L2Nu'), [weights]]*=TTdatacard/fastsimTT
+                data.loc[(data['key']=='TTWJets') | (data['key']=='TTZJets'), [weights]]*=TTVdatacard/fastsimTTV
+                data.loc[(data['key']=='DY'), [weights]]*=DYdatacard/fastsimDY
+                data.loc[(data['key']=='VH'), [weights]]*=VHdatacard/fastsimVH
+                data.loc[(data['key']=='TTH'), [weights]]*=TTHdatacard/fastsimTTH
+                data.loc[(data['key']=='WW') | (data['key']=='WZ') | (data['key']=='ZZ'), [weights]]*=VVdatacard/fastsimVV
+                
 	for var in range(len(variables)) :
-		data.loc[(data[target]==1) & (data[variable] == variables[var]),[weights]] *= 100000./data.loc[(data[target]==1) & (data[variable]== variables[var]),[weights]].sum()
-		data.loc[(data[target]==0) & (data[variable] == variables[var]),[weights]] *= 100000./data.loc[(data[target]==0) & (data[variable]== variables[var]),[weights]].sum()
+                data.loc[(data[target]==1) & (data[variable] == variables[var]),[weights]] *= 100000./data.loc[(data[target]==1) & (data[variable]== variables[var]),[weights]].sum()
+                data.loc[(data[target]==0) & (data[variable] == variables[var]),[weights]] *= 100000./data.loc[(data[target]==0) & (data[variable]== variables[var]),[weights]].sum()
 
 else :
 	data.loc[data['target']==0, [weights]] *= 100000/data.loc[data['target']==0][weights].sum()
 	data.loc[data['target']==1, [weights]] *= 100000/data.loc[data['target']==1][weights].sum()
 
 
-totTT =  data.loc[(data['key']=='TTToHadronic_PSweights'),[weights]].sum()+data.loc[(data['key']=='TTToSemiLeptonic_PSweights'),[weights]].sum()+data.loc[(data['key']=='TTTo2L2Nu_PSweights'), [weights]].sum()
-totDY = data.loc[(data['key']=='DY'), [weights]].sum()
-totW =  data.loc[(data['key']=='W'), [weights]].sum()
+totTT =  data.loc[(data['key']=='TTToHadronic_PSweights') & (data[variable]==400),[weights]].sum()+data.loc[(data['key']=='TTToSemiLeptonic_PSweights') & (data[variable]==400),[weights]].sum()+data.loc[(data['key']=='TTTo2L2Nu_PSweights') & (data[variable]==400), [weights]].sum()
+totDY = data.loc[(data['key']=='DY') & (data[variable]==400), [weights]].sum()
+totW =  data.loc[(data['key']=='W') & (data[variable]==400) , [weights]].sum()
 print 'ratioTTWDY = ', totTT/(totTT+totW+totDY),'\t', ':', totW/(totTT+totW+totDY),'\t', ':', totDY/(totTT+totW+totDY)
-
-print 'data to list = ', data.columns.values.tolist()
-
-print ("norm bk:", data.loc[data[target]==0][weights].sum(),",  sig:",data.loc[data[target]==1][weights].sum())
+#print 'data to list = ', data.columns.values.tolist()
+#print ("norm bk:", data.loc[data[target]==0][weights].sum(),",  sig:",data.loc[data[target]==1][weights].sum())
 
 # drop events with NaN weights - for safety
 #data.replace(to_replace=np.inf, value=np.NaN, inplace=True)
@@ -188,6 +174,8 @@ elif 'evtLevelDY' in bdtType :
         labelBKG = "DY"
 elif 'evtLevelTT' in bdtType :
         labelBKG = "TT"
+elif 'evtLevelSUM_HH_res' in bdtType :
+        labelBKG = "TT+DY+VV"
 print "labelBKG: ",labelBKG
 printmin=True
 plotResiduals=False
@@ -206,8 +194,14 @@ make_plots(BDTvariables,nbins,
 valdataset = valdataset1.loc[valdataset1['gen_mHH']==400]
 valdataset.loc[valdataset[target]==1,[weights]] *= valdataset1.loc[valdataset1[target]==1]["totalWeight"].sum()/valdataset.loc[valdataset[target]==1]["totalWeight"].sum()
 valdataset.loc[valdataset[target]==0,[weights]]*= valdataset1.loc[valdataset1[target]==0]["totalWeight"].sum()/valdataset.loc[valdataset[target]==0]["totalWeight"].sum()'''
-traindataset, valdataset  = train_test_split(data[trainVars(False)+["target","totalWeight","key"]], test_size=0.2, random_state=7)
-#traindataset = traindataset.loc[(traindataset["gen_mHH"] !=500)]# | (traindataset["gen_mHH"] ==500) | (traindataset["gen_mHH"] == 900)]
+traindataset1, valdataset1  = train_test_split(data[trainVars(False)+["target","totalWeight","key"]], test_size=0.2, random_state=7)
+traindataset = traindataset1.loc[(traindataset1["gen_mHH"] ==350)]# | (traindataset["gen_mHH"] ==500) | (traindataset["gen_mHH"] == 900)]
+valdataset = valdataset1.loc[(valdataset1["gen_mHH"] ==350)]
+totTT =  traindataset.loc[(traindataset['key']=='TTToHadronic_PSweights') & (traindataset[variable]==320),[weights]].sum()+traindataset.loc[(traindataset['key']=='TTToSemiLeptonic_PSweights') & (traindataset[variable]==320),[weights]].sum()+traindataset.loc[(traindataset['key']=='TTTo2L2Nu_PSweights') & (traindataset[variable]==320), [weights]].sum()
+totDY = traindataset.loc[(traindataset['key']=='DY') & (traindataset[variable]==320), [weights]].sum()
+totW =  traindataset.loc[(traindataset['key']=='W') & (traindataset[variable]==320) , [weights]].sum()
+print 'ratioTTWDY = ', totTT/(totTT+totW+totDY),'\t', ':', totW/(totTT+totW+totDY),'\t', ':', totDY/(totTT+totW+totDY)
+
 print 'Tot weight of train and validation for signal= ', traindataset.loc[traindataset[target]==1]["totalWeight"].sum(), valdataset.loc[valdataset[target]==1]["totalWeight"].sum()
 print 'Tot weight of train and validation for bkg= ', traindataset.loc[traindataset[target]==0]['totalWeight'].sum(),valdataset.loc[valdataset[target]==0]['totalWeight'].sum()
 
@@ -215,7 +209,6 @@ print 'Tot weight of train and validation for bkg= ', traindataset.loc[traindata
 ## to final BDT fit test_size can go down to 0.1 without sign of overtraining
 #############################################################################################
 ## Training parameters
-print "Siddh:: options.HypOpt:",options.HypOpt; sys.stdout.flush()
 if options.HypOpt==True :
 	# http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
 	param_grid = {
@@ -304,29 +297,24 @@ if options.doXML==True :
 	print ("variables are: ",pklpath+"_pkl.log")
 ##################################################
 ## Draw ROC curve
-fig, ax = plt.subplots(figsize=(6, 6))
+fig, ax = plt.subplots(figsize=(8, 8))
 train_auc = auc(fpr, tpr, reorder = True)
-ax.plot(fpr, tpr, lw=1, label='XGB train (area = %0.5f)'%(train_auc))
-ax.plot(fprt, tprt, lw=1, label='XGB test (area = %0.5f)'%(test_auct))
+ax.plot(fpr, tpr, lw=1, color='g',label='XGB train all mass excluding 350GeV(area = %0.5f)'%(train_auc))
+ax.plot(fprt, tprt, lw=1, ls='--',color='g',label='XGB test excluding 350GeV(area = %0.5f)'%(test_auct))
+#ax.plot(fprtightF, tprtightF, lw=1, label='XGB test - Fullsim All (area = %0.3f)'%(test_auctightF))                                                                                                        
+#ax.set_ylim([0.0,1.0])
+#ax.set_xlim([0.0,1.0])
+#ax.set_xlabel('False Positive Rate')
+#ax.set_ylabel('True Positive Rate')
+#ax.legend(loc="lower right")
+#ax.grid()
+#fig.savefig("{}/{}_{}_{}_{}_roc.png".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar))
+#fig.savefig("{}/{}_{}_{}_{}_roc.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar))
 
-file_.write('trainall_auc= %0.8f\n' %train_auc)
-file_.write('testall_auc= %0.8f\n' %test_auct)
-file_.write('xtrain_all= ')
-file_.write(str(fpr.tolist()))
-file_.write('\n')
-file_.write('ytrain_all= ')
-file_.write(str(tpr.tolist()))
-file_.write('\n')
-file_.write('xval_all= ')
-file_.write(str(fprt.tolist()))
-file_.write('\n')
-file_.write('yval_all = ')
-file_.write(str(tprt.tolist()))
-file_.write('\n')
 if variable == 'node' : variables=[20]
-else : variables = [400]
+else : variables = [350]
 colors = ['b', 'g', 'r']
-for vv, var in enumerate(variables) :
+'''for vv, var in enumerate(variables) :
 	valdataset1= valdataset.loc[(valdataset[variable]==var) & (valdataset["target"]==0) & ((valdataset["key"] == "TTToHadronic_PSweights") | (valdataset["key"] == "TTToSemiLeptonic_PSweights") | (valdataset["key"] == "TTTo2L2Nu_PSweights"))]
 	valdataset1=valdataset1.append(valdataset.loc[(valdataset[variable]==var) & (valdataset["target"]==1)])
 	traindataset1= traindataset.loc[(traindataset[variable]==var) & (traindataset["target"]==0) & ((traindataset["key"] == "TTToHadronic_PSweights") | (traindataset["key"] == "TTToSemiLeptonic_PSweights") |(traindataset["key"] == "TTTo2L2Nu_PSweights"))]
@@ -350,17 +338,23 @@ for vv, var in enumerate(variables) :
 	file_.write('\n')
 	file_.write('yval_tt = ')
 	file_.write(str(tprt.tolist()))
-	file_.write('\n')
+	file_.write('\n')'''
 
-for vv, var in enumerate(variables) :
-	valdataset2= valdataset.loc[(valdataset[variable]==var)]
-	traindataset2= traindataset.loc[(traindataset[variable]==var)]
+'''for vv, var in enumerate(variables) :
+	valdataset2= valdataset1.loc[(valdataset1[variable]==var)]
+	traindataset2= traindataset1.loc[(traindataset1[variable]==var)]
         proba = cls.predict_proba(valdataset2[trainVars(False)].values )
         fprt, tprt, thresholds = roc_curve(valdataset2[target], proba[:,1], sample_weight=(valdataset2[weights].astype(np.float64))  )
         test_auct = auc(fprt, tprt, reorder = True)
         proba = cls.predict_proba(traindataset2[trainVars(False)].values )
         fpr, tpr, thresholds = roc_curve(traindataset2[target], proba[:,1],sample_weight=(traindataset2[weights].astype(np.float64)) )
         train_auc = auc(fpr, tpr, reorder = True)
+	ax.plot(fpr, tpr, lw=1, color=colors[vv],label='XGB train 350GeV (area = %0.5f)'%(train_auc))
+	ax.plot(fprt, tprt, lw=1, ls='--',color=colors[vv],label='XGB test 350GeV(area = %0.5f)'%(test_auct))         
+	#ax.plot(fpr, tpr, lw=1, color=colors[vv],label='XGB train (area = %0.5f), 400GeV'%(train_auc))
+	#ax.plot(fprt, tprt, lw=1, ls='--',color=colors[vv],label='XGB test (area = %0.5f), 400 GeV'%(test_auct))
+	print("XGBoost train set auc 400 GeV- {}".format(train_auc))
+	print("XGBoost train set auc 400 GeV- {}".format(test_auct))
 	file_.write('train_auc= %0.8f\n' %train_auc)
 	file_.write('test_auc= %0.8f\n' %test_auct)
 	file_.write('xtrain= ')
@@ -373,17 +367,16 @@ for vv, var in enumerate(variables) :
 	file_.write(str(fprt.tolist()))
 	file_.write('\n')
 	file_.write('yval = ')
-	file_.write(str(tprt.tolist()))
-
-#ax.plot(fprtightF, tprtightF, lw=1, label='XGB test - Fullsim All (area = %0.3f)'%(test_auctightF))
+	file_.write(str(tprt.tolist()))'''
 ax.set_ylim([0.0,1.0])
 ax.set_xlim([0.0,1.0])
 ax.set_xlabel('False Positive Rate')
 ax.set_ylabel('True Positive Rate')
 ax.legend(loc="lower right")
 ax.grid()
-fig.savefig("{}/{}_{}_{}_{}_roc.png".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar))
-fig.savefig("{}/{}_{}_{}_{}_roc.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar))
+
+fig.savefig("{}/{}_{}_{}_{}_350roc.png".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar)) 
+fig.savefig("{}/{}_{}_{}_{}_350roc.pdf".format(channel,bdtType,trainvar,str(len(trainVars(False))),hyppar)) 
 ###########################################################################
 ## feature importance plot
 fig, ax = plt.subplots()
