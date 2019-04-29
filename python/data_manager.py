@@ -219,7 +219,7 @@ def load_data_2017(
         else :
             procP1=glob.glob(inputPath+"/"+folderName+"*/*.root")
             list=procP1
-        #print (list)
+        print (list)
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
             except :
@@ -248,11 +248,11 @@ def load_data_2017(
                     if "HH_bb1l" in bdtType :
                         chunk_df["max_dR_b_lep"] = chunk_df[["dR_b1lep","dR_b2lep"]].max(axis=1)
                         chunk_df["max_bjet_pt"] = chunk_df[["bjet1_pt","bjet2_pt"]].max(axis=1)
-                    if channel in ["2l_2tau_HH", "0l_2tau"] :
+                    if (("HH_0l_2tau" in bdtType) or ("HH_2l_2tau" in bdtType)):
                         chunk_df["tau1_eta"]=abs(chunk_df["tau1_eta"])
                         chunk_df["tau2_eta"]=abs(chunk_df["tau2_eta"])
                         chunk_df["max_tau_eta"]=chunk_df[["tau1_eta", "tau2_eta"]].max(axis=1)
-                    if channel == "2l_2tau_HH" :
+                    if "HH_2l_2tau" in bdtType :
                         chunk_df["min_dr_lep_tau"] = chunk_df[["dr_lep1_tau1", "dr_lep1_tau2", "dr_lep2_tau1", "dr_lep2_tau2"]].min(axis=1)
                         chunk_df["max_dr_lep_tau"] = chunk_df[["dr_lep1_tau1", "dr_lep1_tau2", "dr_lep2_tau1", "dr_lep2_tau2"]].max(axis=1)
                         chunk_df["lep1_eta"]=abs(chunk_df["lep1_eta"])
@@ -266,15 +266,15 @@ def load_data_2017(
                              chunk_df["gen_mHH"]=mass
                     elif target == 0:
                         if mass_randomization == "default":
-                            chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
                             ## Adding 1 rows/events in the data-frame which have "gen_mHH" values randomly chosen from masses array
+                            chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
                         elif mass_randomization == "oversampling":
                             for mass in masses:
-                                chunk_df["gen_mHH"] = mass
                                 ## ---- Adding rows/events (No. of rows = "len(masses)") in the data-frame  ---###
                                 ## ---- which differ only in their "gen_mHH" values => [evtWeight for each   ---###
                                 ## ----- row should be scaled by "1/len(masses)" in the sklearn script]     ---###
-
+                                chunk_df["gen_mHH"] = mass
+                                data=data.append(chunk_df, ignore_index=True)
                         else:
                             raise ValueError("Invalid parameter mass_randomization = '%s' !!" % mass_randomization)
                     else:
