@@ -222,16 +222,22 @@ def load_data_2017(
         #print (list)
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
-            except : continue
+            except :
+                print (list[ii], "FAIL load root file")
+                continue
             try: tree = tfile.Get(inputTree)
-            except : continue
+            except :
+                print (inputTree, "FAIL read inputTree", tfile)
+                continue
             if tree is not None :
                 try: chunk_arr = tree2array(tree, selection=sel)
                 except :
                     print (inputTree, "FAIL load inputTree", tfile)
+                    tfile.Close()
                     continue
                 else :
                     chunk_df = pandas.DataFrame(chunk_arr, columns=variables)
+                    tfile.Close()
                     chunk_df['proces']=sampleName
                     chunk_df['key']=folderName
                     chunk_df['target']=target
