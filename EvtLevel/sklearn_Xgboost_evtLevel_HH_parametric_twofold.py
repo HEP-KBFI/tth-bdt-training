@@ -102,7 +102,8 @@ hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(option
 
 #channel=options.channel+"_HH"
 #channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand  ## DEF LINE
-channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables
+if 'evtLevelSUM_HH_bb2l_res' in bdtType : channel = options.channel+"_HH"
+else : channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables
 
 
 print (startTime)
@@ -180,6 +181,7 @@ order_train_name = ["odd","even"]
 
 
 print ("balance datasets by even/odd chunck")
+
 for data_do in order_train :
     if 'SUM_HH' in bdtType :
         ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu'] ## Removed TTToHadronic since zero events selected for this sample
@@ -207,26 +209,26 @@ for data_do in order_train :
 
 
 ## --- Making TProfile plots --- ###
-MakeTProfile(channel, data, "diHiggsMass", 0., 1000.)
-MakeTProfile(channel, data, "tau1_pt", 0., 1000.)
-MakeTProfile(channel, data, "met_LD", 0., 1000.)
-MakeTProfile(channel, data, "diHiggsVisMass", 0., 1000.)
-MakeTProfile(channel, data, "m_ll", 0., 1000.)
-MakeTProfile(channel, data, "tau2_pt", 0., 1000.)
-MakeTProfile(channel, data, "mTauTau", 0., 1000.)
-MakeTProfile(channel, data, "mT_lep1", 0., 1000.)
-MakeTProfile(channel, data, "mT_lep2", 0., 1000.)
-MakeTProfile(channel, data, "mht", 0., 1000.)
-MakeTProfile(channel, data, "met", 0., 1000.)
-MakeTProfile(channel, data, "dr_lep_tau_min_SS", 0., 1.0)
-MakeTProfile(channel, data, "dr_lep_tau_min_OS", 0., 1.0)
-MakeTProfile(channel, data, "dr_taus", 0., 1.0)
-MakeTProfile(channel, data, "dr_lep1_tau1_tau2_min", 0., 1.0)
-MakeTProfile(channel, data, "dr_lep1_tau1_tau2_max", 0., 1.0)
-MakeTProfile(channel, data, "max_tau_eta", -1.0, 1.0)
-MakeTProfile(channel, data, "max_lep_eta", -1.0, 1.0)
-MakeTProfile(channel, data, "nElectron", 0., 3.)
-
+if 'evtLevelSUM_HH_bb2l_res' not in bdtType :
+    MakeTProfile(channel, data, "diHiggsMass", 0., 1000.)
+    MakeTProfile(channel, data, "tau1_pt", 0., 1000.)
+    MakeTProfile(channel, data, "met_LD", 0., 1000.)
+    MakeTProfile(channel, data, "diHiggsVisMass", 0., 1000.)
+    MakeTProfile(channel, data, "m_ll", 0., 1000.)
+    MakeTProfile(channel, data, "tau2_pt", 0., 1000.)
+    MakeTProfile(channel, data, "mTauTau", 0., 1000.)
+    MakeTProfile(channel, data, "mT_lep1", 0., 1000.)
+    MakeTProfile(channel, data, "mT_lep2", 0., 1000.)
+    MakeTProfile(channel, data, "mht", 0., 1000.)
+    MakeTProfile(channel, data, "met", 0., 1000.)
+    MakeTProfile(channel, data, "dr_lep_tau_min_SS", 0., 1.0)
+    MakeTProfile(channel, data, "dr_lep_tau_min_OS", 0., 1.0)
+    MakeTProfile(channel, data, "dr_taus", 0., 1.0)
+    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_min", 0., 1.0)
+    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_max", 0., 1.0)
+    MakeTProfile(channel, data, "max_tau_eta", -1.0, 1.0)
+    MakeTProfile(channel, data, "max_lep_eta", -1.0, 1.0)
+    MakeTProfile(channel, data, "nElectron", 0., 3.)
 
 
 roc_test = []

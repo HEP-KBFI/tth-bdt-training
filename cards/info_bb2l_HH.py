@@ -17,7 +17,64 @@ DYdatacard=34363.3
 TTVdatacard=322.353+ 281.601
 ## missing diboson
 
-def trainVars(all):
+
+def read_from(
+        Bkg_mass_rand,
+        tauID_training,
+	massrange,
+        tauID_application = "dR03mvaMedium"
+        ):
+
+	mass_rand_algo="default"
+        if(Bkg_mass_rand == "oversampling"):
+                mass_rand_algo= "oversampling"
+        else:
+                mass_rand_algo= "default"
+	channelInTree='hh_bb2l_OS_Tight'
+	inputPath='/hdfs/local/snandan/hhAnalysis/2017/bb2l_bdt20April2017/histograms/hh_bb2l/Tight_OS/'
+	TTdatacard=415075
+	DYdatacard=34363.3
+	TTVdatacard=322.353+ 281.601
+	masses = []
+	masses_test = []
+	keys =[
+		'TTToSemiLeptonic_PSweights','TTToHadronic_PSweights','TTTo2L2Nu_PSweights','DY',
+		'signal_ggf_spin0_250_hh_2b2v','signal_ggf_spin0_270_hh_2b2v','signal_ggf_spin0_280_hh_2b2v',
+		'signal_ggf_spin0_320_hh_2b2v','signal_ggf_spin0_350_hh_2b2v',
+		'signal_ggf_spin0_400_hh_2b2v', #300 sample is missing for bb2v
+		'signal_ggf_spin0_450_hh_2b2v','signal_ggf_spin0_500_hh_2b2v','signal_ggf_spin0_600_hh_2b2v',
+		'signal_ggf_spin0_650_hh_2b2v','signal_ggf_spin0_750_hh_2b2v','signal_ggf_spin0_800_hh_2b2v',
+		'signal_ggf_spin0_850_hh_2b2v','signal_ggf_spin0_900_hh_2b2v','signal_ggf_spin0_1000_hh_2b2v'
+		]
+	if massrange == "All" :
+		masses = [250,270,280,320,350,400,450,500,600,650,750,800,850,900,1000]
+	#masses = [350]
+	#masses_test = [350,500,800]
+		masses_test=[350,500,800]
+	elif massrange == "low" :
+		masses = [250,270,280,320,350,400,450,500]
+		masses_test=[350]
+	elif massrange == "high" :
+		masses = [500, 600, 650, 750, 800, 850, 900, 1000]
+		masses_test=[600, 800, 900]
+
+	output = {
+                "channelInTree" : channelInTree,
+                "inputPath" : inputPath,
+                "TTdatacard" : TTdatacard,
+                "DYdatacard" : DYdatacard,
+                "TTVdatacard" : TTVdatacard,
+                "keys" : keys,
+                "masses" : masses,
+                "masses_test": masses_test,
+		"mass_randomization" : mass_rand_algo,
+                }
+
+        return output
+
+
+
+def trainVars(all,trainvar = None, bdtType="evtLevelSUM_HH_bb2l_res"):
 	if all==True :return [ ## add all variavles to be read from the tree
 		"lep1_pt", "lep1_conePt", "lep1_eta",
       "lep2_pt", "lep2_conePt", "lep2_eta",
@@ -39,7 +96,7 @@ def trainVars(all):
        "genWeight", "evtWeight",
        "nJet", "nBJetLoose", "nBJetMedium",
       "isHbb_boosted","max_bjet_pt","max_dR_b_lep","max_lep_pt","max_dR_b1_lep","max_dR_b2_lep",
-      "nJet_vbf", "isVBF",variable
+      "nJet_vbf", "isVBF","gen_mHH","event"
 		]
 
 	if trainvar=="noTopness"  and bdtType=="evtLevelSUM_HH_bb2l_res" and all==False :return [
@@ -59,7 +116,7 @@ def trainVars(all):
       "m_HH_hme",
   #    "logTopness_fixedChi2", "logHiggsness_fixedChi2",
        "nBJetLoose", 
-      variable
+      "gen_mHH"
 
 		
 

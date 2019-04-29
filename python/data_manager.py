@@ -180,13 +180,19 @@ def load_data_2017(
         if 'TTWW' in folderName :
             sampleName='TTWW'
             target=0
-        if "bb2l" in bdtType : #Sawati: take VBF to bb2l, is this still correct?
-            if 'signal_vbf_spin0' in folderName :
-                sampleName='signal_vbf_spin0_'
+        if 'evtLevelSUM_HH_bb2l' in bdtType or 'evtLevelSUM_HH_bb1l' in bdtType : #Sawati: take VBF to bb2l, is this still correct?
+            if 'signal_ggf' in folderName :
+                sampleName='signal_ggf_spin0' if "evtLevelSUM_HH_bb2l_res" in bdtType else 'signal_ggf_nonresonant_node'
                 for mass in masses :
-                    if str(mass) in folderName : sampleName=sampleName+str(mass)
-                if '_2b2v' in folderName : sampleName=sampleName+'_hh_bbvv'
-                target=1
+                    if mass ==20 :
+                        sampleName=sampleName+'_'+'sm'+'_'
+                        break
+                    elif '_'+str(mass)+"_" in folderName :
+                        sampleName=sampleName+'_'+str(mass)+'_'
+                        break
+                if '_2b2v' in folderName : sampleName=sampleName+'hh_bbvv'
+                target =1
+
         elif "HH" in bdtType :
             if 'signal_ggf_spin0' in folderName :
                 sampleName='signal_ggf_spin0_'
@@ -217,7 +223,8 @@ def load_data_2017(
                 procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
                 list=procP1
         else :
-            procP1=glob.glob(inputPath+"/"+folderName+"*/*.root")
+            #procP1=glob.glob(inputPath+"/"+folderName+"*/*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"*/central/*.root")
             list=procP1
         print (list)
         for ii in range(0, len(list)) :
