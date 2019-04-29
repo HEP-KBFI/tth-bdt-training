@@ -274,6 +274,7 @@ def load_data_2017(
                     else:
                         raise ValueError("Invalid target = %i !!" % target)
                 data=data.append(chunk_df, ignore_index=True)
+                #if mass_randomization == "default": data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
         if len(data) == 0 : continue

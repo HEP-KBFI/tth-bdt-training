@@ -65,7 +65,7 @@ def read_from(
 	## as eg 'ttHToNonbb_M125_powheg_ext1', VHToNonbb_M125_v14-v2...
 	## --> they serve only to make the training stable
                 'TTTo2L2Nu', 'TTToSemiLeptonic', ## It does have a * on the loading, it will load the PSWeights
-				#'TTToHadronic', -- there is zero events in this sample
+		#'TTToHadronic', -- there is zero events in this sample
                 'DY', ## It does have a * on the loading, it will load all DY
                 'ZZ', ## ZZ inclusive samples + ZZZ
                 'WW',  ## WW inclusive samples -1
@@ -98,6 +98,7 @@ def read_from(
 	]
 	masses = [250,260,270,280,300,350,400,450,500,550,600,650,700,750,800,850,900,1000]
 	masses_test = [300,500,800]
+
 
 	output = {
 		"channelInTree" : channelInTree,
