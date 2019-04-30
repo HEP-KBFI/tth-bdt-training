@@ -1,4 +1,7 @@
 import itertools as it
+import os
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
 import numpy as np
 #from root_numpy import root2array, stretch
 from numpy.lib.recfunctions import append_fields
@@ -10,6 +13,7 @@ from random import randint
 import pandas
 import glob
 from root_numpy import tree2array
+
 
 def load_ttHGen() :
     procP1=glob.glob("/hdfs/cms/store/user/atiko/VHBBHeppyV25tthtautau/MC/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/VHBB_HEPPY_V25tthtautau_ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_Py8_mWCutfix__RunIISummer16MAv2-PUMoriond17_80r2as_2016_TrancheIV_v6_ext1-v1/170207_122849/0000/tree_*.root")
@@ -226,7 +230,6 @@ def load_data_2017(
             #procP1=glob.glob(inputPath+"/"+folderName+"*/*.root")
             procP1=glob.glob(inputPath+"/"+folderName+"*/central/*.root")
             list=procP1
-        print (list)
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
             except :

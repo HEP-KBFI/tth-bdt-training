@@ -1,3 +1,6 @@
+import os
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
 from datetime import datetime
 import sys , time
 #import sklearn_to_tmva
@@ -96,7 +99,7 @@ if "bb2l" in channel       : execfile("../cards/info_bb2l_HH.py")
 if "2l_2tau" in channel : execfile("../cards/info_2l_2tau_HH.py")
 
 
-if(options.ClassErr_vs_epoch == True): 
+if(options.ClassErr_vs_epoch == True):
     channel+"_SplitMode_"+options.SplitMode+"_ScanMode_"+options.ScanMode
     log_file_name=channel+".log"
     if 'evtLevelSUM_HH_2l_2tau_res' in bdtType :
@@ -112,18 +115,18 @@ out = proc.stdout.read()
 weights="totalWeight"
 target='target'
 
-output = read_from(Bkg_mass_rand, tauID) 
+output = read_from(Bkg_mass_rand, tauID)
 
 def numpyarrayTProfileFill(data_X, data_Y, data_wt, hprof):
     for x,y,w in np.nditer([data_X, data_Y, data_wt]):
-        #print("x: {}, y: {}, w: {}".format(x, y, w))		
+        #print("x: {}, y: {}, w: {}".format(x, y, w))
         hprof.Fill(x,y,w)
 
 
 def numpyarrayHisto1DFill(data_X, data_wt, histo1D):
     #for x,w in np.nditer([data_X, data_wt]):
     for x,w in zip(data_X, data_wt):
-        #print("x: {},  w: {}".format(x, w))		
+        #print("x: {},  w: {}".format(x, w))
         histo1D.Fill(x,w)
 
 
@@ -138,7 +141,7 @@ def AddHistToStack(data_copy, var_name,  hstack, nbins, X_min, X_max, FillColor,
 
 
 def BuildTHstack_2l_2tau(hstack, data_copy, var_name, nbins, X_min, X_max):
-    ttbar_samples = ['TTTo2L2Nu','TTToSemiLeptonic'] 
+    ttbar_samples = ['TTTo2L2Nu','TTToSemiLeptonic']
     vv_samples = ['ZZ', 'WZ', 'WW']
     ttv_samples = ['TTZJets', 'TTWJets']
     data_copy_TT  =  data_copy.loc[(data_copy['key'].isin(ttbar_samples))] ## TTbar
@@ -148,13 +151,13 @@ def BuildTHstack_2l_2tau(hstack, data_copy, var_name, nbins, X_min, X_max):
     data_copy_TTH =  data_copy.loc[(data_copy['key']=='TTH')] ## TTH
     data_copy_VH  =  data_copy.loc[(data_copy['key']=='VH')] ## VH
 
-    if(data_copy_TTH.empty != True): AddHistToStack(data_copy_TTH, var_name, hstack, nbins, X_min, X_max, 5, 'TTH') ## Yellow 
+    if(data_copy_TTH.empty != True): AddHistToStack(data_copy_TTH, var_name, hstack, nbins, X_min, X_max, 5, 'TTH') ## Yellow
     if(data_copy_TTV.empty != True): AddHistToStack(data_copy_TTV, var_name, hstack, nbins, X_min, X_max, 1, 'TTV')  ## Black
     if(data_copy_VH.empty != True): AddHistToStack(data_copy_VH, var_name, hstack, nbins, X_min, X_max, 6, 'VH')  ## Magenta
     if(data_copy_VV.empty != True): AddHistToStack(data_copy_VV, var_name, hstack, nbins, X_min, X_max, 3, 'VV')    ## Green
     if(data_copy_DY.empty != True): AddHistToStack(data_copy_DY, var_name, hstack, nbins, X_min, X_max, 2, 'DY')      ## Red
     if(data_copy_TT.empty != True): AddHistToStack(data_copy_TT, var_name, hstack, nbins, X_min, X_max, 4, 'TTbar')  ## Blue
- 
+
 
 def MakeTHStack(channel, data, var_name, nbins, X_min, X_max, label):
     data_copy = data.copy(deep=True) ## Making a deep copy of data ( => separate data and index from data)
@@ -163,18 +166,18 @@ def MakeTHStack(channel, data, var_name, nbins, X_min, X_max, label):
     data_wt = np.array(data_copy['totalWeight'].values, dtype=np.float)
 
     N_x  = len(data_X)
-    N_wt = len(data_wt)    
+    N_wt = len(data_wt)
 
     # Create a new canvas, and customize it.
     c1 = TCanvas( 'c1', 'Dynamic Filling Example', 200, 10, 700, 500)
     #c1.SetFillColor(42)
-    #c1.GetFrame().SetFillColor(21) 
+    #c1.GetFrame().SetFillColor(21)
     c1.GetFrame().SetBorderSize(6)
     c1.GetFrame().SetBorderMode(-1)
 
     if(N_x == N_wt):
        #print("N_x: {}, N_wt: {}".format(N_x, N_wt))
-       PlotTitle = var_name		
+       PlotTitle = var_name
        hstack  = THStack('hstack', PlotTitle)
        BuildTHstack_2l_2tau(hstack, data_copy, var_name, nbins, X_min, X_max)
        hstack.Draw("hist")
@@ -187,7 +190,7 @@ def MakeTHStack(channel, data, var_name, nbins, X_min, X_max, label):
        c1.SaveAs(FileName)
     else:
         print('Arrays not of same length')
-        print("N_x: {}, N_wt: {}".format(N_x, N_wt))		
+        print("N_x: {}, N_wt: {}".format(N_x, N_wt))
 
 
 def MakeHisto1D(channel, data, var_name, nbins, X_min, X_max, label):
@@ -197,30 +200,30 @@ def MakeHisto1D(channel, data, var_name, nbins, X_min, X_max, label):
     data_wt = np.array(data_copy['totalWeight'].values, dtype=np.float)
 
     N_x  = len(data_X)
-    N_wt = len(data_wt)    
+    N_wt = len(data_wt)
 
     # Create a new canvas, and customize it.
     c1 = TCanvas( 'c1', 'Dynamic Filling Example', 200, 10, 700, 500)
     #c1.SetFillColor(42)
-    #c1.GetFrame().SetFillColor(21) 
+    #c1.GetFrame().SetFillColor(21)
     c1.GetFrame().SetBorderSize(6)
     c1.GetFrame().SetBorderMode(-1)
 
     if(N_x == N_wt):
        #print("N_x: {}, N_wt: {}".format(N_x, N_wt))
-       PlotTitle = var_name		
+       PlotTitle = var_name
        histo1D  = TH1D( 'histo1D', PlotTitle, nbins, X_min, X_max)
        histo1D.GetYaxis().SetTitle("Events")
        histo1D.GetXaxis().SetTitle(var_name)
        numpyarrayHisto1DFill(data_X, data_wt, histo1D)
-       #histo1D.Draw()       
+       #histo1D.Draw()
        c1.Modified()
        c1.Update()
        FileName = "{}/{}_{}_{}.root".format(channel, "Histo1D", var_name, label)
        c1.SaveAs(FileName)
     else:
      print('Arrays not of same length')
-     print("N_x: {}, N_wt: {}".format(N_x, N_wt))		
+     print("N_x: {}, N_wt: {}".format(N_x, N_wt))
 
 
 
@@ -228,17 +231,17 @@ def MakeTProfile(channel, data, var_name, y_min, y_max, Target, doFit, label):
     data_copy = data.copy(deep=True) ## Making a deep copy of data ( => separate data and index from data)
     data_copy =  data_copy.loc[(data_copy[target]==Target)] ## Only take 1 for signal
     data_Y  = np.array(data_copy[var_name].values, dtype=np.float)
-    data_X  = np.array(data_copy['gen_mHH'].values, dtype=np.float) 
+    data_X  = np.array(data_copy['gen_mHH'].values, dtype=np.float)
     data_wt = np.array(data_copy['totalWeight'].values, dtype=np.float)
-    
+
     N_x  = len(data_X)
     N_y  = len(data_Y)
-    N_wt = len(data_wt)    
+    N_wt = len(data_wt)
 
     # Create a new canvas, and customize it.
     c1 = TCanvas( 'c1', 'Dynamic Filling Example', 200, 10, 700, 500)
     #c1.SetFillColor(42)
-    #c1.GetFrame().SetFillColor(21) 
+    #c1.GetFrame().SetFillColor(21)
     c1.GetFrame().SetBorderSize(6)
     c1.GetFrame().SetBorderMode(-1)
 
@@ -253,22 +256,22 @@ def MakeTProfile(channel, data, var_name, y_min, y_max, Target, doFit, label):
         FileName = "{}/{}_{}.root".format(channel, "TProfile", var_name, label)
         #TProfileFile = TFile(FileName, "RECREATE")
     #c1.SaveAs(FileName)
-    
+
 
     if((N_x == N_y) and (N_y == N_wt)):
         #print("N_x: {}, N_y: {}, N_wt: {}".format(N_x, N_y, N_wt))
-        PlotTitle = 'Profile of '+var_name+' vs gen_mHH'		
+        PlotTitle = 'Profile of '+var_name+' vs gen_mHH'
         hprof  = TProfile( 'hprof', PlotTitle, 17, 250., 1100., y_min, y_max)
-        xbins = array.array('d', [250., 260., 270., 280., 300., 350., 400., 450., 500., 550., 600., 650., 700., 750., 800., 850., 900., 1000.]) 
+        xbins = array.array('d', [250., 260., 270., 280., 300., 350., 400., 450., 500., 550., 600., 650., 700., 750., 800., 850., 900., 1000.])
         hprof.SetBins((len(xbins) - 1), xbins)
         hprof.GetXaxis().SetTitle("gen_mHH (GeV)")
         hprof.GetYaxis().SetTitle(var_name)
         numpyarrayTProfileFill(data_X, data_Y, data_wt, hprof)
-        hprof.Draw()      
+        hprof.Draw()
         c1.Modified()
         c1.Update()
         #c1.SaveAs(FileName)
-        
+
         if(doFit and (Target == 1)): ## do the fit for signal only
             #f_old = TF1("f_old", "[0]+[1]*x", 250.,1000.)
             if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 250.,1000.)
@@ -310,10 +313,10 @@ def MakeTProfile(channel, data, var_name, y_min, y_max, Target, doFit, label):
             FuncFile.Close()
         else:
             print("No fit will be performed")
-        
+
     else:
         print('Arrays not of same length')
-        print("N_x: {}, N_y: {}, N_wt: {}".format(N_x, N_y, N_wt))		
+        print("N_x: {}, N_y: {}, N_wt: {}".format(N_x, N_y, N_wt))
 
 
 def ReweightDataframe(data, channel, var_name):
@@ -322,7 +325,7 @@ def ReweightDataframe(data, channel, var_name):
     file = TFile.Open(Fit_Func_FileName)
     func = TF1()
     file.GetObject("f_old", func)
-    print("Number of parameters", func.GetNpar())     
+    print("Number of parameters", func.GetNpar())
     Npar = func.GetNpar()
     #polyName = "poly"+(Npar-1)
     #print("Value at 400 ", func.Eval(400.))
@@ -330,12 +333,12 @@ def ReweightDataframe(data, channel, var_name):
     #for i in range(Npar):
     #    print("parameter[ %i ] = %d" % (i, func.GetParameter(i)))
 
-    masses =  [250., 260., 270., 280., 300., 350., 400., 450., 500., 550., 600., 650., 700., 750., 800., 850., 900., 1000.]  
+    masses =  [250., 260., 270., 280., 300., 350., 400., 450., 500., 550., 600., 650., 700., 750., 800., 850., 900., 1000.]
 
     corr_factor_Dict = {}
     for x in masses:
         corr_factor_Dict[x] = func.Eval(x)
-        #print("Corr. factor: %f , gen_mHH: %f" % (corr_factor_Dict[x], x)) 
+        #print("Corr. factor: %f , gen_mHH: %f" % (corr_factor_Dict[x], x))
 
     print("Started the scaling of ", var_name)
 
@@ -343,11 +346,11 @@ def ReweightDataframe(data, channel, var_name):
     print(process.memory_info().rss)
     print(datetime.now() - startTime)
 
-    for i in data.index : ## Loop over rows of the dataframe 
+    for i in data.index : ## Loop over rows of the dataframe
         #(data[var_name][i]) /= func.Eval( (data['gen_mHH'][i]) ) ## OLD METHOD
         #print("value before correction", (data[var_name][i]))
-        #print("Corr. factor: %f , gen_mHH: %f" % (corr_factor_Dict[ data['gen_mHH'][i] ], data['gen_mHH'][i]) ) 
-        (data[var_name][i]) /= corr_factor_Dict[ data['gen_mHH'][i] ] ## NEW METHOD 
+        #print("Corr. factor: %f , gen_mHH: %f" % (corr_factor_Dict[ data['gen_mHH'][i] ], data['gen_mHH'][i]) )
+        (data[var_name][i]) /= corr_factor_Dict[ data['gen_mHH'][i] ] ## NEW METHOD
         #print("value after correction", (data[var_name][i]))
     print("Finished the scaling of ", var_name)
 
@@ -462,7 +465,7 @@ if(do_2l_2tau_diagnostics == True):
     MakeTProfile(channel, data, "deltaEta_lep1_tau1", -5.0, 5.0, 0, False, "before")
     MakeTProfile(channel, data, "deltaEta_lep1_tau2", -5.0, 5.0, 0, False, "before")
     MakeTProfile(channel, data, "m_lep1_tau2", 0., 1100., 0, False, "before")
-    
+
     ## --- Making 1D Histo plots (background) --- ###
     MakeHisto1D(channel, data, "gen_mHH", 55, 0., 1100., "before") ## Makes sense only to plot it for backgrounds
     MakeHisto1D(channel, data, "diHiggsMass", 55, 0., 1100., "before")
@@ -559,19 +562,19 @@ order_train_name = ["odd","even"]
 print ("balance datasets by even/odd chunck")
 for data_do in order_train : ## the sample lists are now prepared from the info_2l_2tau_HH.py file (Please modify the info file for bb2l accordingly)
     if 'SUM_HH' in bdtType :
-        ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu'] ## Removed TTToHadronic since zero events selected for this sample                                                                           
+        ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu'] ## Removed TTToHadronic since zero events selected for this sample
         data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]]              *= output["TTdatacard"]/data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]].sum()
         data_do.loc[(data_do['key']=='DY'), [weights]]                            *= output["DYdatacard"]/data_do.loc[(data_do['key']=='DY'), [weights]].sum()
         if "evtLevelSUM_HH_bb1l_res" in bdtType :
             data_do.loc[(data_do['key']=='W'), [weights]]                         *= Wdatacard/data_do.loc[(data_do['key']=='W')].sum() ## Saswati check please !!!
         if "evtLevelSUM_HH_2l_2tau_res" in bdtType :
-            data_do.loc[(data_do['key']=='TTZJets'), [weights]]                       *= output["TTZdatacard"]/data_do.loc[(data_do['key']=='TTZJets'), [weights]].sum() ## TTZJets                    
-            data_do.loc[(data_do['key']=='TTWJets'), [weights]]                       *= output["TTWdatacard"]/data_do.loc[(data_do['key']=='TTWJets'), [weights]].sum() ## TTWJets + TTWW             
-            data_do.loc[(data_do['key']=='ZZ'), [weights]]                            *= output["ZZdatacard"]/data_do.loc[(data_do['key']=='ZZ'), [weights]].sum() ## ZZ +ZZZ                          
-            data_do.loc[(data_do['key']=='WZ'), [weights]]                            *= output["WZdatacard"]/data_do.loc[(data_do['key']=='WZ'), [weights]].sum() ## WZ + WZZ_4F                      
-            data_do.loc[(data_do['key']=='WW'), [weights]]                            *= output["WWdatacard"]/data_do.loc[(data_do['key']=='WW'), [weights]].sum() ## WW + WWZ + WWW_4F   
-            #data_do.loc[(data_do['key']=='VH'), [weights]]                        *= output["VHdatacard"]/data_do.loc[(data_do['key']=='VH'), [weights]].sum() # consider removing                    
-            #data_do.loc[(data_do['key']=='TTH'), [weights]]                       *= output["TTHdatacard"]/data_do.loc[(data_do['key']=='TTH'), [weights]].sum() # consider removing      
+            data_do.loc[(data_do['key']=='TTZJets'), [weights]]                       *= output["TTZdatacard"]/data_do.loc[(data_do['key']=='TTZJets'), [weights]].sum() ## TTZJets
+            data_do.loc[(data_do['key']=='TTWJets'), [weights]]                       *= output["TTWdatacard"]/data_do.loc[(data_do['key']=='TTWJets'), [weights]].sum() ## TTWJets + TTWW
+            data_do.loc[(data_do['key']=='ZZ'), [weights]]                            *= output["ZZdatacard"]/data_do.loc[(data_do['key']=='ZZ'), [weights]].sum() ## ZZ +ZZZ
+            data_do.loc[(data_do['key']=='WZ'), [weights]]                            *= output["WZdatacard"]/data_do.loc[(data_do['key']=='WZ'), [weights]].sum() ## WZ + WZZ_4F
+            data_do.loc[(data_do['key']=='WW'), [weights]]                            *= output["WWdatacard"]/data_do.loc[(data_do['key']=='WW'), [weights]].sum() ## WW + WWZ + WWW_4F
+            #data_do.loc[(data_do['key']=='VH'), [weights]]                        *= output["VHdatacard"]/data_do.loc[(data_do['key']=='VH'), [weights]].sum() # consider removing
+            #data_do.loc[(data_do['key']=='TTH'), [weights]]                       *= output["TTHdatacard"]/data_do.loc[(data_do['key']=='TTH'), [weights]].sum() # consider removing
             #print('TTH keys modified', data_do.loc[(data_do['key'].isin(tth_samples)), ['key']] )
         for mass in range(len(output["masses"])) :
             data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"].astype(np.int) == int(output["masses"][mass])),[weights]] *= 100000./data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"]== output["masses"][mass]),[weights]].sum()
@@ -586,14 +589,14 @@ if(do_2l_2tau_diagnostics == True):
 
     ## ----Merging the odd and even data-sets ---------------------------------------####
     ## ---(reweighting the merged dataframe by 0.5 as it is derived from 2 halves) ---###
-    #data_new = data_odd.append(data_even, ignore_index=True) 
+    #data_new = data_odd.append(data_even, ignore_index=True)
     #data_new.loc[data_new['target']==0, [weights]] *= 0.5
     #data_new.loc[data_new['target']==1, [weights]] *= 0.5
     #ReweightDataframe(data_new, channel, "diHiggsMass")
     for data_do in order_train:
-        if(data_do.equals(data_even)): 
+        if(data_do.equals(data_even)):
             label = "data_even_after"
-        elif(data_do.equals(data_odd)):    
+        elif(data_do.equals(data_odd)):
             label = "data_odd_after"
 
         '''
@@ -623,7 +626,7 @@ if(do_2l_2tau_diagnostics == True):
         MakeTProfile(channel, data_do, "deltaEta_lep1_tau1", -5.0, 5.0, 1, False, label)
         MakeTProfile(channel, data_do, "deltaEta_lep1_tau2", -5.0, 5.0, 1, False, label)
         MakeTProfile(channel, data_do, "m_lep1_tau2", 0., 1100., 1, False, label)
-    
+
         ## --- Making TProfile plots (background) --- ###
         MakeTProfile(channel, data_do, "diHiggsMass", 0., 1100., 0, False, label)
         MakeTProfile(channel, data_do, "tau1_pt", 0., 1100., 0, False, label)
@@ -720,6 +723,7 @@ for dd, data_do in  enumerate(order_train):
     			max_depth = options.treeDeph,
     			min_child_weight = options.mcw,
     			learning_rate = options.lr,
+    			nthread = 8
     			)
 
     cls.fit(
@@ -981,43 +985,43 @@ if options.HypOpt==False :
 
 if options.ClassErr_vs_epoch==True :
    if options.SplitMode == 0:
-       ### ----- RANDOM SPLIT OF PANDAS DATAFRAME "data" ---- ####                                                                                                                                               
+       ### ----- RANDOM SPLIT OF PANDAS DATAFRAME "data" ---- ####
        data_total = data_odd.append(data_even, ignore_index=True) ## Adding the odd and even dataframes together to form one dataframe
-       data = data_total[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns     
-       
-       data_target = np.array(data['target'].values, dtype=np.int32)                                                                                                                                             
-       data = data.drop(['target'], axis=1)                                                                                                                                                                      
-                                                                                                                                                                                                             
-       # split data into train and test sets -2                                                                                                                                                                  
-       ## (X_train, X_test) are  pandas dataframes while (y_train, y_test) are numpy arrays                                                                                                                  
-       X_train, X_test, y_train, y_test = train_test_split(data[trainVars(False, options.variables, options.bdtType)+["totalWeight"]], data_target, test_size=0.50, random_state=7) ## The only random part of the code                        
+       data = data_total[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns
+
+       data_target = np.array(data['target'].values, dtype=np.int32)
+       data = data.drop(['target'], axis=1)
+
+       # split data into train and test sets -2
+       ## (X_train, X_test) are  pandas dataframes while (y_train, y_test) are numpy arrays
+       X_train, X_test, y_train, y_test = train_test_split(data[trainVars(False, options.variables, options.bdtType)+["totalWeight"]], data_target, test_size=0.50, random_state=7) ## The only random part of the code
        print('Using Random split')
    elif options.SplitMode == 1:
-       ### ----- ODD-EVEN SPLIT OF PANDAS DATAFRAME "data" ---- ####                                                                                                                                             
-       data_even = data_even[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns                                                                       
+       ### ----- ODD-EVEN SPLIT OF PANDAS DATAFRAME "data" ---- ####
+       data_even = data_even[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns
        data_even_target = np.array(data_even['target'].values, dtype=np.int32)
        data_even = data_even.drop(['target'], axis=1)
 
-       data_odd = data_odd[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns                                                                         
+       data_odd = data_odd[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns
        data_odd_target = np.array(data_odd['target'].values, dtype=np.int32)
        data_odd = data_odd.drop(['target'], axis=1)
 
-       ## (X_train, X_test) are  pandas dataframes while (y_train, y_test) are numpy arrays                                                                                                                  
-       X_train = data_even                                                                                                                                                                                      
-       y_train = data_even_target                                                                                                                                                                               
-       X_test  = data_odd                                                                                                                                                                                       
-       y_test  = data_odd_target                                                                                                                                                                                
-   elif options.SplitMode == 2:    
-       ### ----- ODD-EVEN SPLIT OF PANDAS DATAFRAME "data" ---- ####                                                                                                                                             
-       data_even = data_even[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns                                                                       
+       ## (X_train, X_test) are  pandas dataframes while (y_train, y_test) are numpy arrays
+       X_train = data_even
+       y_train = data_even_target
+       X_test  = data_odd
+       y_test  = data_odd_target
+   elif options.SplitMode == 2:
+       ### ----- ODD-EVEN SPLIT OF PANDAS DATAFRAME "data" ---- ####
+       data_even = data_even[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns
        data_even_target = np.array(data_even['target'].values, dtype=np.int32)
        data_even = data_even.drop(['target'], axis=1)
 
-       data_odd = data_odd[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns                                                                         
+       data_odd = data_odd[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns
        data_odd_target = np.array(data_odd['target'].values, dtype=np.int32)
        data_odd = data_odd.drop(['target'], axis=1)
 
-       ## (X_train, X_test) are  pandas dataframes while (y_train, y_test) are numpy arrays                                                                                                                  
+       ## (X_train, X_test) are  pandas dataframes while (y_train, y_test) are numpy arrays
        X_train = data_odd
        y_train = data_odd_target
        X_test  = data_even
@@ -1035,7 +1039,7 @@ if options.ClassErr_vs_epoch==True :
    X_test = X_test.drop(['totalWeight'], axis=1)
 
 
-   ## Converting dataframe to numpy array (dtype=object)                                                                                                                                                 
+   ## Converting dataframe to numpy array (dtype=object)
    X_train = X_train.values
    X_test = X_test.values
 
@@ -1045,10 +1049,10 @@ if options.ClassErr_vs_epoch==True :
    if (options.ScanMode == 1):
        # ---- For scanning depth at fixed "ntrees*lr = 10" -- ##
        array_ntrees = [10, 100, 1000, 2000, 3000]
-       array_lr = [0.1]                                                                                                                                                       
+       array_lr = [0.1]
        array_depth = [2,3,4]
        array_mcw = [1]
-       N = len(array_ntrees)*len(array_lr)*len(array_depth)*len(array_mcw)                                                                                                                                     
+       N = len(array_ntrees)*len(array_lr)*len(array_depth)*len(array_mcw)
        print('N =', N)
    elif (options.ScanMode == 2):
        # ---- For scanning ntrees at fixed lr and depth -- ##
@@ -1068,7 +1072,7 @@ if options.ClassErr_vs_epoch==True :
    i = 0
    for ntrees in  array_ntrees:
        for lr in array_lr:
-           if (options.ScanMode == 1):   lr = 10./float(ntrees) ## so that lr*ntrees = 10                                                                                                              
+           if (options.ScanMode == 1):   lr = 10./float(ntrees) ## so that lr*ntrees = 10
            for depth in array_depth:
                for mcw in array_mcw:
 			   i = i + 1
@@ -1092,24 +1096,24 @@ if options.ClassErr_vs_epoch==True :
 				   eval_metric=["auc", "error", "logloss"],
 				   eval_set=eval_set,
 				   verbose=True
-				   #,early_stopping_rounds=100                                                                                                                                    
-                                   #,callbacks=[xgb.callback.print_evaluation(show_stdv=True)] ## Doesn't work here either !!                                                
+				   #,early_stopping_rounds=100
+                                   #,callbacks=[xgb.callback.print_evaluation(show_stdv=True)] ## Doesn't work here either !!
 				   )
 
-			   # make predictions for test data                                                                                                                 
+			   # make predictions for test data
 			   y_pred = model.predict(X_test)
 
-			   # evaluate predictions                                                                                                                                                      
+			   # evaluate predictions
                            accuracy = accuracy_score(y_test, y_pred)
 			   print("Accuracy: %.2f%%" % (accuracy * 100.0))
 			   Acc_label.append((accuracy*100.0))
 
-			   # retrieve performance metrics                                                                                                                                               
+			   # retrieve performance metrics
                            results = model.evals_result()
 			   epochs = len(results['validation_0']['error'])
 			   x_axis = range(0, epochs)
-			   
-                           # plot log loss                                                                                                                                                               
+
+                           # plot log loss
                            fig1, ax = plt.subplots()
 			   ax.plot(x_axis, results['validation_0']['logloss'], label='Train')
 			   ax.plot(x_axis, results['validation_1']['logloss'], label='Test')
@@ -1118,8 +1122,8 @@ if options.ClassErr_vs_epoch==True :
 			   plt.title('XGBoost Log Loss')
 			   plt.show()
                            fig1.savefig("{}/Log_loss_{}_{}_{}_{}.pdf".format(channel, bdtType, trainvar, str(len(trainVars(False, options.variables, options.bdtType))), hyppar_test))
-			   
-                           # plot auc                                                                                                                                        
+
+                           # plot auc
 			   fig1a, ax = plt.subplots()
 			   ax.plot(x_axis, results['validation_0']['auc'], label='Train')
 			   ax.plot(x_axis, results['validation_1']['auc'], label='Test')
@@ -1129,7 +1133,7 @@ if options.ClassErr_vs_epoch==True :
 			   plt.show()
 			   fig1a.savefig("{}/auc_{}_{}_{}_{}.pdf".format(channel, bdtType, trainvar, str(len(trainVars(False, options.variables, options.bdtType))), hyppar_test))
 
-			   # plot classification error                                                                                                                      
+			   # plot classification error
 			   fig2, ax = plt.subplots()
 			   ax.plot(x_axis, results['validation_0']['error'], label='Train')
 			   ax.plot(x_axis, results['validation_1']['error'], label='Test')
@@ -1138,9 +1142,9 @@ if options.ClassErr_vs_epoch==True :
 			   plt.title('XGBoost Classification Error')
 			   plt.show()
 			   fig2.savefig("{}/XGBoost_Classification_error_{}_{}_{}_{}.pdf".format(channel, bdtType, trainvar, str(len(trainVars(False, options.variables, options.bdtType))), hyppar_test))
-			   plt.close() 
-   
-   fit_label = np.arange(1,(N+1)) ## gives us [1,2,....,N]                                                                                                                                                  
+			   plt.close()
+
+   fit_label = np.arange(1,(N+1)) ## gives us [1,2,....,N]
    fig, ax = plt.subplots()
    plt.plot(fit_label, Acc_label, 'ro')
    plt.xlabel('fit index')
