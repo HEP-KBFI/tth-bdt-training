@@ -74,10 +74,10 @@ parser.add_option("--SplitMode", type="int", dest="SplitMode", help="Selects Mod
 parser.add_option("--ScanMode", type="int", dest="ScanMode", help="Selects Mode for scanning hyperparam.s (Use only when --ClassErr_vs_epoch = True and --SplitMode = 0/1/2 as specified above) \n                                           ScanMode==1 -- Hyper-Param.s will be scanned for fixed value of lr*ntrees (fixed to 10 in the code right now) \n                                                                                                           ScanMode==2 -- Hyper-Param.s will be scanned for ntrees for fixed lr and depth (See values in the code) \n", default=-1)
 parser.add_option("--BDT_Diagnostics_2l_2tau", action="store_true", dest="BDT_Diagnostics_2l_2tau", help="Makes useful plots for Input var.s for 2l_2tau channel", default=False)
 parser.add_option("--ReweightVars", action="store_true", dest="ReweightVars", help="Reweight Input variables with Fits", default=False)
-parser.add_option("--TrainMode", type="int", dest="TrainMode", help="Define the signal mass scheme used for training ", default=0)
+#parser.add_option("--TrainMode", type="int", dest="TrainMode", help="Define the signal mass scheme used for training ", default=0)
 (options, args) = parser.parse_args()
 
-TrainMode=options.TrainMode
+#TrainMode=options.TrainMode
 do_2l_2tau_diagnostics=options.BDT_Diagnostics_2l_2tau
 do_ReweightVars=options.ReweightVars
 tauID=options.tauID
@@ -92,10 +92,10 @@ hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(option
 #channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand  ## DEF LINE
 #channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Low_Mass_only"
 #channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_High_Mass_only"
-#channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_with_LogFiles" ## TO DO !!
-channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Christian_logic"
+#channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_with_LogFiles"
+channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Christian_logic_NEW"+"_High_masses_only"
 
-
+'''
 if TrainMode == 0:
     channel += "TEST_CORRECTED"
     masses1 = [250,260,270,280,300,350,400,450,500,550,600,650,700,750,800,850,900,1000]   
@@ -152,7 +152,7 @@ elif TrainMode == 8:
     masses_test2 = [500,800]
 else:
     channel += ""
-
+'''
 
 
 
@@ -169,6 +169,12 @@ else:
 print (startTime)
 
 if "bb2l" in channel   : execfile("../cards/info_bb2l_HH.py")
+if "2l_2tau" in channel:
+     #execfile("../cards/info_2l_2tau_HH.py")
+     #execfile("../cards/info_2l_2tau_HH_low_Mass_only.py") 
+     execfile("../cards/info_2l_2tau_HH_High_Mass_only.py")
+
+'''
 if "2l_2tau" in channel:
     if TrainMode == 0:
         execfile("../cards/info_2l_2tau_HH.py")
@@ -190,6 +196,7 @@ if "2l_2tau" in channel:
         execfile("../cards/info_2l_2tau_HH_High_Mass_only.py")
     else:
         execfile("../cards/info_2l_2tau_HH.py")
+'''
  
 if(options.ClassErr_vs_epoch == True): 
     channel+"_SplitMode_"+options.SplitMode+"_ScanMode_"+options.ScanMode
@@ -202,11 +209,6 @@ if(options.ClassErr_vs_epoch == True):
 import shutil,subprocess
 proc=subprocess.Popen(['mkdir '+channel],shell=True,stdout=subprocess.PIPE)
 out = proc.stdout.read()
-
-
-## For writing the interpolation check roc curves ##
-log_file2_name = "{}/{}.log".format(channel,channel)
-file2_ = open(log_file2_name, 'w+')
 
 
 weights="totalWeight"
@@ -424,16 +426,6 @@ def ReweightDataframe(data, channel, var_name, masses):
     file.GetObject("f_old", func)
     print("Number of parameters", func.GetNpar())     
     Npar = func.GetNpar()
-    #polyName = "poly"+(Npar-1)
-    #print("Value at 400 ", func.Eval(400.))
-    #print("Value at 900 ", func.Eval(900.))
-    #for i in range(Npar):
-    #    print("parameter[ %i ] = %d" % (i, func.GetParameter(i)))
-
-    #masses =  [250., 260., 270., 280., 300., 350., 400., 450., 500., 550., 600., 650., 700., 750., 800., 850., 900., 1000.]  
-    #masses =  [250., 260., 270., 280., 300., 350., 400.]  
-    #masses =  [450., 500., 550., 600., 650., 700., 750., 800., 850., 900., 1000.]  
-
 
     corr_factor_Dict = {}
     for x in masses:
@@ -449,19 +441,8 @@ def ReweightDataframe(data, channel, var_name, masses):
 
     for x in masses:
         print("gen_mHH %f" % x) 
-        #data.loc[(data['gen_mHH']==x), [var_name]]
         data.loc[(data['gen_mHH']==x), [var_name]] /= corr_factor_Dict[x]
 
-
-    #data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]] 
-
-    #for i in data.index : ## Loop over rows of the dataframe 
-        #(data[var_name][i]) /= func.Eval( (data['gen_mHH'][i]) ) ## OLD METHOD
-        #print("value before correction", (data[var_name][i]))
-        #print("Corr. factor: %f , gen_mHH: %f" % (corr_factor_Dict[ data['gen_mHH'][i] ], data['gen_mHH'][i]) ) 
-        #(data[var_name][i]) /= corr_factor_Dict[ data['gen_mHH'][i] ] ## NEW METHOD 
-        #print("value after correction", (data[var_name][i]))
-        
     print("Finished the scaling of ", var_name)
 
     process = psutil.Process(os.getpid())
@@ -498,7 +479,7 @@ elif 'evtLevelDY' in bdtType :
 elif 'evtLevelTT' in bdtType :
         labelBKG = "TT"
 elif 'evtLevelSUM_HH_2l_2tau_res' in bdtType :
-        labelBKG = "TT+DY+VV+VH+TTH"
+        labelBKG = "TT+DY+VV"
 print "labelBKG: ",labelBKG
 
 printmin=True
@@ -888,27 +869,6 @@ for dd, data_do in  enumerate(order_train):
         print ("saved ",pklpath+".pkl")
         print ("variables are: ",pklpath+"_pkl.log")
 
-    '''
-    ## ---- MY LINES ---- ##
-    if dd == 0: ## train on odd 
-        proba_test_even_300 = cls.predict_proba(data_even_test_300[trainVars(False, options.variables, options.bdtType)].values )[:,1]
-        proba_test_even_500 = cls.predict_proba(data_even_test_500[trainVars(False, options.variables, options.bdtType)].values )[:,1]
-        proba_test_even_800 = cls.predict_proba(data_even_test_800[trainVars(False, options.variables, options.bdtType)].values )[:,1]
-        print("raw BDT Output (odd trained):", proba_test_even_300)
-        file2_.write('Evt No.: %d , gen_mHH: %f , tau1_pt: %f , tau2_pt: %f , diHiggsVisMass: %f , diHiggsMass: %f , raw BDT: %f\n' % (data_even_test_300["event"], data_even_test_300["gen_mHH"], data_even_test_300["tau1_pt"], data_even_test_300["tau2_pt"], data_even_test_300["diHiggsVisMass"], data_even_test_300["diHiggsMass"], proba_test_even_300))   
-        file2_.write('Evt No.: %d , gen_mHH: %f , tau1_pt: %f , tau2_pt: %f , diHiggsVisMass: %f , diHiggsMass: %f , raw BDT: %f\n' % (data_even_test_500["event"], data_even_test_500["gen_mHH"], data_even_test_500["tau1_pt"], data_even_test_500["tau2_pt"], data_even_test_500["diHiggsVisMass"], data_even_test_500["diHiggsMass"], proba_test_even_500))   
-        file2_.write('Evt No.: %d , gen_mHH: %f , tau1_pt: %f , tau2_pt: %f , diHiggsVisMass: %f , diHiggsMass: %f , raw BDT: %f\n' % (data_even_test_800["event"], data_even_test_800["gen_mHH"], data_even_test_800["tau1_pt"], data_even_test_800["tau2_pt"], data_even_test_800["diHiggsVisMass"], data_even_test_800["diHiggsMass"], proba_test_even_800))   
-    else: ## train on even
-        proba_test_odd_300 = cls.predict_proba(data_odd_test_300[trainVars(False, options.variables, options.bdtType)].values )[:,1]
-        proba_test_odd_500 = cls.predict_proba(data_odd_test_500[trainVars(False, options.variables, options.bdtType)].values )[:,1]
-        proba_test_odd_800 = cls.predict_proba(data_odd_test_800[trainVars(False, options.variables, options.bdtType)].values )[:,1]
-        print("raw BDT Output (even trained):", proba_test_odd_300)
-        file2_.write('Evt No.: %d , gen_mHH: %f , tau1_pt: %f , tau2_pt: %f , diHiggsVisMass: %f , diHiggsMass: %f , raw BDT: %f\n' % (data_odd_test_300["event"], data_odd_test_300["gen_mHH"], data_odd_test_300["tau1_pt"], data_odd_test_300["tau2_pt"], data_odd_test_300["diHiggsVisMass"], data_odd_test_300["diHiggsMass"], proba_test_odd_300))   
-        file2_.write('Evt No.: %d , gen_mHH: %f , tau1_pt: %f , tau2_pt: %f , diHiggsVisMass: %f , diHiggsMass: %f , raw BDT: %f\n' % (data_odd_test_500["event"], data_odd_test_500["gen_mHH"], data_odd_test_500["tau1_pt"], data_odd_test_500["tau2_pt"], data_odd_test_500["diHiggsVisMass"], data_odd_test_500["diHiggsMass"], proba_test_odd_500)) 
-        file2_.write('Evt No.: %d , gen_mHH: %f , tau1_pt: %f , tau2_pt: %f , diHiggsVisMass: %f , diHiggsMass: %f , raw BDT: %f\n' % (data_odd_test_800["event"], data_odd_test_800["gen_mHH"], data_odd_test_800["tau1_pt"], data_odd_test_800["tau2_pt"], data_odd_test_800["diHiggsVisMass"], data_odd_test_800["diHiggsMass"], proba_test_odd_800))     
-    ## ------------------ ##
-    '''
-
     proba = cls.predict_proba(data_do[trainVars(False, options.variables, options.bdtType)].values )
     fpr, tpr, thresholds = roc_curve(
         data_do[target].astype(np.bool), proba[:,1],
@@ -917,31 +877,6 @@ for dd, data_do in  enumerate(order_train):
     train_auc = auc(fpr, tpr, reorder = True)
     roc_train = roc_train + [ { "fpr":fpr, "tpr":tpr, "train_auc":train_auc }]
     print("XGBoost train set auc - {}".format(train_auc))
-
-    '''
-    ## ---- MY LINES ---- ###
-    if(Bkg_mass_rand == "oversampling"): 
-        if(TrainMode == 1):
-            valdataset =  order_train[val_data].loc[(order_train[val_data]["gen_mHH"]==300)]
-        elif(TrainMode == 3): 
-            valdataset = order_train[val_data].loc[(order_train[val_data]["gen_mHH"]==500)]
-        elif(TrainMode == 5):
-            valdataset = order_train[val_data].loc[(order_train[val_data]["gen_mHH"]==800)]
-    elif(Bkg_mass_rand == "default"): 
-        if(TrainMode == 1):
-            valdataset =  order_train[val_data].loc[~((order_train[val_data]["gen_mHH"] != 300) & (order_train[val_data]["target"]==1))]
-        elif(TrainMode == 3): 
-            valdataset =  order_train[val_data].loc[~((order_train[val_data]["gen_mHH"] != 500) & (order_train[val_data]["target"]==1))]
-        elif(TrainMode == 5):
-            valdataset =  order_train[val_data].loc[~((order_train[val_data]["gen_mHH"] != 800) & (order_train[val_data]["target"]==1))]
-
-    proba = cls.predict_proba(valdataset[trainVars(False, options.variables, options.bdtType)].values )
-    fprt, tprt, thresholds = roc_curve(
-        valdataset[target].astype(np.bool), proba[:,1],
-        sample_weight=(valdataset[weights].astype(np.float64))
-    )
-    ## ------------------ ###
-    '''
 
     proba = cls.predict_proba(order_train[val_data][trainVars(False, options.variables, options.bdtType)].values )
     fprt, tprt, thresholds = roc_curve(
@@ -1152,6 +1087,11 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
     print("MASS", MASS)
     MASS_STR = "{}".format(MASS)
     print("MASS_STR", MASS_STR)
+
+    ## For writing the interpolation check roc curves ##
+    log_file2_name = "{}/{}_{}.log".format(channel,channel,MASS_STR)
+    file2_ = open(log_file2_name, 'w+')
+
     for dd, data_do in  enumerate(order_train):   ## Loop over the odd and even dataset halves
         if dd == 0 : val_data = 1
         else : val_data = 0
@@ -1169,11 +1109,32 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
 
         #traindataset1 = data_do.loc[~(data_do["gen_mHH"]==mass)]  ## Training for all masses except the one under study
         #valdataset1 = order_train[val_data].loc[~(order_train[val_data]["gen_mHH"]==mass)]  ## Testing for all masses except the one under study
+        if(mass == 300):
+            masses_test1 = [250,1000]
+            masses1 = [250,260,270,280,350,400,450,500,550,600,650,700,750,800,850,900,1000]
+            #masses1 = [250,260,270,280,350,400] ## Low mass only training
+            masses_test2 = [300]
+            masses2 = [300]
+        elif(mass == 500):    
+            masses_test1 = [250,1000]
+            #masses1 = [250,260,270,280,300,350,400,450,550,600,650,700,750,800,850,900,1000]
+            masses1 = [450,550,600,650,700,750,800,850,900,1000] ## High mass only training
+            masses_test2 = [500]
+            masses2 = [500]
+        elif(mass == 800):    
+            masses_test1 = [250,1000]
+            #masses1 = [250,260,270,280,300,350,400,450,500,550,600,650,700,750,850,900,1000]
+            masses1 = [450,500,550,600,650,700,750,850,900,1000] ## High mass only training
+            masses_test2 = [800]
+            masses2 = [800]
+
+        plot_name_train1 = "_Variables_traindataset1_BDT_"+MASS_STR+".pdf"
+        plot_name_val1 = "_Variables_valdataset1_BDT_"+MASS_STR+".pdf"
 
         make_plots(BDTvariables, nbins,
                    traindataset1.ix[traindataset1.target.values == 0],labelBKG, colorFast,
                    traindataset1.ix[traindataset1.target.values == 1],'Signal', colorFastT,
-                   channel+"/"+bdtType+"_"+trainvar+"_Variables_traindataset1_BDT.pdf",
+                   channel+"/"+bdtType+"_"+trainvar+plot_name_train1,
                    printmin,
                    plotResiduals,
                    masses_test1,
@@ -1183,7 +1144,7 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
         make_plots(BDTvariables, nbins,
                    valdataset1.ix[valdataset1.target.values == 0],labelBKG, colorFast,
                    valdataset1.ix[valdataset1.target.values == 1],'Signal', colorFastT,
-                   channel+"/"+bdtType+"_"+trainvar+"_Variables_valdataset1_BDT.pdf",
+                   channel+"/"+bdtType+"_"+trainvar+plot_name_val1,
                    printmin,
                    plotResiduals,
                    masses_test1,
@@ -1222,7 +1183,7 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
         y_predS_train = cls2.predict_proba(traindataset1.ix[traindataset1.target.values == 1, trainVars(False, options.variables, options.bdtType)].values)[:, 1]      
 
         file2_.write('#------ Training for all masses except %0.1f GeV-------\n' %mass)                                                                                                                
-        file2_.write('#------ Testing for all masses except  %0.1f GeV (using other dataset half)--------\n' %mass)                                                                                    
+        file2_.write('#------ Testing only for mass %0.1f GeV (using other dataset half)--------\n' %mass)                                                                                    
         if(dd == 0): ## Train->odd; Test/val -> even                                                                                                                                             
             file2_.write('train_auc_ODD0_%s = %0.8f\n' % (MASS_STR, train_auc))       
             file2_.write('test_auc_EVEN0_%s  = %0.8f\n' % (MASS_STR, test_auct))
@@ -1294,11 +1255,13 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
         #traindataset2 = data_do.loc[(data_do["gen_mHH"]==mass)]  ## Training for only the mass point under study                                                                                       
         #valdataset2 = order_train[val_data].loc[(order_train[val_data]["gen_mHH"]==mass)]  ## Testing for only the mass point under study                               
 
+        plot_name_train2 = "_Variables_traindataset2_BDT_"+MASS_STR+".pdf"
+        plot_name_val2 = "_Variables_valdataset2_BDT_"+MASS_STR+".pdf"
 
         make_plots(BDTvariables, nbins,
                    traindataset2.ix[traindataset2.target.values == 0],labelBKG, colorFast,
                    traindataset2.ix[traindataset2.target.values == 1],'Signal', colorFastT,
-                   channel+"/"+bdtType+"_"+trainvar+"_Variables_traindataset2_BDT.pdf",
+                   channel+"/"+bdtType+"_"+trainvar+plot_name_train2,
                    printmin,
                    plotResiduals,
                    masses_test2,
@@ -1308,7 +1271,7 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
         make_plots(BDTvariables, nbins,
                    valdataset2.ix[valdataset2.target.values == 0],labelBKG, colorFast,
                    valdataset2.ix[valdataset2.target.values == 1],'Signal', colorFastT,
-                   channel+"/"+bdtType+"_"+trainvar+"_Variables_valdataset2_BDT.pdf",
+                   channel+"/"+bdtType+"_"+trainvar+plot_name_val2,
                    printmin,
                    plotResiduals,
                    masses_test2,
@@ -1347,7 +1310,7 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
         y_predS_train = cls3.predict_proba(traindataset2.ix[traindataset2.target.values == 1, trainVars(False, options.variables, options.bdtType)].values)[:, 1]    
 
         file2_.write('#------ Training for only mass %0.1f GeV-------\n' %mass)                                                                                                                        
-        file2_.write('#------ Testing for %0.1f GeV signal mass (using other data half)--------\n' %mass)                                                                                              
+        file2_.write('#------ Testing for only mass %0.1f GeV (using other data half)--------\n' %mass)                                                                                              
         if(dd == 0): ## Train->odd; Test/val -> even                                                                                                                                                            
             file2_.write('train_auc_ODD1_%s = %0.8f\n' % (MASS_STR, train_auc))                                                                                                                                         
             file2_.write('test_auc_EVEN1_%s  = %0.8f\n' % (MASS_STR, test_auct))                                                                                                                                          
@@ -1403,7 +1366,7 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
             file2_.write(str(y_predS_train.tolist()))                                                                                                                                                  
             file2_.write('\n')                                                                                                                                                                         
         file2_.write('##-------------------------------------------##\n')
-file2_.close()
+    file2_.close()
 ### ---------------------------------------- ####
 
 
