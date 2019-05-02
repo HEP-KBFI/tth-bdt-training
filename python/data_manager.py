@@ -1,4 +1,7 @@
 import itertools as it
+import os
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
 import numpy as np
 #from root_numpy import root2array, stretch
 from numpy.lib.recfunctions import append_fields
@@ -10,6 +13,7 @@ from random import randint
 import pandas
 import glob
 from root_numpy import tree2array
+
 
 def load_ttHGen() :
     procP1=glob.glob("/hdfs/cms/store/user/atiko/VHBBHeppyV25tthtautau/MC/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/VHBB_HEPPY_V25tthtautau_ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_Py8_mWCutfix__RunIISummer16MAv2-PUMoriond17_80r2as_2016_TrancheIV_v6_ext1-v1/170207_122849/0000/tree_*.root")
@@ -180,13 +184,19 @@ def load_data_2017(
         if 'TTWW' in folderName :
             sampleName='TTWW'
             target=0
-        if "bb2l" in bdtType : #Sawati: take VBF to bb2l, is this still correct?
-            if 'signal_vbf_spin0' in folderName :
-                sampleName='signal_vbf_spin0_'
+        if 'evtLevelSUM_HH_bb2l' in bdtType or 'evtLevelSUM_HH_bb1l' in bdtType : #Sawati: take VBF to bb2l, is this still correct?
+            if 'signal_ggf' in folderName :
+                sampleName='signal_ggf_spin0' if "evtLevelSUM_HH_bb2l_res" in bdtType else 'signal_ggf_nonresonant_node'
                 for mass in masses :
-                    if str(mass) in folderName : sampleName=sampleName+str(mass)
-                if '_2b2v' in folderName : sampleName=sampleName+'_hh_bbvv'
-                target=1
+                    if mass ==20 :
+                        sampleName=sampleName+'_'+'sm'+'_'
+                        break
+                    elif '_'+str(mass)+"_" in folderName :
+                        sampleName=sampleName+'_'+str(mass)+'_'
+                        break
+                if '_2b2v' in folderName : sampleName=sampleName+'hh_bbvv'
+                target =1
+
         elif "HH" in bdtType :
             if 'signal_ggf_spin0' in folderName :
                 sampleName='signal_ggf_spin0_'
@@ -217,9 +227,11 @@ def load_data_2017(
                 procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
                 list=procP1
         else :
-            procP1=glob.glob(inputPath+"/"+folderName+"*/*.root")
+            procP1=glob.glob(inputPath+"/"+folderName+"*/central/*.root") ## Works for the new folder structure (Saswati's datacards) 
+            if len(procP1) == 0:
+                procP1=glob.glob(inputPath+"/"+folderName+"*/*.root") ## Works for the old folder structure (Ram's datacards)
             list=procP1
-        print (list)
+            print(list) 
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
             except :
@@ -284,12 +296,14 @@ def load_data_2017(
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
         if len(data) == 0 : continue
-        if "evtLevelSUM_HH_bb2l_res" in bdtType and folderName == 'TTTo2L2Nu' : data.drop(data.tail(6000000).index,inplace = True)
-        elif "evtLevelSUM_HH_bb1l_res" in bdtType :
+        if "evtLevelSUM_HH_bb2l" in bdtType and folderName == 'TTTo2L2Nu' : data.drop(data.tail(6000000).index,inplace = True)
+        elif "evtLevelSUM_HH_bb1l" in bdtType :
             if folderName == 'TTToSemiLeptonic_PSweights' : data.drop(data.tail(24565062).index,inplace = True)
             if folderName == 'TTTo2L2Nu_PSweights' : data.drop(data.tail(11089852).index,inplace = True) #12089852
             if folderName.find('signal') !=-1 :
                 if folderName.find('900') ==-1 and folderName.find('1000') ==-1 : data.drop(data.tail(15000).index,inplace = True)
+                if bdtType.find('nonres') != -1 :
+                    data.drop(data.tail(20000).index,inplace = True)
             elif folderName == 'W' : data.drop(data.tail(2933623).index,inplace = True)
         nS = len(data.ix[(data.target.values == 1) & (data.key.values==folderName) ])
         nB = len(data.ix[(data.target.values == 0) & (data.key.values==folderName) ])

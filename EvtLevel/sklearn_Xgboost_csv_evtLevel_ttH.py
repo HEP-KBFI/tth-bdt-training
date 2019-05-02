@@ -1,3 +1,6 @@
+import os
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
 import sys , time
 #import sklearn_to_tmva
 import sklearn
@@ -381,6 +384,7 @@ cls = xgb.XGBClassifier(
 			max_depth = options.treeDeph,
 			min_child_weight = options.mcw, # min_samples_leaf
 			learning_rate = options.lr,
+			nthread = 8
 			#max_features = 'sqrt',
 			#min_samples_leaf = 100
 			#objective='binary:logistic', #booster='gbtree',
