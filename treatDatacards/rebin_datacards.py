@@ -128,8 +128,8 @@ else : mom="/home/"+user+"/ttHAnalysis/"+year+"/"+label+"/datacards/"+channel
 
 local=workingDir+"/"+options.channel+"_"+label+"/"+options.variables+"/"
 originalBinning=50
-nbinRegular=np.arange(5, 35) #np.arange(1, 50)  #nbinRegular=np.arange(1, 35)
-nbinQuant=np.arange(10,30) #np.arange(1,50)  #nbinsQuant= np.arange(10,29)
+nbinRegular=np.arange(1, 30)  #nbinRegular=np.arange(1, 35)
+nbinQuant=np.arange(1,35)  #nbinsQuant= np.arange(10,29)
 counter=0
 print "nbinRegular: ",nbinRegular
 print "nbinQuant: ",nbinQuant
@@ -318,7 +318,9 @@ print ("I will rebin",bdtTypesToDoLabel,"(",len(sources),") BDT options")
 if channel == "hh_3l" :
     local="/home/ssawant/VHbbNtuples_9_4_x/CMSSW_9_4_6_patch1_rpst2/CMSSW_9_4_6_patch1/src/tth-bdt-training/treatDatacards/"+label+"/"
     for ii, bdtType in enumerate(bdtTypes) :
-        mom = "/home/ssawant/hhAnalysis/2017/20181127/datacards/hh_3l/"
+        #mom = "/home/ssawant/hhAnalysis/2017/20181127/datacards/hh_3l/" # woSyst woAK8 v20181127 for DAE
+        #mom = "/home/ssawant/hhAnalysis/2017/20181205/datacards/hh_3l/" # wSyst woAK8 v20190213
+        mom = "/home/ssawant/hhAnalysis/2017/20190223_vDAE_wSyst_woAK8/datacards/hh_3l/" # vDAE wSyst woAK8
         fileName=mom+"prepareDatacards_hh_3l_"+bdtTypes[ii]+".root"
         my_file = Path(fileName)
         source=local+"prepareDatacards_hh_3l_"+bdtTypes[ii]
@@ -366,7 +368,8 @@ if not doLimits:
         #plt.plot(binstoDo,errOcont[2], color=colorsToDo[nn],linestyle='--',marker='x')
         ax.set_xlabel('nbins')
     #if options.BINtype == "regular" : maxplot =0.02
-    if options.BINtype == "regular" : maxplot =1.5
+    #if options.BINtype == "regular" : maxplot =1.5
+    if options.BINtype == "regular" : maxplot =0.5
     #elif options.BINtype == "mTauTauVis" : maxplot=200.
     else : maxplot = 0.35
     plt.axis((min(binstoDo),max(binstoDo),0,maxplot))

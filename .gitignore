@@ -6,3 +6,5 @@ cout_*.txt
 EvtLevel/sklearn_Xgboost_evtLevel_HH_parametric_vDefault.py
 EvtLevel/sklearn_Xgboost_evtLevel_HH_parametric_vSiddh_20181115.py
 treatDatacards/hh_3l/
+treatDatacards/hh_3l_v20190222/
+treatDatacards/hh_3l_woSyst_woAK8_20190130/

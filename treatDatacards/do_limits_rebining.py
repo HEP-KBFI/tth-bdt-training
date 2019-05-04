@@ -275,8 +275,10 @@ for ns,source in enumerate(sources) :
             name=source+'_'+str(nbins)+'bins_ranged.root'
             nameout=source+'_'+str(nbins)+'bins_ranged_dat.root'
         if options.BINtype=="quantiles" :
-            name=source+'_'+str(nbins+1)+'bins_quantiles.root'
-            nameout=source+'_'+str(nbins+1)+'bins_quantiles_dat.root'
+            #name=source+'_'+str(nbins+1)+'bins_quantiles.root' # why nbins+1? Siddhesh
+            #nameout=source+'_'+str(nbins+1)+'bins_quantiles_dat.root'
+            name=source+'_'+str(nbins)+'bins_quantiles.root'
+            nameout=source+'_'+str(nbins)+'bins_quantiles_dat.root'
         print ("doing", name)
         shapeVariable=options.variables+'_'+bdtTypesToDoFile[ns]+'_nbin_'+str(nbins)
         if options.BINtype=="ranged" : shapeVariable=shapeVariable+"_ranged"
