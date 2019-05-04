@@ -84,20 +84,20 @@ def read_from(
 		'signal_ggf_spin0_300_hh_4t', #'signal_ggf_spin0_300_hh_2v2t',  'signal_ggf_spin0_300_hh_4v',
 		'signal_ggf_spin0_350_hh_4t', #'signal_ggf_spin0_350_hh_2v2t',  'signal_ggf_spin0_350_hh_4v',
 		'signal_ggf_spin0_400_hh_4t', #'signal_ggf_spin0_400_hh_2v2t',  'signal_ggf_spin0_400_hh_4v',
-		'signal_ggf_spin0_450_hh_4t', #'signal_ggf_spin0_450_hh_2v2t',  'signal_ggf_spin0_450_hh_4v',
-		'signal_ggf_spin0_500_hh_4t', #'signal_ggf_spin0_500_hh_2v2t',  'signal_ggf_spin0_500_hh_4v',
-		'signal_ggf_spin0_550_hh_4t', #'signal_ggf_spin0_550_hh_2v2t',  'signal_ggf_spin0_550_hh_4v',
-		'signal_ggf_spin0_600_hh_4t', #'signal_ggf_spin0_600_hh_2v2t',  'signal_ggf_spin0_600_hh_4v',
-		'signal_ggf_spin0_650_hh_4t', #'signal_ggf_spin0_650_hh_2v2t',  'signal_ggf_spin0_650_hh_4v',
-		'signal_ggf_spin0_700_hh_4t', #'signal_ggf_spin0_700_hh_2v2t',  'signal_ggf_spin0_700_hh_4v',
-		'signal_ggf_spin0_750_hh_4t', #'signal_ggf_spin0_750_hh_2v2t',  'signal_ggf_spin0_750_hh_4v',
-		'signal_ggf_spin0_800_hh_4t', #'signal_ggf_spin0_800_hh_2v2t',  'signal_ggf_spin0_800_hh_4v',
-		'signal_ggf_spin0_850_hh_4t', #'signal_ggf_spin0_850_hh_2v2t',  'signal_ggf_spin0_850_hh_4v',
-		'signal_ggf_spin0_900_hh_4t', #'signal_ggf_spin0_900_hh_2v2t',  'signal_ggf_spin0_900_hh_4v',
-		'signal_ggf_spin0_1000_hh_4t', #'signal_ggf_spin0_1000_hh_2v2t',  'signal_ggf_spin0_1000_hh_4v',
+		#'signal_ggf_spin0_450_hh_4t', #'signal_ggf_spin0_450_hh_2v2t',  'signal_ggf_spin0_450_hh_4v',
+		#'signal_ggf_spin0_500_hh_4t', #'signal_ggf_spin0_500_hh_2v2t',  'signal_ggf_spin0_500_hh_4v',
+		#'signal_ggf_spin0_550_hh_4t', #'signal_ggf_spin0_550_hh_2v2t',  'signal_ggf_spin0_550_hh_4v',
+		#'signal_ggf_spin0_600_hh_4t', #'signal_ggf_spin0_600_hh_2v2t',  'signal_ggf_spin0_600_hh_4v',
+		#'signal_ggf_spin0_650_hh_4t', #'signal_ggf_spin0_650_hh_2v2t',  'signal_ggf_spin0_650_hh_4v',
+		#'signal_ggf_spin0_700_hh_4t', #'signal_ggf_spin0_700_hh_2v2t',  'signal_ggf_spin0_700_hh_4v',
+		#'signal_ggf_spin0_750_hh_4t', #'signal_ggf_spin0_750_hh_2v2t',  'signal_ggf_spin0_750_hh_4v',
+		#'signal_ggf_spin0_800_hh_4t', #'signal_ggf_spin0_800_hh_2v2t',  'signal_ggf_spin0_800_hh_4v',
+		#'signal_ggf_spin0_850_hh_4t', #'signal_ggf_spin0_850_hh_2v2t',  'signal_ggf_spin0_850_hh_4v',
+		#'signal_ggf_spin0_900_hh_4t', #'signal_ggf_spin0_900_hh_2v2t',  'signal_ggf_spin0_900_hh_4v',
+		#'signal_ggf_spin0_1000_hh_4t', #'signal_ggf_spin0_1000_hh_2v2t',  'signal_ggf_spin0_1000_hh_4v',
 	]
-	masses = [250,260,270,280,300,350,400,450,500,550,600,650,700,750,800,850,900,1000]
-	masses_test = [300,500,800]
+	masses = [250,260,270,280,300,350,400]
+	masses_test = [300]
 
 
 	output = {
