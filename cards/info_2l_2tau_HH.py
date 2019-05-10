@@ -99,6 +99,11 @@ def read_from(
 	masses = [250,260,270,280,300,350,400,450,500,550,600,650,700,750,800,850,900,1000]
 	masses_test = [300,500,800]
 
+	masses_low = [250,260,270,280,300,350,400]
+	masses_test_low = [300]
+
+	masses_high = [450,500,550,600,650,700,750,800,850,900,1000]
+	masses_test_high = [500,800]
 
 	output = {
 		"channelInTree" : channelInTree,
@@ -115,6 +120,10 @@ def read_from(
 		"keys" : keys,
 		"masses" : masses,
 		"masses_test": masses_test,
+		"masses_low" : masses_low,
+		"masses_test_low": masses_test_low,
+		"masses_high" : masses_high,
+		"masses_test_high": masses_test_high,
 		"mass_randomization" : mass_rand_algo,
 		}
 

@@ -276,10 +276,12 @@ def load_data_2017(
                         for mass in masses:
                             if str(mass) in folderName:
                              chunk_df["gen_mHH"]=mass
+                             data=data.append(chunk_df, ignore_index=True)
                     elif target == 0:
                         if mass_randomization == "default":
                             ## Adding 1 rows/events in the data-frame which have "gen_mHH" values randomly chosen from masses array
                             chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
+                            data=data.append(chunk_df, ignore_index=True)
                         elif mass_randomization == "oversampling":
                             for mass in masses:
                                 ## ---- Adding rows/events (No. of rows = "len(masses)") in the data-frame  ---###
@@ -291,8 +293,6 @@ def load_data_2017(
                             raise ValueError("Invalid parameter mass_randomization = '%s' !!" % mass_randomization)
                     else:
                         raise ValueError("Invalid target = %i !!" % target)
-                data=data.append(chunk_df, ignore_index=True)
-                #if mass_randomization == "default": data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
         if len(data) == 0 : continue

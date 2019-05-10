@@ -36,6 +36,7 @@ from collections import OrderedDict
 from ROOT import TCanvas, TFile, TProfile, TNtuple, TH1F, TH2F, TH1D, TH2D, THStack, TF1
 from ROOT import gBenchmark, gRandom, gSystem, Double, gPad, TFitResultPtr, TMath
 
+import copy
 
 
 def lr_to_str(lr):
@@ -90,13 +91,13 @@ trainvar=options.variables
 hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(options.treeDeph)+"_mcw_"+str(options.mcw)+lr_to_str(options.lr)
 
 if(TrainMode == 0):
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Christian_logic_NEW2"
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_all_Masses"
 elif(TrainMode == 1):
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Christian_logic_NEW2"+"_Low_masses_only"
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_Low_masses_only"
 elif(TrainMode == 2):
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Christian_logic_NEW2"+"_High_masses_only"
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_High_masses_only"
 else:
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Christian_logic_NEW2"
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_all_Masses"
 
 
 print("do_ReweightVars:")
@@ -112,7 +113,8 @@ else:
 print (startTime)
 
 if "bb2l" in channel   : execfile("../cards/info_bb2l_HH.py")
-if "2l_2tau" in channel:
+if "2l_2tau" in channel: execfile("../cards/info_2l_2tau_HH.py")
+'''
     if(TrainMode == 0):
         execfile("../cards/info_2l_2tau_HH.py")
     elif(TrainMode == 1):
@@ -121,6 +123,7 @@ if "2l_2tau" in channel:
         execfile("../cards/info_2l_2tau_HH_High_Mass_only.py")
     else:    
         execfile("../cards/info_2l_2tau_HH.py")
+'''
 
 if(options.ClassErr_vs_epoch == True):
     channel+"_SplitMode_"+options.SplitMode+"_ScanMode_"+options.ScanMode
@@ -226,7 +229,7 @@ def MakeHisto1D(channel, data, var_name, nbins, X_min, X_max, label):
     N_wt = len(data_wt)
 
     # Create a new canvas, and customize it.
-    c1 = TCanvas( 'c1', 'Dynamic Filling Example', 200, 10, 700, 500)
+    c1 = TCanvas( 'c1', "Canvas", 200, 10, 700, 500)
     #c1.SetFillColor(42)
     #c1.GetFrame().SetFillColor(21)
     c1.GetFrame().SetBorderSize(6)
@@ -239,7 +242,7 @@ def MakeHisto1D(channel, data, var_name, nbins, X_min, X_max, label):
        histo1D.GetYaxis().SetTitle("Events")
        histo1D.GetXaxis().SetTitle(var_name)
        numpyarrayHisto1DFill(data_X, data_wt, histo1D)
-       #histo1D.Draw()
+       histo1D.Draw()
        c1.Modified()
        c1.Update()
        FileName = "{}/{}_{}_{}.root".format(channel, "Histo1D", var_name, label)
@@ -250,7 +253,7 @@ def MakeHisto1D(channel, data, var_name, nbins, X_min, X_max, label):
 
 
 
-def MakeTProfile(channel, data, var_name, y_min, y_max, Target, doFit, label):
+def MakeTProfile(channel, data, var_name, y_min, y_max, Target, doFit, label, TrainMode):
     data_copy = data.copy(deep=True) ## Making a deep copy of data ( => separate data and index from data)
     data_copy =  data_copy.loc[(data_copy[target]==Target)] ## Only take 1 for signal
     data_Y  = np.array(data_copy[var_name].values, dtype=np.float)
@@ -274,7 +277,7 @@ def MakeTProfile(channel, data, var_name, y_min, y_max, Target, doFit, label):
         Fit_Func_FileName = "{}/{}_{}.root".format(channel, "TProfile_signal_fit_func", var_name)
     elif(Target == 0):
         FileName = "{}/{}_{}_{}.root".format(channel, "TProfile", var_name, label)
-        TProfileFile = TFile(FileName, "RECREATE")
+        #TProfileFile = TFile(FileName, "RECREATE")
     else:
         FileName = "{}/{}_{}.root".format(channel, "TProfile", var_name, label)
         #TProfileFile = TFile(FileName, "RECREATE")
@@ -296,34 +299,88 @@ def MakeTProfile(channel, data, var_name, y_min, y_max, Target, doFit, label):
         #c1.SaveAs(FileName)
 
         if(doFit and (Target == 1)): ## do the fit for signal only
-            #f_old = TF1("f_old", "[0]+[1]*x", 250.,1000.)
-            if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 250.,1000.)
-            elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 250.,1000.)
-            elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,1000.)
-            elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol1", 250.,1000.)
-            elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,1000.)
-            elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol4", 250.,1000.)
-            elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 250.,1000.)
-            elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol3", 250.,1000.)
-            elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,1000.)
-            elif(var_name == "mht"): f_old = TF1("f_old", "pol3", 250.,1000.)
-            elif(var_name == "met"): f_old = TF1("f_old", "pol1", 250.,1000.)
-            elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol6", 250.,1000.)
-            elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol6", 250.,1000.)
-            elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol6", 250.,1000.)
-            elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 250.,1000.)
-            elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol6", 250.,1000.)
-            elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)
-            elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)
-            elif(var_name == "nElectron"): f_old = TF1("f_old", "pol2", 250.,1000.)
-            elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol2", 250.,1000.)
-            elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 250.,1000.)
-            elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol2", 250.,1000.)
-            elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 250.,1000.)
-            elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,1000.)
-            elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol3", 250.,1000.)
-            else:f_old = TF1("f_old", "pol6", 250.,1000.)
-
+            if(TrainMode == 0): ## All masses used in the training
+                #f_old = TF1("f_old", "[0]+[1]*x", 250.,1000.)
+                if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 250.,1000.)
+                elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 250.,1000.)
+                elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,1000.)
+                elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol1", 250.,1000.)
+                elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,1000.)
+                elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol4", 250.,1000.)
+                elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 250.,1000.)
+                elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol3", 250.,1000.)
+                elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,1000.)
+                elif(var_name == "mht"): f_old = TF1("f_old", "pol3", 250.,1000.)
+                elif(var_name == "met"): f_old = TF1("f_old", "pol1", 250.,1000.)
+                elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol6", 250.,1000.)
+                elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol6", 250.,1000.)
+                elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol6", 250.,1000.)
+                elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 250.,1000.)
+                elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol6", 250.,1000.)
+                elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)
+                elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)
+                elif(var_name == "nElectron"): f_old = TF1("f_old", "pol2", 250.,1000.)
+                elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol2", 250.,1000.)
+                elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 250.,1000.)
+                elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol2", 250.,1000.)
+                elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 250.,1000.)
+                elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,1000.)
+                elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol3", 250.,1000.)
+                else:f_old = TF1("f_old", "pol6", 250.,1000.)
+            elif(TrainMode == 1): ## Only Low masses used in the training
+                if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol1", 250.,400.)
+                elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 250.,400.)
+                elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,400.)
+                elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol4", 250.,400.)
+                elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,400.)
+                elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol4", 250.,400.)
+                elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol4", 250.,400.)
+                elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol4", 250.,400.)
+                elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,400.)
+                elif(var_name == "mht"): f_old = TF1("f_old", "pol4", 250.,400.)
+                elif(var_name == "met"): f_old = TF1("f_old", "pol4", 250.,400.)
+                elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol5", 250.,400.)
+                elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol5", 250.,400.)
+                elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 250.,400.)
+                elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol4", 250.,400.)
+                elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol4", 250.,400.)
+                elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,400.)
+                elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 250.,400.)
+                elif(var_name == "nElectron"): f_old = TF1("f_old", "pol4", 250.,400.)
+                elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol5", 250.,400.)
+                elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol3", 250.,400.)
+                elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol3", 250.,400.)
+                elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol2", 250.,400.)
+                elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol4", 250.,400.)
+                elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,400.)
+                else:f_old = TF1("f_old", "pol6", 250.,400.)
+            elif(TrainMode == 2): ## Only High masses used in the training
+                if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 450.,1000.)
+                elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol4", 450.,1000.)
+                elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol3", 450.,1000.)
+                elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "mht"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "met"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol4", 450.,1000.)
+                elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol4", 450.,1000.)
+                elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 450.,1000.)
+                elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol4", 450.,1000.)
+                elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol6", 450.,1000.)
+                elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "nElectron"): f_old = TF1("f_old", "pol6", 450.,1000.)
+                elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol4", 450.,1000.)
+                elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 450.,1000.)
+                elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol6", 450.,1000.)
+                else:f_old = TF1("f_old", "pol6", 450.,1000.)
             r_old = TFitResultPtr()
             r_old = hprof.Fit(f_old, "SF") ## Fitting using Minuit instead of the linear fitter
             f_old.Draw("same")
@@ -336,6 +393,7 @@ def MakeTProfile(channel, data, var_name, y_min, y_max, Target, doFit, label):
             FuncFile.Close()
         else:
             print("No fit will be performed")
+            c1.SaveAs(FileName)
 
     else:
         print('Arrays not of same length')
@@ -350,12 +408,7 @@ def ReweightDataframe(data, channel, var_name, masses):
     file.GetObject("f_old", func)
     print("Number of parameters", func.GetNpar())
     Npar = func.GetNpar()
-    #polyName = "poly"+(Npar-1)
-    #print("Value at 400 ", func.Eval(400.))
-    #print("Value at 900 ", func.Eval(900.))
-    #for i in range(Npar):
-    #    print("parameter[ %i ] = %d" % (i, func.GetParameter(i)))
-
+    
     corr_factor_Dict = {}
     for x in masses:
         corr_factor_Dict[x] = func.Eval(x)
@@ -372,24 +425,81 @@ def ReweightDataframe(data, channel, var_name, masses):
         data.loc[(data['gen_mHH']==x), [var_name]] /= corr_factor_Dict[x]
 
     print("Finished the scaling of ", var_name)
-
     process = psutil.Process(os.getpid())
     print(process.memory_info().rss)
     print(datetime.now() - startTime)
-
     file.Close()
 
-data=load_data_2017(
-    output["inputPath"],
-    output["channelInTree"],
-    trainVars(True),
-    [],
-    bdtType,
-    channel,
-    output["keys"],
-    output["masses"],
-    output["mass_randomization"],
-    )
+
+##--- Choice of train mass ranges implemented
+if(TrainMode == 0): ## All Masses included in training
+    data=load_data_2017(
+        output["inputPath"],
+        output["channelInTree"],
+        trainVars(True),
+        [],
+        bdtType,
+        channel,
+        output["keys"],
+        output["masses"],
+        output["mass_randomization"],
+        )
+    mass_list = output["masses"]
+    test_masses = output["masses_test"]
+elif(TrainMode == 1): ## Only Low Masses (<= 400 GeV) included in training
+    data=load_data_2017(
+        output["inputPath"],
+        output["channelInTree"],
+        trainVars(True),
+        [],
+        bdtType,
+        channel,
+        output["keys"],
+        output["masses_low"],
+        output["mass_randomization"],
+        )
+    mass_list = output["masses_low"]
+    test_masses = output["masses_test_low"]
+elif(TrainMode == 2): ## Only High Masses (> 400 GeV) included in training
+    data=load_data_2017(
+        output["inputPath"],
+        output["channelInTree"],
+        trainVars(True),
+        [],
+        bdtType,
+        channel,
+        output["keys"],
+        output["masses_high"],
+        output["mass_randomization"],
+        )
+    mass_list = output["masses_high"]
+    test_masses = output["masses_test_high"]
+else:
+    data=load_data_2017(
+        output["inputPath"],
+        output["channelInTree"],
+        trainVars(True),
+        [],
+        bdtType,
+        channel,
+        output["keys"],
+        output["masses"],
+        output["mass_randomization"],
+        )
+    mass_list = output["masses"]
+    test_masses = output["masses_test"]
+    
+'''
+if(TrainMode == 0): ## All Masses included in training
+    test_masses = output["masses_test"]
+elif(TrainMode == 1): ## Only Low Masses included in training 
+    test_masses = output["masses_test_low"]
+elif(TrainMode == 2): ## Only High Masses included in training 
+    test_masses = output["masses_test_high"]
+else:
+    test_masses = output["masses_test"]
+'''
+
 
 data.dropna(subset=[weights],inplace = True)
 data.fillna(0)
@@ -420,6 +530,13 @@ nbins=15
 colorFast='g'
 colorFastT='b'
 BDTvariables=trainVars(plotAll, options.variables, options.bdtType)
+#print("BDTvariables", BDTvariables)
+
+## Removing gen_mHH from the list of input variables
+BDTvariables_wo_gen_mHH = copy.deepcopy(BDTvariables)  ## Works
+BDTvariables_wo_gen_mHH.remove("gen_mHH")
+#print("BDTvariables_wo_gen_mHH", BDTvariables_wo_gen_mHH)
+
 
 make_plots(BDTvariables, nbins,
     data.ix[data.target.values == 0],labelBKG, colorFast,
@@ -427,8 +544,10 @@ make_plots(BDTvariables, nbins,
     channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT.pdf",
     printmin,
     plotResiduals,
-    output["masses_test"],
-    output["masses"]
+    #output["masses_test"],
+    #output["masses"]
+    test_masses,
+    mass_list
     )
 
 
@@ -442,61 +561,62 @@ if(do_2l_2tau_diagnostics == True):
         print DoFits
         print("Not Perfoming Fits to TProfile plots for signal")
 
+
     ## --- Making TProfile plots with fits (Signal) --- ###
-    MakeTProfile(channel, data, "diHiggsMass", 0., 1100., 1, DoFits, "before")
-    MakeTProfile(channel, data, "tau1_pt", 0., 1100., 1, DoFits, "before")
-    MakeTProfile(channel, data, "met_LD", 0., 1100., 1, DoFits, "before")
-    MakeTProfile(channel, data, "diHiggsVisMass", 0., 1100., 1, DoFits, "before")
-    MakeTProfile(channel, data, "m_ll", 0., 1100., 1, DoFits, "before")
-    MakeTProfile(channel, data, "tau2_pt", 0., 1100., 1, DoFits, "before")
-    MakeTProfile(channel, data, "mTauTau", 0., 1100., 1, DoFits, "before")
-    MakeTProfile(channel, data, "mT_lep1", 0., 1100., 1, DoFits, "before")
-    MakeTProfile(channel, data, "mT_lep2", 0., 1100., 1, DoFits, "before")
-    MakeTProfile(channel, data, "mht", 0., 1100., 1, DoFits, "before")
-    MakeTProfile(channel, data, "met", 0., 1100., 1, DoFits, "before")
-    MakeTProfile(channel, data, "dr_lep_tau_min_SS", 0., 1.0, 1, DoFits, "before")
-    MakeTProfile(channel, data, "dr_lep_tau_min_OS", 0., 1.0, 1, DoFits, "before")
-    MakeTProfile(channel, data, "dr_taus", 0., 1.0, 1, DoFits, "before")
-    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_min", 0., 1.0, 1, DoFits, "before")
-    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_max", 0., 1.0, 1, DoFits, "before")
-    MakeTProfile(channel, data, "max_tau_eta", 0., 3.0, 1, DoFits, "before")
-    MakeTProfile(channel, data, "max_lep_eta", 0., 3.0, 1, DoFits, "before")
-    MakeTProfile(channel, data, "nElectron", 0., 3., 1, DoFits, "before")
-    MakeTProfile(channel, data, "nBJet_medium", 0., 3., 1, DoFits, "before")
-    MakeTProfile(channel, data, "dr_leps", 0., 1.0, 1, DoFits, "before")
-    MakeTProfile(channel, data, "tau1_eta", -3.0, 3.0, 1, DoFits, "before")
-    MakeTProfile(channel, data, "deltaEta_lep1_tau1", -5.0, 5.0, 1, DoFits, "before")
-    MakeTProfile(channel, data, "deltaEta_lep1_tau2", -5.0, 5.0, 1, DoFits, "before")
-    MakeTProfile(channel, data, "m_lep1_tau2", 0., 1100., 1, DoFits, "before")
+    MakeTProfile(channel, data, "diHiggsMass", 0., 1100., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "tau1_pt", 0., 1100., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "met_LD", 0., 1100., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "diHiggsVisMass", 0., 1100., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "m_ll", 0., 1100., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "tau2_pt", 0., 1100., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "mTauTau", 0., 1100., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "mT_lep1", 0., 1100., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "mT_lep2", 0., 1100., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "mht", 0., 1100., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "met", 0., 1100., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_lep_tau_min_SS", 0., 1.0, 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_lep_tau_min_OS", 0., 1.0, 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_taus", 0., 1.0, 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_min", 0., 1.0, 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_max", 0., 1.0, 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "max_tau_eta", 0., 3.0, 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "max_lep_eta", 0., 3.0, 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "nElectron", 0., 3., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "nBJet_medium", 0., 3., 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_leps", 0., 1.0, 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "tau1_eta", -3.0, 3.0, 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "deltaEta_lep1_tau1", -5.0, 5.0, 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "deltaEta_lep1_tau2", -5.0, 5.0, 1, DoFits, "before", TrainMode)
+    MakeTProfile(channel, data, "m_lep1_tau2", 0., 1100., 1, DoFits, "before", TrainMode)
 
     
     ## --- Making TProfile plots (background) --- ###
-    MakeTProfile(channel, data, "diHiggsMass", 0., 1100., 0, False, "before")
-    MakeTProfile(channel, data, "tau1_pt", 0., 1100., 0, False, "before")
-    MakeTProfile(channel, data, "met_LD", 0., 1100., 0, False, "before")
-    MakeTProfile(channel, data, "diHiggsVisMass", 0., 1100., 0, False, "before")
-    MakeTProfile(channel, data, "m_ll", 0., 1100., 0, False, "before")
-    MakeTProfile(channel, data, "tau2_pt", 0., 1100., 0, False, "before")
-    MakeTProfile(channel, data, "mTauTau", 0., 1100., 0, False, "before")
-    MakeTProfile(channel, data, "mT_lep1", 0., 1100., 0, False, "before")
-    MakeTProfile(channel, data, "mT_lep2", 0., 1100., 0, False, "before")
-    MakeTProfile(channel, data, "mht", 0., 1100., 0, False, "before")
-    MakeTProfile(channel, data, "met", 0., 1100., 0, False, "before")
-    MakeTProfile(channel, data, "dr_lep_tau_min_SS", 0., 1.0, 0, False, "before")
-    MakeTProfile(channel, data, "dr_lep_tau_min_OS", 0., 1.0, 0, False, "before")
-    MakeTProfile(channel, data, "dr_taus", 0., 1.0, 0, False, "before")
-    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_min", 0., 1.0, 0, False, "before")
-    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_max", 0., 1.0, 0, False, "before")
-    MakeTProfile(channel, data, "max_tau_eta", 0., 3.0, 0, False, "before")
-    MakeTProfile(channel, data, "max_lep_eta", 0., 3.0, 0, False, "before")
-    MakeTProfile(channel, data, "nElectron", 0., 3., 0, False, "before")
-    MakeTProfile(channel, data, "nBJet_medium", 0., 3., 0, False, "before")
-    MakeTProfile(channel, data, "dr_leps", 0., 1.0, 0, False, "before")
-    MakeTProfile(channel, data, "tau1_eta", -3.0, 3.0, 0, False, "before")
-    MakeTProfile(channel, data, "deltaEta_lep1_tau1", -5.0, 5.0, 0, False, "before")
-    MakeTProfile(channel, data, "deltaEta_lep1_tau2", -5.0, 5.0, 0, False, "before")
-    MakeTProfile(channel, data, "m_lep1_tau2", 0., 1100., 0, False, "before")
-
+    MakeTProfile(channel, data, "diHiggsMass", 0., 1100., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "tau1_pt", 0., 1100., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "met_LD", 0., 1100., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "diHiggsVisMass", 0., 1100., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "m_ll", 0., 1100., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "tau2_pt", 0., 1100., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "mTauTau", 0., 1100., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "mT_lep1", 0., 1100., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "mT_lep2", 0., 1100., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "mht", 0., 1100., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "met", 0., 1100., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_lep_tau_min_SS", 0., 1.0, 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_lep_tau_min_OS", 0., 1.0, 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_taus", 0., 1.0, 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_min", 0., 1.0, 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_max", 0., 1.0, 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "max_tau_eta", 0., 3.0, 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "max_lep_eta", 0., 3.0, 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "nElectron", 0., 3., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "nBJet_medium", 0., 3., 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "dr_leps", 0., 1.0, 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "tau1_eta", -3.0, 3.0, 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "deltaEta_lep1_tau1", -5.0, 5.0, 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "deltaEta_lep1_tau2", -5.0, 5.0, 0, False, "before", TrainMode)
+    MakeTProfile(channel, data, "m_lep1_tau2", 0., 1100., 0, False, "before", TrainMode)
+    
     ## --- Making 1D Histo plots (background) --- ###
     MakeHisto1D(channel, data, "gen_mHH", 55, 0., 1100., "before") ## Makes sense only to plot it for backgrounds
     MakeHisto1D(channel, data, "diHiggsMass", 55, 0., 1100., "before")
@@ -555,31 +675,31 @@ if(do_2l_2tau_diagnostics == True):
     
     if(do_ReweightVars): 
         ## ----- SCALING I/P VAR.S IN DATA USING THE FITS DONE ABOVE---- ###
-        ReweightDataframe(data, channel, "diHiggsMass", output["masses"])
-        ReweightDataframe(data, channel, "tau1_pt", output["masses"])
-        ReweightDataframe(data, channel, "met_LD", output["masses"])
-        ReweightDataframe(data, channel, "diHiggsVisMass", output["masses"])
-        ReweightDataframe(data, channel, "m_ll", output["masses"])
-        ReweightDataframe(data, channel, "tau2_pt", output["masses"])
-        ReweightDataframe(data, channel, "mTauTau", output["masses"])
-        ReweightDataframe(data, channel, "mT_lep1", output["masses"])
-        ReweightDataframe(data, channel, "mT_lep2", output["masses"])
-        ReweightDataframe(data, channel, "mht", output["masses"])
-        ReweightDataframe(data, channel, "met", output["masses"])
-        ReweightDataframe(data, channel, "dr_lep_tau_min_SS", output["masses"])
-        ReweightDataframe(data, channel, "dr_lep_tau_min_OS", output["masses"])
-        ReweightDataframe(data, channel, "dr_taus", output["masses"])
-        ReweightDataframe(data, channel, "dr_lep1_tau1_tau2_min", output["masses"])
-        ReweightDataframe(data, channel, "dr_lep1_tau1_tau2_max", output["masses"])
-        ReweightDataframe(data, channel, "max_tau_eta", output["masses"])
-        ReweightDataframe(data, channel, "max_lep_eta", output["masses"])
-        ReweightDataframe(data, channel, "nElectron", output["masses"])
-        ReweightDataframe(data, channel, "nBJet_medium", output["masses"])
-        ReweightDataframe(data, channel, "dr_leps", output["masses"])
-        ReweightDataframe(data, channel, "tau1_eta", output["masses"])
-        ReweightDataframe(data, channel, "deltaEta_lep1_tau1", output["masses"])
-        ReweightDataframe(data, channel, "deltaEta_lep1_tau2", output["masses"])
-        ReweightDataframe(data, channel, "m_lep1_tau2", output["masses"])
+        ReweightDataframe(data, channel, "diHiggsMass", mass_list)
+        ReweightDataframe(data, channel, "tau1_pt", mass_list)
+        ReweightDataframe(data, channel, "met_LD", mass_list)
+        ReweightDataframe(data, channel, "diHiggsVisMass", mass_list)
+        ReweightDataframe(data, channel, "m_ll", mass_list)
+        ReweightDataframe(data, channel, "tau2_pt", mass_list)
+        ReweightDataframe(data, channel, "mTauTau", mass_list)
+        ReweightDataframe(data, channel, "mT_lep1", mass_list)
+        ReweightDataframe(data, channel, "mT_lep2", mass_list)
+        ReweightDataframe(data, channel, "mht", mass_list)
+        ReweightDataframe(data, channel, "met", mass_list)
+        ReweightDataframe(data, channel, "dr_lep_tau_min_SS", mass_list)
+        ReweightDataframe(data, channel, "dr_lep_tau_min_OS", mass_list)
+        ReweightDataframe(data, channel, "dr_taus", mass_list)
+        ReweightDataframe(data, channel, "dr_lep1_tau1_tau2_min", mass_list)
+        ReweightDataframe(data, channel, "dr_lep1_tau1_tau2_max", mass_list)
+        ReweightDataframe(data, channel, "max_tau_eta", mass_list)
+        ReweightDataframe(data, channel, "max_lep_eta", mass_list)
+        ReweightDataframe(data, channel, "nElectron", mass_list)
+        ReweightDataframe(data, channel, "nBJet_medium", mass_list)
+        ReweightDataframe(data, channel, "dr_leps", mass_list)
+        ReweightDataframe(data, channel, "tau1_eta", mass_list)
+        ReweightDataframe(data, channel, "deltaEta_lep1_tau1", mass_list)
+        ReweightDataframe(data, channel, "deltaEta_lep1_tau2", mass_list)
+        ReweightDataframe(data, channel, "m_lep1_tau2", mass_list)
 else:
     print("No plots and fits will be made for 2l_2tau diagnostics")
 
@@ -658,59 +778,61 @@ if(do_2l_2tau_diagnostics == True):
 
         
     ## --- Making TProfile plots w/o fitting (Signal) --- ###
-    MakeTProfile(channel, data_do, "diHiggsMass", 0., 1100., 1, False, label)
-    MakeTProfile(channel, data_do, "tau1_pt", 0., 1100., 1, False, label)
-    MakeTProfile(channel, data_do, "met_LD", 0., 1100., 1, False, label)
-    MakeTProfile(channel, data_do, "diHiggsVisMass", 0., 1100., 1, False, label)
-    MakeTProfile(channel, data_do, "m_ll", 0., 1100., 1, False, label)
-    MakeTProfile(channel, data_do, "tau2_pt", 0., 1100., 1, False, label)
-    MakeTProfile(channel, data_do, "mTauTau", 0., 1100., 1, False, label)
-    MakeTProfile(channel, data_do, "mT_lep1", 0., 1100., 1, False, label)
-    MakeTProfile(channel, data_do, "mT_lep2", 0., 1100., 1, False, label)
-    MakeTProfile(channel, data_do, "mht", 0., 1100., 1, False, label)
-    MakeTProfile(channel, data_do, "met", 0., 1100., 1, False, label)
-    MakeTProfile(channel, data_do, "dr_lep_tau_min_SS", 0., 1.0, 1, False, label)
-    MakeTProfile(channel, data_do, "dr_lep_tau_min_OS", 0., 1.0, 1, False, label)
-    MakeTProfile(channel, data_do, "dr_taus", 0., 1.0, 1, False, label)
-    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_min", 0., 1.0, 1, False, label)
-    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_max", 0., 1.0, 1, False, label)
-    MakeTProfile(channel, data_do, "max_tau_eta", 0., 3.0, 1, False, label)
-    MakeTProfile(channel, data_do, "max_lep_eta", 0., 3.0, 1, False, label)
-    MakeTProfile(channel, data_do, "nElectron", 0., 3., 1, False, label)
-    MakeTProfile(channel, data_do, "nBJet_medium", 0., 3., 1, False, label)
-    MakeTProfile(channel, data_do, "dr_leps", 0., 1.0, 1, False, label)
-    MakeTProfile(channel, data_do, "tau1_eta", -3.0, 3.0, 1, False, label)
-    MakeTProfile(channel, data_do, "deltaEta_lep1_tau1", -5.0, 5.0, 1, False, label)
-    MakeTProfile(channel, data_do, "deltaEta_lep1_tau2", -5.0, 5.0, 1, False, label)
-    MakeTProfile(channel, data_do, "m_lep1_tau2", 0., 1100., 1, False, label)
+    MakeTProfile(channel, data_do, "diHiggsMass", 0., 1100., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "tau1_pt", 0., 1100., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "met_LD", 0., 1100., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "diHiggsVisMass", 0., 1100., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "m_ll", 0., 1100., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "tau2_pt", 0., 1100., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "mTauTau", 0., 1100., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "mT_lep1", 0., 1100., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "mT_lep2", 0., 1100., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "mht", 0., 1100., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "met", 0., 1100., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_lep_tau_min_SS", 0., 1.0, 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_lep_tau_min_OS", 0., 1.0, 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_taus", 0., 1.0, 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_min", 0., 1.0, 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_max", 0., 1.0, 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "max_tau_eta", 0., 3.0, 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "max_lep_eta", 0., 3.0, 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "nElectron", 0., 3., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "nBJet_medium", 0., 3., 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_leps", 0., 1.0, 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "tau1_eta", -3.0, 3.0, 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "deltaEta_lep1_tau1", -5.0, 5.0, 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "deltaEta_lep1_tau2", -5.0, 5.0, 1, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "m_lep1_tau2", 0., 1100., 1, False, label, TrainMode)
+    
     
     ## --- Making TProfile plots (background) --- ###
-    MakeTProfile(channel, data_do, "diHiggsMass", 0., 1100., 0, False, label)
-    MakeTProfile(channel, data_do, "tau1_pt", 0., 1100., 0, False, label)
-    MakeTProfile(channel, data_do, "met_LD", 0., 1100., 0, False, label)
-    MakeTProfile(channel, data_do, "diHiggsVisMass", 0., 1100., 0, False, label)
-    MakeTProfile(channel, data_do, "m_ll", 0., 1100., 0, False, label)
-    MakeTProfile(channel, data_do, "tau2_pt", 0., 1100., 0, False, label)
-    MakeTProfile(channel, data_do, "mTauTau", 0., 1100., 0, False, label)
-    MakeTProfile(channel, data_do, "mT_lep1", 0., 1100., 0, False, label)
-    MakeTProfile(channel, data_do, "mT_lep2", 0., 1100., 0, False, label)
-    MakeTProfile(channel, data_do, "mht", 0., 1100., 0, False, label)
-    MakeTProfile(channel, data_do, "met", 0., 1100., 0, False, label)
-    MakeTProfile(channel, data_do, "dr_lep_tau_min_SS", 0., 1.0, 0, False, label)
-    MakeTProfile(channel, data_do, "dr_lep_tau_min_OS", 0., 1.0, 0, False, label)
-    MakeTProfile(channel, data_do, "dr_taus", 0., 1.0, 0, False, label)
-    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_min", 0., 1.0, 0, False, label)
-    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_max", 0., 1.0, 0, False, label)
-    MakeTProfile(channel, data_do, "max_tau_eta", 0., 3.0, 0, False, label)
-    MakeTProfile(channel, data_do, "max_lep_eta", 0., 3.0, 0, False, label)
-    MakeTProfile(channel, data_do, "nElectron", 0., 3., 0, False, label)
-    MakeTProfile(channel, data_do, "nBJet_medium", 0., 3., 0, False, label)
-    MakeTProfile(channel, data_do, "dr_leps", 0., 1.0, 0, False, label)
-    MakeTProfile(channel, data_do, "tau1_eta", -3.0, 3.0, 0, False, label)
-    MakeTProfile(channel, data_do, "deltaEta_lep1_tau1", -5.0, 5.0, 0, False, label)
-    MakeTProfile(channel, data_do, "deltaEta_lep1_tau2", -5.0, 5.0, 0, False, label)
-    MakeTProfile(channel, data_do, "m_lep1_tau2", 0., 1100., 0, False, label)
+    MakeTProfile(channel, data_do, "diHiggsMass", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "tau1_pt", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "met_LD", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "diHiggsVisMass", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "m_ll", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "tau2_pt", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "mTauTau", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "mT_lep1", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "mT_lep2", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "mht", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "met", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_lep_tau_min_SS", 0., 1.0, 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_lep_tau_min_OS", 0., 1.0, 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_taus", 0., 1.0, 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_min", 0., 1.0, 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_max", 0., 1.0, 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "max_tau_eta", 0., 3.0, 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "max_lep_eta", 0., 3.0, 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "nElectron", 0., 3., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "nBJet_medium", 0., 3., 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "dr_leps", 0., 1.0, 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "tau1_eta", -3.0, 3.0, 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "deltaEta_lep1_tau1", -5.0, 5.0, 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "deltaEta_lep1_tau2", -5.0, 5.0, 0, False, label, TrainMode)
+    MakeTProfile(channel, data_do, "m_lep1_tau2", 0., 1100., 0, False, label, TrainMode)
 
+    
     ## --- Making 1D Histo plots (background) --- ###
     MakeHisto1D(channel, data_do, "gen_mHH", 55, 0., 1100., label) ## Makes sense only to plot it for backgrounds
     MakeHisto1D(channel, data_do, "diHiggsMass", 55, 0., 1100., label)
@@ -766,9 +888,20 @@ if(do_2l_2tau_diagnostics == True):
     MakeTHStack(channel, data_do, "deltaEta_lep1_tau1", 100, -5.0, 5.0, label)
     MakeTHStack(channel, data_do, "deltaEta_lep1_tau2", 100, -5.0, 5.0, label)
     MakeTHStack(channel, data_do, "m_lep1_tau2", 55, 0., 1100., label)
+
+    make_plots(BDTvariables, nbins,
+               data.ix[data_do.target.values == 0],labelBKG, colorFast,
+               data.ix[data_do.target.values == 1],'Signal', colorFastT,
+               channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT_after.pdf",
+               printmin,
+               plotResiduals,
+               #output["masses_test"],
+               #output["masses"]
+               test_masses,
+               mass_list
+               )
 else:
     print("No plots will be made for 2l_2tau diagnostics")
-
 
 roc_test = []
 roc_train = []
@@ -868,7 +1001,10 @@ styleline = ['-', '--', '-.', ':']
 colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c', ]
 fig, ax = plt.subplots(figsize=(6, 6))
 sl = 0
-for mm, mass in enumerate(output["masses_test"]) :
+
+
+#for mm, mass in enumerate(output["masses_test"]) :
+for mm, mass in enumerate(test_masses) :
     for dd, data_do in  enumerate(order_train) :
         if dd == 0 : val_data = 1
         else : val_data = 0
@@ -914,7 +1050,8 @@ fig.savefig(nameout)
 ###############################
 ## classifier plot by mass
 hist_params = {'normed': True, 'bins': 8 , 'histtype':'step', "lw": 2}
-for mm, mass in enumerate(output["masses_test"]) :
+#for mm, mass in enumerate(output["masses_test"]) :
+for mm, mass in enumerate(test_masses) :
     plt.clf()
     colorcold = ['g', 'b']
     colorhot = ['r', 'magenta']
@@ -1013,7 +1150,8 @@ fig.savefig(nameout)
 
 
 #### ----- Interpolation check log files ----####
-for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
+#for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
+for mm, mass in enumerate(test_masses): ## Loop over the test masses
     print("mass", mass)  
     MASS = int(mass)
     print("MASS", MASS)
@@ -1031,16 +1169,13 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
         if(Bkg_mass_rand == "default"): 
             print("Using the new logic") 
             traindataset1 = data_do.loc[~((data_do["gen_mHH"]==mass) & (data_do[target]==1))]  ## Training for all masses except the one under study only for signal process
-            #valdataset1   = order_train[val_data].loc[~((order_train[val_data]["gen_mHH"]==mass) & (order_train[val_data][target]==1))]  ## Testing for all masses except the one under study
+            #valdataset1   = order_train[val_data].loc[~((order_train[val_data]["gen_mHH"]==mass) & (order_train[val_data][target]==1))]  ## Testing for all masses except the one under study for signal process
             valdataset1 = order_train[val_data].loc[~((order_train[val_data]["gen_mHH"]!=mass) & (order_train[val_data][target]==1))] ## Testing on only the mass under study for signal
         else:
             print("Using the old logic") 
             traindataset1 = data_do.loc[~(data_do["gen_mHH"]==mass)]  ## Training for all masses except the one under study
             #valdataset1 = order_train[val_data].loc[~(order_train[val_data]["gen_mHH"]==mass)]  ## Testing for all masses except the one under study
             valdataset1 = order_train[val_data].loc[(order_train[val_data]["gen_mHH"]==mass)] ## Testing on only the mass under study
-
-        #traindataset1 = data_do.loc[~(data_do["gen_mHH"]==mass)]  ## Training for all masses except the one under study
-        #valdataset1 = order_train[val_data].loc[~(order_train[val_data]["gen_mHH"]==mass)]  ## Testing for all masses except the one under study
 
         if(mass == 300):
             if(TrainMode == 0):
@@ -1089,11 +1224,11 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
                    channel+"/"+bdtType+"_"+trainvar+plot_name_val1,
                    printmin,
                    plotResiduals,
-                   masses_test1,
-                   masses1
+                   masses_test2,
+                   [250,260,270,280,300,350,400,450,500,550,600,650,700,750,800,850,900,1000]
                    )
 
-
+        ################# WITH gen_mHH #####################
         cls2 = xgb.XGBClassifier(
             n_estimators = options.ntrees,
             max_depth = options.treeDeph,
@@ -1107,9 +1242,9 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
             sample_weight=(traindataset1[weights].astype(np.float64))
             )
 
-
         ## --- ROC curve ----##                                                                                                                                                                       
-        proba = cls2.predict_proba(valdataset1[trainVars(False, options.variables, options.bdtType)].values )                                                                                          
+        proba = cls2.predict_proba(valdataset1[trainVars(False, options.variables, options.bdtType)].values )
+        #proba = cls2.predict_proba(valdataset1[BDTvariables_wo_gen_mHH].values )
         fprt, tprt, thresholds = roc_curve(valdataset1[target], proba[:,1], sample_weight=(valdataset1[weights].astype(np.float64))  )                                                                  
         test_auct = auc(fprt, tprt, reorder = True)                                                                                                                                                  
  
@@ -1117,10 +1252,12 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
         fpr, tpr, thresholds = roc_curve(traindataset1[target], proba[:,1],sample_weight=(traindataset1[weights].astype(np.float64)) )                                                                  
         train_auc = auc(fpr, tpr, reorder = True)                                                                                                                                                     
 
-        ## ---- BDT Output Distributions ----- ###                                                                                                                                                    
+        ## ---- BDT Output Distributions ----- ###
         y_pred = cls2.predict_proba(valdataset1.ix[valdataset1.target.values == 0, trainVars(False, options.variables, options.bdtType)].values)[:, 1]                                        
         y_predS = cls2.predict_proba(valdataset1.ix[valdataset1.target.values == 1, trainVars(False, options.variables, options.bdtType)].values)[:, 1]                                                 
-                                     
+        #y_pred = cls2.predict_proba(valdataset1.ix[valdataset1.target.values == 0, BDTvariables_wo_gen_mHH].values)[:, 1]                                        
+        #y_predS = cls2.predict_proba(valdataset1.ix[valdataset1.target.values == 1, BDTvariables_wo_gen_mHH].values)[:, 1]                                                 
+
         y_pred_train = cls2.predict_proba(traindataset1.ix[traindataset1.target.values == 0, trainVars(False, options.variables, options.bdtType)].values)[:, 1]                            
         y_predS_train = cls2.predict_proba(traindataset1.ix[traindataset1.target.values == 1, trainVars(False, options.variables, options.bdtType)].values)[:, 1]      
 
@@ -1180,9 +1317,98 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
             file2_.write('y_predS_train_EVEN0_%s = ' % (MASS_STR))                                                                                                                                     
             file2_.write(str(y_predS_train.tolist()))                                                                                                                                                  
             file2_.write('\n')                                                                                                                                                                         
-        file2_.write('##-------------------------------------------##\n')                                                                                                                                
-          
-        
+        file2_.write('##-------------------------------------------##\n')                                                                                                                               
+        ###################################################
+
+        ################# W/O gen_mHH ##################### 
+        cls2a = xgb.XGBClassifier(
+            n_estimators = options.ntrees,
+            max_depth = options.treeDeph,
+            min_child_weight = options.mcw,
+            learning_rate = options.lr,
+            )
+
+        cls2a.fit(
+            traindataset1[BDTvariables_wo_gen_mHH].values,
+            traindataset1.target.astype(np.bool),
+            sample_weight=(traindataset1[weights].astype(np.float64))
+            )
+
+        ## --- ROC curve ----##
+        proba_a = cls2a.predict_proba(valdataset1[BDTvariables_wo_gen_mHH].values )
+        fprt_a, tprt_a, thresholds = roc_curve(valdataset1[target], proba_a[:,1], sample_weight=(valdataset1[weights].astype(np.float64))  )                                                                  
+        test_auct_a = auc(fprt_a, tprt_a, reorder = True)
+
+        proba_a = cls2a.predict_proba(traindataset1[BDTvariables_wo_gen_mHH].values )                                                                               
+        fpr_a, tpr_a, thresholds = roc_curve(traindataset1[target], proba_a[:,1], sample_weight=(traindataset1[weights].astype(np.float64)) )                                                                  
+        train_auc_a = auc(fpr_a, tpr_a, reorder = True)                                                                                                                                                     
+
+        ## ---- BDT Output Distributions ----- ###
+        y_pred_a = cls2a.predict_proba(valdataset1.ix[valdataset1.target.values == 0, BDTvariables_wo_gen_mHH].values)[:, 1]                                        
+        y_predS_a = cls2a.predict_proba(valdataset1.ix[valdataset1.target.values == 1, BDTvariables_wo_gen_mHH].values)[:, 1]                                                 
+
+        y_pred_train_a = cls2a.predict_proba(traindataset1.ix[traindataset1.target.values == 0, BDTvariables_wo_gen_mHH].values)[:, 1]                     
+        y_predS_train_a = cls2a.predict_proba(traindataset1.ix[traindataset1.target.values == 1, BDTvariables_wo_gen_mHH].values)[:, 1]
+
+        file2_.write('#------ Training for all masses except %0.1f GeV (w/o gen_mHH)-------\n' %mass)                                                                                                                
+        file2_.write('#------ Testing only for mass %0.1f GeV using other dataset half (w/o gen_mHH)--------\n' %mass)                                                                                    
+        if(dd == 0): ## Train->odd; Test/val -> even                                                                                                                                             
+            file2_.write('train_auc_ODD0a_%s = %0.8f\n' % (MASS_STR, train_auc_a))       
+            file2_.write('test_auc_EVEN0a_%s  = %0.8f\n' % (MASS_STR, test_auct_a))
+            file2_.write('xtrain_ODD0a_%s = ' % (MASS_STR))                                                                                                                                               
+            file2_.write(str(fpr_a.tolist()))
+            file2_.write('\n')
+            file2_.write('ytrain_ODD0a_%s = ' % (MASS_STR))
+            file2_.write(str(tpr_a.tolist()))                                                                                                                                                            
+            file2_.write('\n')
+            file2_.write('xval_EVEN0a_%s = ' % (MASS_STR))
+            file2_.write(str(fprt_a.tolist()))                                                                                                                                                           
+            file2_.write('\n')                                                                                                                                                                         
+            file2_.write('yval_EVEN0a_%s = ' % (MASS_STR))                                                                                                                                               
+            file2_.write(str(tprt_a.tolist()))                                                                                                                                                           
+            file2_.write('\n')
+            file2_.write('y_pred_test_EVEN0a_%s = ' % (MASS_STR))
+            file2_.write(str(y_pred_a.tolist()))                                                                                                                                                         
+            file2_.write('\n')                                                                                                                                                                         
+            file2_.write('y_predS_test_EVEN0a_%s = ' % (MASS_STR))                                                                                                                                          
+            file2_.write(str(y_predS_a.tolist()))                                                                                                                                                        
+            file2_.write('\n')                                                                                                                                                                         
+            file2_.write('y_pred_train_ODD0a_%s = ' % (MASS_STR))                                                                                                                                         
+            file2_.write(str(y_pred_train_a.tolist()))                                                                                                                                                   
+            file2_.write('\n')                                                                                                                                                                         
+            file2_.write('y_predS_train_ODD0a_%s = ' % (MASS_STR))                                                                                                                                         
+            file2_.write(str(y_predS_train_a.tolist()))                                                                                                                                                  
+            file2_.write('\n')
+        else: ## Train->even; Test/val -> odd                                                                                                                                                  
+            file2_.write('train_auc_EVEN0a_%s = %0.8f\n' %  (MASS_STR, train_auc_a))                                                                                                                      
+            file2_.write('test_auc_ODD0a_%s  = %0.8f\n' %  (MASS_STR, test_auct_a)) 
+            file2_.write('xtrain_EVEN0a_%s = ' % (MASS_STR)) 
+            file2_.write(str(fpr_a.tolist()))                                                                                                                                                            
+            file2_.write('\n')
+            file2_.write('ytrain_EVEN0a_%s = ' % (MASS_STR))
+            file2_.write(str(tpr_a.tolist()))                                                                                                                                                            
+            file2_.write('\n')                                                                                                                                                                         
+            file2_.write('xval_ODD0a_%s = ' % (MASS_STR))                                                                                                                             
+            file2_.write(str(fprt_a.tolist()))                                                                                                                                                           
+            file2_.write('\n')                         
+            file2_.write('yval_ODD0a_%s = ' % (MASS_STR))                                                                                                                                                
+            file2_.write(str(tprt_a.tolist()))                                                                                                                                                           
+            file2_.write('\n')                                                                                                                                                                         
+            file2_.write('y_pred_test_ODD0a_%s = ' % (MASS_STR))                                                                                                                                        
+            file2_.write(str(y_pred_a.tolist()))                                                                                                                                                         
+            file2_.write('\n')                                                                                                                                                                         
+            file2_.write('y_predS_test_ODD0a_%s = ' % (MASS_STR))                                                                                                                                      
+            file2_.write(str(y_predS_a.tolist()))                                                                                                                                                        
+            file2_.write('\n')                                                                                                                                                                         
+            file2_.write('y_pred_train_EVEN0a_%s = ' % (MASS_STR))                                                                                                                                    
+            file2_.write(str(y_pred_train_a.tolist()))                                                                                                                                                   
+            file2_.write('\n')                                                                                                                                                                         
+            file2_.write('y_predS_train_EVEN0a_%s = ' % (MASS_STR))                                                                                                                                     
+            file2_.write(str(y_predS_train_a.tolist()))                                                                                                                                                  
+            file2_.write('\n')                                                                                                                                                                         
+        file2_.write('##-------------------------------------------##\n')                                                                                                                               
+        ###################################################
+
         ## --- ROC curve ----##
         if(Bkg_mass_rand == "default"): 
             print("Using the new logic") 
@@ -1220,7 +1446,6 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
                    masses2
                    )
 
-
         cls3 = xgb.XGBClassifier(
             n_estimators = options.ntrees,
             max_depth = options.treeDeph,
@@ -1229,40 +1454,42 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
             )
 
         cls3.fit(
-            traindataset2[trainVars(False, options.variables, options.bdtType)].values,
+            traindataset2[BDTvariables_wo_gen_mHH].values, ## Since we are doing single mass train no need for gen_mHH
             traindataset2.target.astype(np.bool),
             sample_weight=(traindataset2[weights].astype(np.float64))
             )
 
-        proba = cls3.predict_proba(valdataset2[trainVars(False, options.variables, options.bdtType)].values )
+        #proba = cls3.predict_proba(valdataset2[trainVars(False, options.variables, options.bdtType)].values )
+        proba = cls3.predict_proba(valdataset2[BDTvariables_wo_gen_mHH].values ) ## Since we are doing single mass train no need for gen_mHH  
         fprt, tprt, thresholds = roc_curve(valdataset2[target], proba[:,1], sample_weight=(valdataset2[weights].astype(np.float64))  )                                                                  
         print("fprt", fprt)
         print("tprt", tprt)
         test_auct = auc(fprt, tprt, reorder = True)                                                                                                                                                   
 
-        proba = cls3.predict_proba(traindataset2[trainVars(False, options.variables, options.bdtType)].values )
+        #proba = cls3.predict_proba(traindataset2[trainVars(False, options.variables, options.bdtType)].values )
+        proba = cls3.predict_proba(traindataset2[BDTvariables_wo_gen_mHH].values ) ## Since we are doing single mass train no need for gen_mHH  
         fpr, tpr, thresholds = roc_curve(traindataset2[target], proba[:,1],sample_weight=(traindataset2[weights].astype(np.float64)) )                                                                  
         train_auc = auc(fpr, tpr, reorder = True)                                                                                                                                                     
 
         ## ---- BDT Output Distributions ----- ###  
-        y_pred = cls3.predict_proba(valdataset2.ix[valdataset2.target.values == 0, trainVars(False, options.variables, options.bdtType)].values)[:, 1]
-        y_predS = cls3.predict_proba(valdataset2.ix[valdataset2.target.values == 1, trainVars(False, options.variables, options.bdtType)].values)[:, 1]
+        y_pred = cls3.predict_proba(valdataset2.ix[valdataset2.target.values == 0, BDTvariables_wo_gen_mHH].values)[:, 1]   ## Since we are doing single mass train no need for gen_mHH
+        y_predS = cls3.predict_proba(valdataset2.ix[valdataset2.target.values == 1, BDTvariables_wo_gen_mHH].values)[:, 1]  ## Since we are doing single mass train no need for gen_mHH
 
-        y_pred_train = cls3.predict_proba(traindataset2.ix[traindataset2.target.values == 0, trainVars(False, options.variables, options.bdtType)].values)[:, 1]
-        y_predS_train = cls3.predict_proba(traindataset2.ix[traindataset2.target.values == 1, trainVars(False, options.variables, options.bdtType)].values)[:, 1]    
+        y_pred_train = cls3.predict_proba(traindataset2.ix[traindataset2.target.values == 0, BDTvariables_wo_gen_mHH].values)[:, 1]  ## Since we are doing single mass train no need for gen_mHH
+        y_predS_train = cls3.predict_proba(traindataset2.ix[traindataset2.target.values == 1, BDTvariables_wo_gen_mHH].values)[:, 1] ## Since we are doing single mass train no need for gen_mHH   
 
         file2_.write('#------ Training for only mass %0.1f GeV-------\n' %mass)                                                                                                                        
         file2_.write('#------ Testing for only mass %0.1f GeV (using other data half)--------\n' %mass)                                                                                              
         if(dd == 0): ## Train->odd; Test/val -> even                                                                                                                                                            
-            file2_.write('train_auc_ODD1_%s = %0.8f\n' % (MASS_STR, train_auc))                                                                                                                                         
-            file2_.write('test_auc_EVEN1_%s  = %0.8f\n' % (MASS_STR, test_auct))                                                                                                                                          
+            file2_.write('train_auc_ODD1_%s = %0.8f\n' % (MASS_STR, train_auc))                                                                                                                                    
+            file2_.write('test_auc_EVEN1_%s  = %0.8f\n' % (MASS_STR, test_auct))                                                                                                                                  
             file2_.write('xtrain_ODD1_%s = ' % (MASS_STR))                                                                                                                                                  
             file2_.write(str(fpr.tolist()))                                                                                                                                                            
             file2_.write('\n')               
             file2_.write('ytrain_ODD1_%s = ' % (MASS_STR)) 
             file2_.write(str(tpr.tolist())) 
             file2_.write('\n')                                                                                                                                                                         
-            file2_.write('xval_EVEN1_%s = ' % (MASS_STR))                                                                                                                                                                
+            file2_.write('xval_EVEN1_%s = ' % (MASS_STR))                                                                                                                                                       
             file2_.write(str(fprt.tolist()))                                                                                                                                                           
             file2_.write('\n')                                                                                                                                                                         
             file2_.write('yval_EVEN1_%s = ' % (MASS_STR))                                                                                                                                                 
@@ -1281,12 +1508,12 @@ for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
             file2_.write(str(y_predS_train.tolist()))                                                                                                                                                  
             file2_.write('\n')                                                                                                                                                                         
         else: ## Train->even; Test/val -> odd         
-            file2_.write('train_auc_EVEN1_%s = %0.8f\n' %  (MASS_STR, train_auc))                                                                                                                                        
-            file2_.write('test_auc_ODD1_%s  = %0.8f\n' % (MASS_STR, test_auct))                                                                                                                                         
-            file2_.write('xtrain_EVEN1_%s = ' % (MASS_STR))                                                                                                                                                             
+            file2_.write('train_auc_EVEN1_%s = %0.8f\n' %  (MASS_STR, train_auc))                                                                                                                                 
+            file2_.write('test_auc_ODD1_%s  = %0.8f\n' % (MASS_STR, test_auct))                                                                                                                                 
+            file2_.write('xtrain_EVEN1_%s = ' % (MASS_STR))                                                                                                                                                        
             file2_.write(str(fpr.tolist()))                                                                                                                                                            
             file2_.write('\n')           
-            file2_.write('ytrain_EVEN1_%s = ' % (MASS_STR))                                                                                                                                                          
+            file2_.write('ytrain_EVEN1_%s = ' % (MASS_STR))                                                                                                                                                       
             file2_.write(str(tpr.tolist()))                                                                                                                                                            
             file2_.write('\n')                                                                                                                                                                         
             file2_.write('xval_ODD1_%s = ' % (MASS_STR))                                                                                                                                          
