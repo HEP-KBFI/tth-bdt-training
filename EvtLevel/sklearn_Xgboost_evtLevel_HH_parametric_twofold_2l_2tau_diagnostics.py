@@ -114,16 +114,7 @@ print (startTime)
 
 if "bb2l" in channel   : execfile("../cards/info_bb2l_HH.py")
 if "2l_2tau" in channel: execfile("../cards/info_2l_2tau_HH.py")
-'''
-    if(TrainMode == 0):
-        execfile("../cards/info_2l_2tau_HH.py")
-    elif(TrainMode == 1):
-        execfile("../cards/info_2l_2tau_HH_low_Mass_only.py")
-    elif(TrainMode == 2):    
-        execfile("../cards/info_2l_2tau_HH_High_Mass_only.py")
-    else:    
-        execfile("../cards/info_2l_2tau_HH.py")
-'''
+
 
 if(options.ClassErr_vs_epoch == True):
     channel+"_SplitMode_"+options.SplitMode+"_ScanMode_"+options.ScanMode
@@ -300,86 +291,85 @@ def MakeTProfile(channel, data, var_name, y_min, y_max, Target, doFit, label, Tr
 
         if(doFit and (Target == 1)): ## do the fit for signal only
             if(TrainMode == 0): ## All masses used in the training
-                #f_old = TF1("f_old", "[0]+[1]*x", 250.,1000.)
                 if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 250.,1000.)
                 elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 250.,1000.)
                 elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,1000.)
                 elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,1000.)
+                #elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,1000.)   ## Not used as per Xandra's suggestion
                 elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol4", 250.,1000.)
-                elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol3", 250.,1000.)
-                elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "mht"): f_old = TF1("f_old", "pol3", 250.,1000.)
-                elif(var_name == "met"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)
-                elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)
-                elif(var_name == "nElectron"): f_old = TF1("f_old", "pol2", 250.,1000.)
-                elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol2", 250.,1000.)
-                elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol2", 250.,1000.)
-                elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol3", 250.,1000.)
+                #elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion
+                #elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol3", 250.,1000.) ## Not used as per Xandra's suggestion
+                #elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion
+                #elif(var_name == "mht"): f_old = TF1("f_old", "pol3", 250.,1000.)     ## Not used as per Xandra's suggestion
+                #elif(var_name == "met"): f_old = TF1("f_old", "pol1", 250.,1000.)     ## Not used as per Xandra's suggestion
+                elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol6", 250.,1000.) 
+                elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol6", 250.,1000.) 
+                #elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol6", 250.,1000.)               ## Not used as per Xandra's suggestion
+                #elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion
+                #elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol6", 250.,1000.) ## Not used as per Xandra's suggestion
+                #elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)           ## Not used as per Xandra's suggestion
+                #elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)           ## Not used as per Xandra's suggestion
+                elif(var_name == "nElectron"): f_old = TF1("f_old", "pol2", 250.,1000.)      
+                elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol2", 250.,1000.)   
+                #elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 250.,1000.)            ## Not used as per Xandra's suggestion
+                #elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol2", 250.,1000.)           ## Not used as per Xandra's suggestion
+                #elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion
+                #elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion
+                #elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol3", 250.,1000.)        ## Not used as per Xandra's suggestion
                 else:f_old = TF1("f_old", "pol6", 250.,1000.)
             elif(TrainMode == 1): ## Only Low masses used in the training
                 if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol1", 250.,400.)
                 elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 250.,400.)
-                elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,400.)
+                #elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,400.)       ## Not used as per Xandra's suggestion
                 elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,400.)
+                #elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,400.)         ## Not used as per Xandra's suggestion
                 elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol4", 250.,400.)
+                #elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol4", 250.,400.)      ## Not used as per Xandra's suggestion
                 elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol4", 250.,400.)
                 elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,400.)
-                elif(var_name == "mht"): f_old = TF1("f_old", "pol4", 250.,400.)
+                #elif(var_name == "mht"): f_old = TF1("f_old", "pol4", 250.,400.)          ## Not used as per Xandra's suggestion
                 elif(var_name == "met"): f_old = TF1("f_old", "pol4", 250.,400.)
                 elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol5", 250.,400.)
-                elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol5", 250.,400.)
-                elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,400.)
-                elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 250.,400.)
+                #elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol5", 250.,400.)      ## Not used as per Xandra's suggestion
+                #elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 250.,400.)                ## Not used as per Xandra's suggestion
+                #elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol4", 250.,400.)  ## Not used as per Xandra's suggestion
+                #elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol4", 250.,400.)  ## Not used as per Xandra's suggestion
+                #elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,400.)            ## Not used as per Xandra's suggestion
+                #elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 250.,400.)            ## Not used as per Xandra's suggestion
                 elif(var_name == "nElectron"): f_old = TF1("f_old", "pol4", 250.,400.)
                 elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol5", 250.,400.)
-                elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol3", 250.,400.)
-                elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol3", 250.,400.)
-                elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol2", 250.,400.)
-                elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,400.)
+                #elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol3", 250.,400.)                ## Not used as per Xandra's suggestion
+                #elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol3", 250.,400.)               ## Not used as per Xandra's suggestion
+                #elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol2", 250.,400.)     ## Not used as per Xandra's suggestion
+                #elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol4", 250.,400.)     ## Not used as per Xandra's suggestion
+                #elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,400.)            ## Not used as per Xandra's suggestion
                 else:f_old = TF1("f_old", "pol6", 250.,400.)
             elif(TrainMode == 2): ## Only High masses used in the training
                 if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 450.,1000.)
                 elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 450.,1000.)
                 elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol3", 450.,1000.)
-                elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "mht"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                #elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol4", 450.,1000.)  ## Not used as per Xandra's suggestion
+                #elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 450.,1000.)            ## Not used as per Xandra's suggestion
+                #elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol3", 450.,1000.)         ## Not used as per Xandra's suggestion
+                #elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 450.,1000.)         ## Not used as per Xandra's suggestion
+                #elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol1", 450.,1000.)         ## Not used as per Xandra's suggestion
+                #elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 450.,1000.)         ## Not used as per Xandra's suggestion 
+                #elif(var_name == "mht"): f_old = TF1("f_old", "pol1", 450.,1000.)             ## Not used as per Xandra's suggestion
                 elif(var_name == "met"): f_old = TF1("f_old", "pol1", 450.,1000.)
                 elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol4", 450.,1000.)
                 elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                #elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 450.,1000.)               ## Not used as per Xandra's suggestion
+                #elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 450.,1000.) ## Not used as per Xandra's suggestion
                 elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol6", 450.,1000.)
-                elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)
+                #elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol6", 450.,1000.)           ## Not used as per Xandra's suggestion
+                #elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)           ## Not used as per Xandra's suggestion
                 elif(var_name == "nElectron"): f_old = TF1("f_old", "pol6", 450.,1000.)
                 elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 450.,1000.)
-                elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol6", 450.,1000.)
+                #elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 450.,1000.)               ## Not used as per Xandra's suggestion
+                #elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)              ## Not used as per Xandra's suggestion
+                #elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 450.,1000.)    ## Not used as per Xandra's suggestion
+                #elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 450.,1000.)    ## Not used as per Xandra's suggestion
+                #elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol6", 450.,1000.)           ## Not used as per Xandra's suggestion
                 else:f_old = TF1("f_old", "pol6", 450.,1000.)
             r_old = TFitResultPtr()
             r_old = hprof.Fit(f_old, "SF") ## Fitting using Minuit instead of the linear fitter
@@ -404,31 +394,37 @@ def ReweightDataframe(data, channel, var_name, masses):
 
     Fit_Func_FileName = "{}/{}_{}.root".format(channel, "TProfile_signal_fit_func", var_name)
     file = TFile.Open(Fit_Func_FileName)
-    func = TF1()
-    file.GetObject("f_old", func)
-    print("Number of parameters", func.GetNpar())
-    Npar = func.GetNpar()
+    if(file):
+        print("Fit file exists. Reweighting dataframe using it")
+        func = TF1()
+        file.GetObject("f_old", func)
+        print("Number of parameters", func.GetNpar())
+        Npar = func.GetNpar()
     
-    corr_factor_Dict = {}
-    for x in masses:
-        corr_factor_Dict[x] = func.Eval(x)
-        #print("Corr. factor: %f , gen_mHH: %f" % (corr_factor_Dict[x], x))
+        corr_factor_Dict = {}
+        for x in masses:
+            corr_factor_Dict[x] = func.Eval(x)
+            #print("Corr. factor: %f , gen_mHH: %f" % (corr_factor_Dict[x], x))
 
-    print("Started the scaling of ", var_name)
+        print("Started the scaling of ", var_name)
 
-    process = psutil.Process(os.getpid())
-    print(process.memory_info().rss)
-    print(datetime.now() - startTime)
+        process = psutil.Process(os.getpid())
+        print(process.memory_info().rss)
+        print(datetime.now() - startTime)
 
-    for x in masses:
-        print("gen_mHH %f" % x) 
-        data.loc[(data['gen_mHH']==x), [var_name]] /= corr_factor_Dict[x]
+        for x in masses:
+            print("gen_mHH %f" % x) 
+            data.loc[(data['gen_mHH']==x), [var_name]] /= corr_factor_Dict[x]
 
-    print("Finished the scaling of ", var_name)
-    process = psutil.Process(os.getpid())
-    print(process.memory_info().rss)
-    print(datetime.now() - startTime)
-    file.Close()
+        print("Finished the scaling of ", var_name)
+        process = psutil.Process(os.getpid())
+        print(process.memory_info().rss)
+        print(datetime.now() - startTime)
+        file.Close()
+    else:
+        print("Fit file does not exist. Quitting the function now")
+
+
 
 
 ##--- Choice of train mass ranges implemented
@@ -489,18 +485,6 @@ else:
     mass_list = output["masses"]
     test_masses = output["masses_test"]
     
-'''
-if(TrainMode == 0): ## All Masses included in training
-    test_masses = output["masses_test"]
-elif(TrainMode == 1): ## Only Low Masses included in training 
-    test_masses = output["masses_test_low"]
-elif(TrainMode == 2): ## Only High Masses included in training 
-    test_masses = output["masses_test_high"]
-else:
-    test_masses = output["masses_test"]
-'''
-
-
 data.dropna(subset=[weights],inplace = True)
 data.fillna(0)
 
@@ -544,8 +528,6 @@ make_plots(BDTvariables, nbins,
     channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT.pdf",
     printmin,
     plotResiduals,
-    #output["masses_test"],
-    #output["masses"]
     test_masses,
     mass_list
     )
@@ -895,8 +877,6 @@ if(do_2l_2tau_diagnostics == True):
                channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT_after.pdf",
                printmin,
                plotResiduals,
-               #output["masses_test"],
-               #output["masses"]
                test_masses,
                mass_list
                )
