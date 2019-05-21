@@ -279,7 +279,6 @@ def load_data_2017(
                             if mass_randomization == "default":
                                 ## Adding 1 rows/events in the data-frame which have "gen_mHH" values randomly chosen from masses array
                                 chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
-                                data=data.append(chunk_df, ignore_index=True)
                             elif mass_randomization == "oversampling":
                                 for mass in masses:
                                     ## ---- Adding rows/events (No. of rows = "len(masses)") in the data-frame  ---###
@@ -968,50 +967,26 @@ def getQuantiles(histoP,ntarget,xmax) :
 
 def getQuantilesWStat(histoP,nmin) :
     histogramBinning=[]
-    xAxis = histogram.GetXaxis();
+    xAxis = histogram.GetXaxis()
     histogramBinning = histogramBinning + [xAxis.GetBinLowEdge(1)]
-    sumEvents = 0.;
-    numBins = xAxis.GetNbins();
+    sumEvents = 0.
+    numBins = xAxis.GetNbins()
     for idxBin in range(1, numBins) :
         print ("bin #" , idxBin , " (x=" , xAxis.GetBinLowEdge(idxBin) ,  xAxis.GetBinUpEdge(idxBin) , "):" , " binContent = ",  histogram.GetBinContent(idxBin) , " +/- " << histogram.GetBinError(idxBin) )
         sumEvents = sumEvents + histogram.GetBinContent(idxBin);
         if ( sumEvents >= minEvents ) :
             histogramBinning.push_back(xAxis.GetBinUpEdge(idxBin));
-            sumEvents = 0.;
+            sumEvents = 0.
     if ( abs(histogramBinning.back() - xAxis.GetBinUpEdge(numBins)) > 1.e-3 ) :
         if histogramBinning.size() >= 2 : histogramBinning = [xAxis.GetBinUpEdge(numBins)];
         else :  histogramBinning= histogramBinning+ [xAxis.GetBinUpEdge(numBins)];
     #assert(histogramBinning.size() >= 2);
     print "binning =  "
     for  bin in histogramBinning : print ( bin)
-    return histogramBinning;
-
-    """
-    std::vector<double> compBinning(TH1* histogram, double minEvents) {
-    std::cout << "<compBinning>:" << std::endl;
-    std::vector<double> histogramBinning;
-    const TAxis* xAxis = histogram->GetXaxis();
-    histogramBinning.push_back(xAxis->GetBinLowEdge(1));
-    double sumEvents = 0.; int numBins = xAxis->GetNbins();
-    for ( int idxBin = 1; idxBin <= numBins; ++idxBin ) {
-        std::cout << "bin #" << idxBin << " (x=" << xAxis->GetBinLowEdge(idxBin) << ".." << xAxis->GetBinUpEdge(idxBin) << "):" << " binContent = " << histogram->GetBinContent(idxBin) << " +/- " << histogram->GetBinError(idxBin) << std::endl; sumEvents += histogram->GetBinContent(idxBin);
-        if ( sumEvents >= minEvents ) { histogramBinning.push_back(xAxis->GetBinUpEdge(idxBin)); sumEvents = 0.; }
-    }
-    if ( TMath::Abs(histogramBinning.back() - xAxis->GetBinUpEdge(numBins)) > 1.e-3 ) {
-        if ( histogramBinning.size() >= 2 ) histogramBinning.back() = xAxis->GetBinUpEdge(numBins);
-        else histogramBinning.push_back(xAxis->GetBinUpEdge(numBins));
-    }
-    assert(histogramBinning.size() >= 2);
-    std::cout << "binning = { ";
-    for ( std::vector<double>::const_iterator bin = histogramBinning.begin(); bin != histogramBinning.end(); ++bin ) {
-        if ( bin != histogramBinning.begin() ) std::cout << ", "; std::cout << (*bin); } std::cout << " }" << std::endl; return histogramBinning;
-        }
-    """
-
-
+    return histogramBinning
 
 def GetRatio(histSource,namepdf) :
-    file = TFile(histSource,"READ");
+    file = TFile(histSource,"READ")
     file.cd()
     hSum = TH1F()
     h2 = TH1F()
@@ -1058,11 +1033,15 @@ def GetRatio(histSource,namepdf) :
     print (hSum.GetBinContent(hSum.GetNbinsX()))
     return [ratio,ratioP,ratiohSum,ratiohSumP]
 
+def rebinRegular(
+    histSource,
+    nbin, 
+    BINtype,
+    originalBinning,
+    doplots,
+    bdtType, 
+    withFolder=False) :
 
-def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtType, withFolder=False) :
-    print "data_manager::rebinRegular::";
-    print "histSource: ",histSource, ", nbin: ",nbin, ", BINtype: ",BINtype, ", originalBinning: ",originalBinning, \
-        ", doplots: ",doplots, ", variables: ",variables, ", bdtType: ",bdtType, ", withFolder: ",withFolder;
     minmax = finMaxMin(histSource) # [[0], [1]], [0]=first, last bin above 0; [1]= their corresponding x-value
     errOcontTTLast=[]
     errOcontTTPLast=[]
@@ -1107,14 +1086,12 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
         hSumAll = TH1F()
         ratiohSum=1.
         ratiohSumP=1.
-        ###///
         ### rebin and  write the histograms
         if BINtype=="none" : name=histSource+"_"+str(nbins)+"bins_none.root"
         if BINtype=="regular" or options.BINtype == "mTauTauVis": name=histSource+"_"+str(nbins)+"bins.root"
         if BINtype=="ranged" : name=histSource+"_"+str(nbins)+"bins_ranged.root"
         if BINtype=="quantiles" :
             name=histSource+"_"+str(nbins)+"bins_quantiles.root"
-
         fileOut  = TFile(name, "recreate");
         #for folder in folders :
         if withFolder : folders_Loop = file.GetListOfKeys()
@@ -1146,12 +1123,10 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                factor=1.
                if  not h2.GetSumw2N() : h2.Sumw2()
                if  not hSum.GetSumw2N() : hSum.Sumw2()
-               #if withFolder :
                if withFolder : h2.SetName("x_"+str(h2.GetName()))
                histograms.append(h2.Clone())
                print ("h2.Integral:", h2.Integral())
                if "fakes_data" in h2.GetName() : hFakes=h2.Clone()
-               #if "fakes_data" in h2.GetName() or "TT" in h2.GetName() or "EWK" in h2.GetName() or "Rares" in h2.GetName() : #  or "tH" in keyO.GetName()
                if "fakes_data" in h2.GetName() : hFakes=h2.Clone()
                if h2.GetName().find("signal") ==-1 and h2.GetName().find("data_obs") ==-1:
                    #hSumDumb2 = obj # h2_rebin #
@@ -1161,7 +1136,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                    else : hSumAll.Add(h2)
             #################################################
             print ("hSumAll.Integral: ", hSumAll.Integral(), ", hFakes.Integral: ",hFakes.Integral())
-            nbinsQuant= getQuantiles(hFakes,nbins,xmax) # getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero
+            nbinsQuant =  getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero ## getQuantiles(hFakes,nbins,xmax) #
             print ("Bins by quantiles ",nbins,nbinsQuant)
             if withFolder: fileOut.mkdir(keyF.GetName()+"/")
             hTTi = TH1F()
@@ -1170,7 +1145,6 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
             hTTWi = TH1F()
             hRaresi = TH1F()
             histo = TH1F()
-            #for nn, histogram in enumerate(histograms) :  # original
             for nn1, histogram in enumerate(histograms) :
                 print "nn1: ",nn1,", histogram: ",histogram,", histo:",histo.GetName()
                 #if BINtype=="quantiles" : ### fix that -- I do not want these written to the file
@@ -1308,7 +1282,6 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                     hSumi.SetBinContent(newbin, hSumi.GetBinContent(newbin)+content)
                     hSumi.SetBinError(newbin,sqrt(binError*binError+ binErrorCopy*binErrorCopy))
                 hSumi.SetBinErrorOption(1)
-                #if not hSum.GetSumw2N() : hSum.Sumw2()
                 if hSumi.GetBinContent(hSumi.GetNbinsX()) >0 :
                     ratiohSum=hSumi.GetBinError(hSumi.GetNbinsX())/hSumi.GetBinContent(hSumi.GetNbinsX())
                 if hSumi.GetBinContent(hSumi.GetNbinsX()-1) >0 : ratiohSumP=hSumi.GetBinError(hSumi.GetNbinsX()-1)/hSumi.GetBinContent(hSumi.GetNbinsX()-1)
@@ -1320,7 +1293,6 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                     fileOut.cd()
                     hSumCopy.Write()
                     hSumi.Write()
-
                 if BINtype=="quantiles" :
                     print "nbins: ",nbins
                     print "nbinsQuant: ",nbinsQuant
