@@ -1,3 +1,6 @@
+import os
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
 import sys , time
 import sklearn_to_tmva
 import sklearn
@@ -54,8 +57,8 @@ execfile("../python/data_manager.py")
 # https://stackoverflow.com/questions/38238139/python-prevent-ioerror-errno-5-input-output-error-when-running-without-stdo
 
 #"""
-#run command 
-#run:  python sklearn_Xgboost_evtLevel_ttH_0l2t.py --channel 0l_2tau --variables NoHTT --bdtType evtLevelSUM_TTH 
+#run command
+#run:  python sklearn_Xgboost_evtLevel_ttH_0l2t.py --channel 0l_2tau --variables NoHTT --bdtType evtLevelSUM_TTH
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--channel ", type="string", dest="channel", help="The ones whose variables implemented now are:\n   - 1l_2tau\n   - 2lss_1tau\n It will create a local folder and store the report*/xml", default='T')
@@ -94,7 +97,7 @@ proc=subprocess.Popen(['mkdir '+options.channel],shell=True,stdout=subprocess.PI
 out = proc.stdout.read()
 
 def trainVars(all):
-	
+
         if channel=="0l_2tau" and all==True :return [
 		"mindr_tau1_jet",
 		"mindr_tau2_jet",
@@ -198,7 +201,7 @@ def trainVars(all):
                 "mTauTauVis",
 		"mTauTau",
                 "nJet"
-                ]	
+                ]
 	if channel=="0l_2tau" and bdtType=="evtLevelTT_TTH" and all==False :return [
 		"mindr_tau1_jet",
                 "mindr_tau2_jet",
@@ -215,7 +218,7 @@ def trainVars(all):
                 "mTauTauVis",
 		"mTauTau",
                 "nJet" ,
-                "nBJetLoose", 
+                "nBJetLoose",
 		"nBJetMedium"
                 ]
 	if channel=="0l_2tau"  and bdtType=="evtLevelTTV_TTH" and trainvar=="HTTWithKinFit" and all==False :return [
@@ -248,8 +251,8 @@ def trainVars(all):
                 "ncombo_top1",
                 "ncombo_top2",
                 "nJet" ,
-                "nBJetLoose", 
-		"nBJetMedium"		
+                "nBJetLoose",
+		"nBJetMedium"
 		]
 	if channel=="0l_2tau"  and bdtType=="evtLevelTTV_TTH" and trainvar=="HTTWithKinFitReduced" and all==False :return [
                 "mindr_tau1_jet",
@@ -303,7 +306,7 @@ def trainVars(all):
                 "mTauTauVis",
 		"mTauTau",
                 "nJet" ,
-                "nBJetLoose", 
+                "nBJetLoose",
 		"nBJetMedium"
                 ]
 	if channel=="0l_2tau"  and bdtType=="evtLevelSUM_TTH" and trainvar=="HTTWithKinFit" and all==False :return [
@@ -539,6 +542,7 @@ cls = xgb.XGBClassifier(
 			max_depth = options.treeDeph,
 			min_child_weight = options.mcw, # min_samples_leaf
 			learning_rate = options.lr,
+			nthread = 8
 			#max_features = 'sqrt',
 			#min_samples_leaf = 100
 			#objective='binary:logistic', #booster='gbtree',

@@ -9,12 +9,12 @@ args = parser.parse_args()
 import tensorflow as tf
 from tensorflow.python.framework.graph_io import write_graph
 from tensorflow.python.framework.graph_util import convert_variables_to_constants
-#from tensorflow.tools.graph_transforms import TransformGraph
 from keras import backend as K
 #from common import LoadModel
 from keras.models import load_model
 
 K.set_learning_phase(0)
+#model = LoadModel(args.input)
 model = load_model(args.input)
 
 print(model.inputs[0].name)
@@ -24,20 +24,24 @@ print(model.outputs[0].name)
 print ("teste", [node.op.name for node in model.outputs])
 input_nodes = [model.inputs[0].name] #"main_input"]#  [model.inputs[0].name]
 output_nodes = [model.outputs[0].name] #"main_output/Softmax"]#["output_node"]
+#input_nodes = ["main_input"]#  [model.inputs[0].name]
+#output_nodes = ["main_output/Softmax"]#["output_node"]
 #node_wrapper = tf.identity(model.outputs[0], name=output_nodes[0])
 
 with K.get_session() as sess:
+
     ops = sess.graph.get_operations()
-    const_graph = convert_variables_to_constants(sess, sess.graph.as_graph_def(), [node.op.name for node in model.outputs])
+    const_graph = convert_variables_to_constants(sess, sess.graph.as_graph_def(add_shapes=True), [node.op.name for node in model.outputs])
+    print ([node.op.name for node in model.outputs])
     # final_graph = const_graph
-    transforms = [
-        "strip_unused_nodes",
-        "remove_nodes(op=Identity, op=CheckNumerics)",
-        "fold_constants(ignore_errors=true)",
-        "fold_batch_norms"#,
-        #"quantize_weights" # it was added due to cmssw restrictions on the network size
-    ]
-    final_graph = const_graph # TransformGraph(const_graph, input_nodes, output_nodes, transforms)
+    final_graph = const_graph
+
+
+    #for node in model.outputs :
+    #    shapes = node.op.attr[model.outputs[0].name]
+    #    print (shapes.list.shape[0].dim[0].size)
+    #shape = final_graph.get_tensor_by_name(model.outputs[0].name) #.node(0) #final_graph.node(0).attr().at("shape").shape();
+    #print ("read input layer shape  " , shape) #shape.dim_size() , graphDef.node(0).name())
 
 if args.output is None:
     input_base = os.path.basename(args.input)
@@ -46,4 +50,3 @@ if args.output is None:
 else:
     out_dir, out_file = os.path.split(args.output)
 write_graph(final_graph, out_dir, out_file, as_text=False)
-
