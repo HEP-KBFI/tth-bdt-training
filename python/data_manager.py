@@ -7,6 +7,7 @@ import numpy as np
 from numpy.lib.recfunctions import append_fields
 from itertools import product
 from ROOT.Math import PtEtaPhiEVector,VectorUtil
+from math import sqrt, sin, cos, tan, exp
 import ROOT
 import math , array
 from random import randint
@@ -727,109 +728,131 @@ def divisorGenerator(n):
     for divisor in reversed(large_divisors):
         yield divisor
 
-def doStackPlot(hTT,hTTH,hTTW,hEWK,hRares,name,label):
+def doStackPlot(hTT,hTTH,hTTW,hEWK,hRares, hTH,name,label):
     print ("hTT, hTTH, hTTW, hEWK")
-    print (hTT.Integral(),hTTH.Integral(),hTTW.Integral(),hEWK.Integral())
+    doBottom = False
+    print (hTT.Integral(),hTTH.Integral(),hTH.Integral(),hTTW.Integral(),hEWK.Integral())
     hTT.SetFillColor( 17 );
     hTTH.SetFillColor( ROOT.kRed );
+    hTH.SetFillColor( ROOT.kMagenta )
+    hTH.Scale(10)
     hTTW.SetFillColor( 8 );
-    hEWK.SetFillColor( 6 );
+    hEWK.SetFillColor( ROOT.kBlue );
     hRares.SetFillColor( 65 );
     mc  = ROOT.THStack("mc","");
     mc.Add(hRares);
     mc.Add(hEWK);
     mc.Add(hTTW);
-    mc.Add(hTTH);
-    mc.Add( hTT );
-    c4 = ROOT.TCanvas("c5","",500,500);
+    mc.Add( hTT )
+    mc.Add( hTTH )
+    mc.Add( hTH )
+    if doBottom : 
+        c4 = ROOT.TCanvas("c5","",500,500)
+    else : c4 = ROOT.TCanvas("c5","",800,800)
     c4.cd();
-    c4.Divide(1,2,0,0);
-    c4.cd(1)
-    ROOT.gPad.SetLogy()
+    if doBottom :
+        c4.Divide(1,2,0,0);
+        c4.cd(1)
+        ROOT.gPad.SetBottomMargin(0.001)
+        ROOT.gPad.SetTopMargin(0.065)
+        ROOT.gPad.SetRightMargin(0.01)
+        ROOT.gPad.SetLeftMargin(0.12)
+    else :
+        ROOT.gStyle.SetHatchesSpacing(100)
+        ROOT.gPad.SetLeftMargin(0.12)
+        ROOT.gPad.SetBottomMargin(0.12)
+        ROOT.gPad.SetRightMargin(0.12)
+    #ROOT.gPad.SetLogy()
     ROOT.gPad.SetLogx()
-    ROOT.gPad.SetBottomMargin(0.001)
-    ROOT.gPad.SetTopMargin(0.065)
-    ROOT.gPad.SetRightMargin(0.01)
-    ROOT.gPad.SetLeftMargin(0.12)
     mc.Draw("HIST");
-    mc.SetMaximum(15* mc.GetMaximum());
-    mc.SetMinimum(max(0.04* mc.GetMinimum(),0.1));
+    mc.SetMaximum(1.2* mc.GetMaximum());
+    mc.SetMinimum(max(0.04* mc.GetMinimum(),0.1))
     mc.GetYaxis().SetRangeUser(0.01,110);
     mc.GetXaxis().SetRangeUser(0.0001,1.0);
     mc.GetHistogram().GetYaxis().SetTitle("Expected events/bin");
-    mc.GetHistogram().GetXaxis().SetTitle("Bin in the bdt1#times bdt2 plane");
-    mc.GetHistogram().GetXaxis().SetTitleSize(0.06);
-    mc.GetHistogram().GetXaxis().SetLabelSize(.06);
-    mc.GetHistogram().GetYaxis().SetTitleSize(0.06);
-    mc.GetHistogram().GetYaxis().SetLabelSize(.06);
-    l = ROOT.TLegend(0.16,0.6,0.3,0.9);
+    mc.GetHistogram().GetXaxis().SetTitle("NN");
+    if doBottom :
+        mc.GetHistogram().GetXaxis().SetTitleSize(0.06)
+        mc.GetHistogram().GetXaxis().SetLabelSize(.06)
+        mc.GetHistogram().GetYaxis().SetTitleSize(0.06)
+        mc.GetHistogram().GetYaxis().SetLabelSize(.06)
+    else :
+        mc.GetHistogram().GetXaxis().SetTitleSize(0.03)
+        mc.GetHistogram().GetXaxis().SetLabelSize(.03)
+        mc.GetHistogram().GetYaxis().SetTitleSize(0.03)
+        mc.GetHistogram().GetYaxis().SetLabelSize(.03)
+    l = ROOT.TLegend(0.16,0.75,0.45,0.9);
     l.AddEntry(hTTH  , "ttH", "f");
+    l.AddEntry(hTH  , "tH * 10", "f");
     l.AddEntry(hTTW  , "ttV"       , "f");
-    l.AddEntry(hTT, "tt"        , "f");
+    l.AddEntry(hTT, "fakes"        , "f");
     l.AddEntry(hRares, "rares"        , "f");
     l.AddEntry(hEWK, "EWK"        , "f");
+    l.SetNColumns(2)
     l.Draw();
     latex= ROOT.TLatex();
-    latex.SetTextSize(0.065);
+    if doBottom : latex.SetTextSize(0.065)
+    else :        latex.SetTextSize(0.032)
     latex.SetTextAlign(13);  #//align at top
     latex.SetTextFont(62);
     latex.DrawLatexNDC(.15,1.0,"CMS Simulation");
     latex.DrawLatexNDC(.8,1.0,"#it{36 fb^{-1}}");
-    latex.DrawLatexNDC(.55,.8,label);
+    latex.DrawLatexNDC(.3,.7,label.replace("output_NN_2lss_ttH_tH_4cat_onlyTHQ_v4_", "") );
     #latex.DrawLatexNDC(.55,.9,BDTvar);
-    c4.cd(2)
-    #ROOT.gPad.SetLogx()
-    ROOT.gStyle.SetHatchesSpacing(100)
-    ROOT.gPad.SetLeftMargin(0.12)
-    ROOT.gPad.SetBottomMargin(0.12)
-    ROOT.gPad.SetTopMargin(0.001)
-    ROOT.gPad.SetRightMargin(0.005)
-    if not hTT.GetSumw2N() : hTT.Sumw2()
-    h2=hTT.Clone()
-    h2.Add(hTTW)
-    hBKG1D=h2.Clone()
-    h3=hTTH.Clone()
-    h4=hTT.Clone()
-    if not h2.GetSumw2N() : h2.Sumw2()
-    if not h3.GetSumw2N() : h3.Sumw2()
-    for binn in range(0,h2.GetNbinsX()+1) :
-    	ratio=0
-    	ratio3=0
-    	if h2.GetBinContent(binn) >0 :
-    		ratio=h2.GetBinError(binn)/h2.GetBinContent(binn)
-    		h2.SetBinContent(binn,ratio)
-    	if hBKG1D.GetBinContent(binn) > 0 :
-    		ratio3=h3.GetBinContent(binn)/hBKG1D.GetBinContent(binn)
-    		h3.SetBinContent(binn,ratio3)
-    	if h4.GetBinContent(binn) > 0 : h4.SetBinContent(binn,h4.GetBinError(binn)/h4.GetBinContent(binn))
-    	print (binn,hTT.GetBinContent(binn),ratio,ratio3)
-    h2.SetLineWidth(3)
-    h2.SetLineColor(2)
-    h2.SetFillStyle(3690)
-    h3.SetLineWidth(3)
-    h3.SetFillStyle(3690)
-    h3.SetLineColor(28)
-    h4.SetLineWidth(3)
-    h4.SetFillStyle(3690)
-    h4.SetLineColor(6)
-    h3.Draw("HIST")
-    h3.GetYaxis().SetTitle("S/B");
-    h3.GetXaxis().SetTitle("Bin in the bdt1#times bdt2 plane");
-    h3.GetYaxis().SetTitleSize(0.06);
-    h3.GetYaxis().SetLabelSize(.06)
-    h3.GetXaxis().SetTitleSize(0.06);
-    h3.GetXaxis().SetLabelSize(.06)
-    l2 = ROOT.TLegend(0.16,0.77,0.4,0.98);
-    l2.AddEntry(h3  , "S/B" , "l");
-    l2.AddEntry(h2  , "ttV + tt err/cont", "l");
-    l2.AddEntry(h4  , "tt err/cont", "l");
-    l2.Draw("same");
-    h2.Draw("HIST,SAME")
-    h4.Draw("HIST,SAME")
+    if doBottom :
+        c4.cd(2)
+        #ROOT.gPad.SetLogx()
+        ROOT.gStyle.SetHatchesSpacing(100)
+        ROOT.gPad.SetLeftMargin(0.12)
+        ROOT.gPad.SetBottomMargin(0.12)
+        ROOT.gPad.SetTopMargin(0.001)
+        ROOT.gPad.SetRightMargin(0.005)
+        if not hTT.GetSumw2N() : hTT.Sumw2()
+        h2=hTT.Clone()
+        h2.Add(hTTW)
+        hBKG1D=h2.Clone()
+        h3=hTTH.Clone()
+        #h4=hTT.Clone()
+        if not h2.GetSumw2N() : h2.Sumw2()
+        if not h3.GetSumw2N() : h3.Sumw2()
+        for binn in range(0,h2.GetNbinsX()+1) :
+            ratio=0
+            ratio3=0
+            if h2.GetBinContent(binn) >0 :
+                ratio=h2.GetBinError(binn)/h2.GetBinContent(binn)
+                h2.SetBinContent(binn,ratio)
+            if hBKG1D.GetBinContent(binn) > 0 :
+                ratio3=h3.GetBinContent(binn)/hBKG1D.GetBinContent(binn)
+                h3.SetBinContent(binn,ratio3)
+            #if h4.GetBinContent(binn) > 0 : h4.SetBinContent(binn,h4.GetBinError(binn)/h4.GetBinContent(binn))
+            print (binn,hTT.GetBinContent(binn),ratio,ratio3)
+        h2.SetLineWidth(3)
+        h2.SetLineColor(2)
+        h2.SetFillStyle(3690)
+        h3.SetLineWidth(3)
+        h3.SetFillStyle(3690)
+        h3.SetLineColor(28)
+        #h4.SetLineWidth(3)
+        #h4.SetFillStyle(3690)
+        #h4.SetLineColor(6)
+        h3.Draw("HIST")
+        h3.GetYaxis().SetTitle("S/B");
+        h3.GetXaxis().SetTitle("NN");
+        h3.GetYaxis().SetTitleSize(0.06);
+        h3.GetYaxis().SetLabelSize(.06)
+        h3.GetXaxis().SetTitleSize(0.06);
+        h3.GetXaxis().SetLabelSize(.06)
+        l2 = ROOT.TLegend(0.16,0.77,0.4,0.98);
+        l2.AddEntry(h3  , "S/B" , "l");
+        l2.AddEntry(h2  , "ttV + tt err/cont", "l");
+        #l2.AddEntry(h4  , "tt err/cont", "l");
+        l2.Draw("same");
+        h2.Draw("HIST,SAME")
+        #h4.Draw("HIST,SAME")
 
     c4.Modified();
     c4.Update();
-    print ("s/B in last bin (tight)", h3.GetNbinsX(), h3.GetBinContent(h3.GetNbinsX()), h3.GetBinContent(h3.GetNbinsX()-1), h2.GetBinContent(h3.GetNbinsX()))
+    if doBottom : print ("s/B in last bin (tight)", h3.GetNbinsX(), h3.GetBinContent(h3.GetNbinsX()), h3.GetBinContent(h3.GetNbinsX()-1), h2.GetBinContent(h3.GetNbinsX()))
     c4.SaveAs(name+".pdf")
     print ("saved",name+".pdf")
 
@@ -849,7 +872,7 @@ def finMaxMin(histSource) :
 def getQuantiles(histoP,ntarget,xmax) :
     #c = ROOT.TCanvas("c1","",600,600)
     #histoP.Rebin(4)
-    histoP.Scale(1./histoP.Integral());
+    histoP.Scale(1./histoP.Integral())
     histoP.GetCumulative()#.Draw();
     #histoP.Draw();
     histoP.GetXaxis().SetRangeUser(0.,1.)
@@ -869,10 +892,10 @@ def getQuantiles(histoP,ntarget,xmax) :
     #yqbin[0]=0.0
     for  ii in range(1,ntarget+1) : yqbin[ii]=yq[ii]
     yqbin[ntarget]=xmax # +1 if first is not 0
-    print ("getQuantiles::    xq: ",xq)
-    print ("getQuantiles:: yqbin: ",yqbin)
-    for  ii in range(1,ntarget+1) :
-        print ("\t ii: ",ii,", xq: ",xq[ii],", yqbin: ",yqbin[ii],", histoP.IntegralCumutative: ",histoP.Integral(1,histoP.GetXaxis().FindBin(yqbin[ii])))
+    #print ("getQuantiles::    xq: ",xq)
+    #print ("getQuantiles:: yqbin: ",yqbin)
+    #for  ii in range(1,ntarget+1) :
+    #    print ("\t ii: ",ii,", xq: ",xq[ii],", yqbin: ",yqbin[ii],", histoP.IntegralCumutative: ",histoP.Integral(1,histoP.GetXaxis().FindBin(yqbin[ii])))
     return yqbin
 
 def getQuantilesWStat(histoP,nmin) :
@@ -950,7 +973,10 @@ def rebinRegular(
     originalBinning,
     doplots,
     bdtType, 
-    withFolder=False) :
+    withFolder=False,
+    partialCopy=False
+    ) :
+    print ("rebinRegular")
 
     minmax = finMaxMin(histSource) # [[0], [1]], [0]=first, last bin above 0; [1]= their corresponding x-value
     errOcontTTLast=[]
@@ -984,6 +1010,8 @@ def rebinRegular(
         xmaxdef=minmax[1][1]
         xmindef=minmax[1][0]
     print ("enumerate(nbin): ",enumerate(nbin), ", nbin: ",nbin)
+    isMoreThan02 = 0
+    bin_isMoreThan02 = 0
     for nn,nbins in enumerate(nbin) :
         print ("\n\nnn: ",nn,", nbins: ",nbins)
         file = TFile(histSource+".root","READ");
@@ -1000,15 +1028,15 @@ def rebinRegular(
         if BINtype=="none" : name=histSource+"_"+str(nbins)+"bins_none.root"
         if BINtype=="regular" or options.BINtype == "mTauTauVis": name=histSource+"_"+str(nbins)+"bins.root"
         if BINtype=="ranged" : name=histSource+"_"+str(nbins)+"bins_ranged.root"
-        if BINtype=="quantiles" :
-            name=histSource+"_"+str(nbins)+"bins_quantiles.root"
+        if BINtype=="quantiles" : name=histSource+"_"+str(nbins)+"bins_quantiles.root"
         fileOut  = TFile(name, "recreate");
-        #for folder in folders :
         if withFolder : folders_Loop = file.GetListOfKeys()
         else : folders_Loop = ["none"]
         for nkey, keyF in enumerate(folders_Loop) :
             print ("nkey: ",nkey,", keyF: ",keyF)
             if withFolder :
+                if partialCopy : 
+                    if str(source) not in str(keyF.GetName()) : continue
                 obj =  keyF.ReadObj()
                 loop_on = obj.GetListOfKeys()
                 histograms=[]
@@ -1045,18 +1073,19 @@ def rebinRegular(
                        hSumAll.SetName("hSumAllBk1")
                    else : hSumAll.Add(h2)
             #################################################
-            print ("hSumAll.Integral: ", hSumAll.Integral(), ", hFakes.Integral: ",hFakes.Integral())
+            #print ("hSumAll.Integral: ", hSumAll.Integral(), ", hFakes.Integral: ",hFakes.Integral())
             nbinsQuant =  getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero ## getQuantiles(hFakes,nbins,xmax) #
-            print ("Bins by quantiles ",nbins,nbinsQuant)
+            #print ("Bins by quantiles ",nbins,nbinsQuant)
             if withFolder: fileOut.mkdir(keyF.GetName()+"/")
             hTTi = TH1F()
             hTTHi = TH1F()
+            hTHi = TH1F()
             hEWKi = TH1F()
             hTTWi = TH1F()
             hRaresi = TH1F()
             histo = TH1F()
             for nn1, histogram in enumerate(histograms) :
-                print ("nn1: ",nn1,", histogram: ",histogram,", histo:",histo.GetName())
+                #print ("nn1: ",nn1,", histogram: ",histogram,", histo:",histo.GetName())
                 #if BINtype=="quantiles" : ### fix that -- I do not want these written to the file
                 histogramCopy=histogram.Clone()
                 nameHisto=histogramCopy.GetName()
@@ -1101,7 +1130,7 @@ def rebinRegular(
                 elif BINtype=="quantiles" :
                     #print ("hSumAll", hSumAll.Integral(), hFakes.Integral())
                     nbinsQuant= getQuantiles(hSumAll,nbins,xmax) # getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero
-                    print ("Bins by quantiles",nbins,nbinsQuant)
+                    #print ("Bins by quantiles",nbins,nbinsQuant)
                     xmaxLbin=xmaxLbin+[nbinsQuant[nbins-2]]
                     histo=TH1F( nameHisto, nameHisto , nbins , nbinsQuant) # nbins+1 if first is zero
                 elif BINtype=="mTauTauVis" :
@@ -1148,6 +1177,11 @@ def rebinRegular(
                         hTTHi=histo.Clone()
                         hTTHi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
                     else : hTTHi.Add(histo.Clone())
+                if "tHW" in histo.GetName() or "tHq" in histo.GetName() :
+                    if not hTHi.Integral()>0 :
+                        hTHi=histo.Clone()
+                        hTHi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
+                    else : hTHi.Add(histo.Clone())
                 if withFolder :
                     #print (histo.GetName(),histo.Integral(), BINtype)
                     fileOut.cd("/"+keyF.GetName()+"/")
@@ -1164,17 +1198,18 @@ def rebinRegular(
                         histoCumulative = histoClone1.GetCumulative()
                         histoCumulative.Write("",TObject.kOverwrite)
             print (name+" created")
+            print ("nkey ", nkey )
             if nkey == 0 :
-                if doplots and bdtType=="1B_VT":
-                    if nbins==4 : # nbins==6
+                if doplots :
+                    if isMoreThan02 == 1 : # nbins==6
                         if BINtype=="none" : namepdf=histSource
-                        if BINtype=="regular" : namepdf=histSource+"_"+str(nbins)+"bins"
-                        if BINtype=="ranged" : namepdf=histSource+"_"+str(nbins)+"bins_ranged"
+                        if BINtype=="regular" : namepdf=histSource+"_"+str(nbins-1)+"bins"
+                        if BINtype=="ranged" : namepdf=histSource+"_"+str(nbins-1)+"bins_ranged"
                         if BINtype=="quantiles" :
-                            namepdf=histSource+"_"+str(nbins)+"bins_quantiles"
-                            label=str(nbins)+" bins "+BINtype+" "+variables+"  "+bdtType ## nbins+1 if it starts with 0
-                        else : label=str(nbins)+" bins "+BINtype+" "+variables+" "+bdtType
-                        doStackPlot(hTTi,hTTHi,hTTWi,hEWKi,hRaresi,namepdf,label)
+                            namepdf=histSource+"_"+str(nbins-1)+"bins_quantiles"
+                            label=str(nbins-1) + " bins \n" + BINtype + " \n" + bdtType.replace("2lss_output_NN_2lss_ttH_tH_4cat_onlyTHQ_v4_", "")  ## nbins+1 if it starts with 0
+                        else : label=str(nbins-1)+" bins \n"+BINtype+" \n"+bdtType.replace("2lss_output_NN_2lss_ttH_tH_4cat_onlyTHQ_v4_", "") 
+                        doStackPlot(hTTi,hTTHi,hTTWi,hEWKi,hRaresi,hTHi,namepdf,label)
                         print (namepdf+" created")
                 #hSumCopy=hSum.Clone()
                 hSumCopy=hSumAll.Clone()
@@ -1199,6 +1234,10 @@ def rebinRegular(
                 errOcontSUMPLast=errOcontSUMPLast+[ratiohSumP] if ratiohSumP<1.001 else errOcontSUMPLast+[1.0]
                 errSUMLast=errSUMLast+[hSumi.GetBinError(hSumi.GetNbinsX())]
                 contSUMLast=contSUMLast+[hSumi.GetBinContent(hSumi.GetNbinsX())]
+                if ratiohSum > 0.199 or nbins > 5 : 
+                    isMoreThan02 = isMoreThan02 + 1
+                    if isMoreThan02 == 1 :
+                        bin_isMoreThan02 = nbins
                 if 1==1:
                     fileOut.cd()
                     hSumCopy.Write()
@@ -1212,7 +1251,8 @@ def rebinRegular(
                 print ("it should be only one ",  nkey, errOcontTTLast)
     print ("min",xmindef,xmin)
     print ("max",xmaxdef,xmax)
-    return [errOcontTTLast,errOcontTTPLast,errOcontSUMLast,errOcontSUMPLast,lastQuant,xmaxQuant,xminQuant]
+    print ("isMoreThan02", isMoreThan02, bin_isMoreThan02)
+    return [errOcontTTLast,errOcontTTPLast,errOcontSUMLast,errOcontSUMPLast,lastQuant,xmaxQuant,xminQuant, bin_isMoreThan02]
 
 def ReadLimits(bdtType,nbin, BINtype,channel,local,nstart,ntarget):
     print ("ReadLimits:: bdtType: ",bdtType,", nbin:",nbin,", BINtype: ",BINtype,", channel: ",channel,", local: ",local,", ",nstart,", ntarget: ",ntarget)
