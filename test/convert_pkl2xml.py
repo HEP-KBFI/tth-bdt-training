@@ -8,14 +8,24 @@ from collections import OrderedDict
 import cPickle as pickle
 
 
-inputFile = "/home/acaan/tth-bdt-training_original/test/all_HadTopTagger_sklearnV0o17o1_HypOpt_XGB_ntrees_1000_deph_3_lr_0o01_CSV_sort_withKinFit.pkl"
-outputFile = inputFile.replace(".pkl", ".xml")
+## --- Example ---- ##
+# python convert_pkl2xml.py \
+#-i /home/ram/HH_4Tau_analysis/CMSSW_9_4_6_patch1_Apr17_2019/src/tthAnalysis/bdtTraining/EvtLevel/2l_2tau_HH_dR03mvaVLoose_oversampling_finalVars_allMasses_Train_all_Masses_2l_2tau_diagnostics_with_reweighting/*even.pkl \
+#-V diHiggsMass -V diHiggsVisMass -V tau1_pt -V nBJet_medium -V gen_mHH -V nElectron -V dr_lep_tau_min_SS -V met_LD -V tau2_pt -V dr_lep_tau_min_OS \
 
-features=[
-"btagDisc_b", "btagDisc_Wj1", "btagDisc_Wj2", "qg_Wj1", "qg_Wj2",
-"m_Wj1Wj2_div_m_bWj1Wj2", "pT_Wj1Wj2", "dR_Wj1Wj2", "m_bWj1Wj2", "dR_bW", "m_bWj1", "m_bWj2",
-"mass_Wj1", "pT_Wj2", "mass_Wj2", "pT_b", "mass_b"
-]
+
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option("-i", "--inputFile", type="string", dest="inputFile", help="Input .pkl file", default='T')
+parser.add_option("-V", '--InputVars', type="string", dest="Input_Var_list", action="append", help="Give Input Variables like this: -V variable1 -V variable2 ...")
+(options, args) = parser.parse_args()
+
+#inputFile = "/home/acaan/tth-bdt-training_original/test/all_HadTopTagger_sklearnV0o17o1_HypOpt_XGB_ntrees_1000_deph_3_lr_0o01_CSV_sort_withKinFit.pkl"
+inputFile = options.inputFile
+outputFile = inputFile.replace(".pkl", ".xml")
+features = options.Input_Var_list
+
+print("features: ", features)
 
 def mul():
     print 'Today is',ctime(time()), 'All python libraries we need loaded goodHTT'

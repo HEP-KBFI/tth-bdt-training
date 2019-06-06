@@ -116,7 +116,6 @@ def load_data_2017(
                         break
                 if '_2b2v' in folderName : sampleName=sampleName+'hh_bbvv'
                 target =1
-
         elif "HH" in bdtType :
             if 'signal_ggf_spin0' in folderName :
                 sampleName='signal_ggf_spin0_'
@@ -151,6 +150,7 @@ def load_data_2017(
             if len(procP1) == 0:
                 procP1=glob.glob(inputPath+"/"+folderName+"*/*.root") ## Works for the old folder structure (Ram's datacards)
             list=procP1
+            print(list)
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
             except :
@@ -194,7 +194,7 @@ def load_data_2017(
                         if target == 1:
                             for mass in masses:
                                 if str(mass) in folderName:
-                                 chunk_df["gen_mHH"]=mass
+                                    chunk_df["gen_mHH"]=mass
                         elif target == 0:
                             if mass_randomization == "default":
                                 ## Adding 1 rows/events in the data-frame which have "gen_mHH" values randomly chosen from masses array
@@ -205,11 +205,12 @@ def load_data_2017(
                                     ## ---- which differ only in their "gen_mHH" values => [evtWeight for each   ---###
                                     ## ----- row should be scaled by "1/len(masses)" in the sklearn script]     ---###
                                     chunk_df["gen_mHH"] = mass
+                                    data=data.append(chunk_df, ignore_index=True)
                             else:
                                 raise ValueError("Invalid parameter mass_randomization = '%s' !!" % mass_randomization)
                         else:
                             raise ValueError("Invalid target = %i !!" % target)
-                    data=data.append(chunk_df, ignore_index=True)
+                    if not ((mass_randomization == "oversampling") and (target == 0) ): data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
         if len(data) == 0 : continue
