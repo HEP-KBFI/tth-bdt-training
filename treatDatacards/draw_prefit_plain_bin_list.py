@@ -110,6 +110,7 @@ if not split :
 
     counter = 0
     for bdtType_exp in bdtTypes_exp :
+        # the setting of the binning to pick from is manualy hardcoded
         toread = bdtType_exp + "_6bins_quantiles.root"
         if "_tH_ee_bt" in bdtType_exp  and channel == "2lss_0tau": 
             toread =  bdtType_exp + "_4bins_quantiles.root"
