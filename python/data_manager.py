@@ -116,6 +116,7 @@ def load_data_2017(
                         break
                 if '_2b2v' in folderName : sampleName=sampleName+'hh_bbvv'
                 target =1
+
         elif "HH" in bdtType :
             if 'signal_ggf_spin0' in folderName :
                 sampleName='signal_ggf_spin0_'
@@ -150,7 +151,6 @@ def load_data_2017(
             if len(procP1) == 0:
                 procP1=glob.glob(inputPath+"/"+folderName+"*/*.root") ## Works for the old folder structure (Ram's datacards)
             list=procP1
-            print(list)
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
             except :
@@ -194,7 +194,7 @@ def load_data_2017(
                         if target == 1:
                             for mass in masses:
                                 if str(mass) in folderName:
-                                    chunk_df["gen_mHH"]=mass
+                                 chunk_df["gen_mHH"]=mass
                         elif target == 0:
                             if mass_randomization == "default":
                                 ## Adding 1 rows/events in the data-frame which have "gen_mHH" values randomly chosen from masses array
@@ -205,12 +205,11 @@ def load_data_2017(
                                     ## ---- which differ only in their "gen_mHH" values => [evtWeight for each   ---###
                                     ## ----- row should be scaled by "1/len(masses)" in the sklearn script]     ---###
                                     chunk_df["gen_mHH"] = mass
-                                    data=data.append(chunk_df, ignore_index=True)
                             else:
                                 raise ValueError("Invalid parameter mass_randomization = '%s' !!" % mass_randomization)
                         else:
                             raise ValueError("Invalid target = %i !!" % target)
-                    if not ((mass_randomization == "oversampling") and (target == 0) ): data=data.append(chunk_df, ignore_index=True)
+                    data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
         if len(data) == 0 : continue
@@ -974,6 +973,7 @@ def rebinRegular(
     originalBinning,
     doplots,
     bdtType, 
+    nQuantMax=6,
     withFolder=False,
     partialCopy=False
     ) :
@@ -1235,14 +1235,13 @@ def rebinRegular(
                 errOcontSUMPLast=errOcontSUMPLast+[ratiohSumP] if ratiohSumP<1.001 else errOcontSUMPLast+[1.0]
                 errSUMLast=errSUMLast+[hSumi.GetBinError(hSumi.GetNbinsX())]
                 contSUMLast=contSUMLast+[hSumi.GetBinContent(hSumi.GetNbinsX())]
-                if ratiohSum > 0.199 or nbins > 5 : 
+                if ratiohSum > 0.199 or nbins > nQuantMax : 
                     isMoreThan02 = isMoreThan02 + 1
                     if isMoreThan02 == 1 :
                         bin_isMoreThan02 = nbins
-                if 1==1:
-                    fileOut.cd()
-                    hSumCopy.Write()
-                    hSumi.Write()
+                fileOut.cd()
+                hSumCopy.Write()
+                hSumi.Write()
                 if BINtype=="quantiles" :
                     print ("nbins: ",nbins)
                     print ("nbinsQuant: ",nbinsQuant)
