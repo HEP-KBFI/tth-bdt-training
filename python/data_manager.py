@@ -209,7 +209,7 @@ def load_data_2017(
                                 raise ValueError("Invalid parameter mass_randomization = '%s' !!" % mass_randomization)
                         else:
                             raise ValueError("Invalid target = %i !!" % target)
-                    if not ((mass_randomization == "oversampling") and (target == 0) ): data=data.append(chunk_df, ignore_index=True)
+                    if((mass_randomization != "oversampling") or ((mass_randomization == "oversampling") and (target == 1)) ): data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
         if len(data) == 0 : continue
