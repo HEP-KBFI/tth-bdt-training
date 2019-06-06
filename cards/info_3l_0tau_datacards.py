@@ -35,10 +35,8 @@ def read_from():
     "originalBinning" : originalBinning,
     "nbinRegular"     : nbinRegular,
     "nbinQuant"       : nbinQuant,
-    #"cateDraw"        : cateDraw,
     "maxlim"          : maxlim,
     "ch_nickname"     : ch_nickname,
-    #"partialCopy"     : partialCopy
     }
 
     return output
