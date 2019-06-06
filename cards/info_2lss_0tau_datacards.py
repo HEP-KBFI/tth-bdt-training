@@ -11,15 +11,9 @@ def read_from():
     #"output_NN_2lss_ttH_tH_4cat_onlyTHQ_v6",
     #"output_NN_2lss_ttH_tH_4cat_onlyTHQ_v7",
     ]
-    # If there are subcategories
+    # If there are subcategories construct the list of files to read based on their naming convention 
     cateDraw_type = ["ttH", "tH", "ttW"]
     cateDraw_flavour = ["ee_bl", "em_bl", "mm_bl", "ee_bt", "em_bt", "mm_bt"]
-    #cateDraw = []
-    #for catType in cateDraw_type :
-    #    for cat_flavour in cateDraw_flavour :
-    #        cateDraw += [ catType + "_" + cat_flavour]
-    #partialCopy = True ### copy only the selected folders to the rebined file
-    #prepareDatacards_2lss_output_NN_2lss_ttH_tH_4cat_onlyTHQ_v1_tH_ee_bl.root
     bdtTypes_exp = []
     for bdtType in bdtTypes :
         for catType in cateDraw_type :
@@ -28,6 +22,7 @@ def read_from():
         for catType in ["rest"] :
             for cat_flavour in ["bl", "bt"] :
                 bdtTypes_exp += [ bdtType + "_" + catType + "_" + cat_flavour]
+    if len(cateDraw_type) == 0 : bdtTypes_exp = bdtTypes
 
     channelsTypes = [ "2lss_0tau" ]
     ch_nickname = "2lss"
@@ -47,10 +42,8 @@ def read_from():
     "originalBinning" : originalBinning,
     "nbinRegular"     : nbinRegular,
     "nbinQuant"       : nbinQuant,
-    #"cateDraw"        : cateDraw,
     "maxlim"          : maxlim,
     "ch_nickname"     : ch_nickname,
-    #"partialCopy"     : partialCopy
     }
 
     return output

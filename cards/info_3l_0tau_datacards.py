@@ -7,15 +7,15 @@ def read_from():
     bdtTypes = [
     "output_NN_3l_ttH_tH_3cat_v8"
     ]
-    # If there are subcategories
+    # If there are subcategories construct the list of files to read based on their naming convention 
     cateDraw_type = ["ttH", "tH", "rest"]
     cateDraw_flavour = ["bl", "bt"]
-
     bdtTypes_exp = []
     for bdtType in bdtTypes :
         for catType in cateDraw_type :
             for cat_flavour in cateDraw_flavour :
                 bdtTypes_exp += [ bdtType + "_" + catType + "_" + cat_flavour]
+    if len(cateDraw_type) == 0 : bdtTypes_exp = bdtTypes
 
     channelsTypes = [ "3l_0tau" ]
     ch_nickname = "3l"
