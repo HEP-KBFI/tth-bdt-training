@@ -1,9 +1,3 @@
-## --- Choose Tau ID ----
-#tauID = "dR03mvaLoose"
-#tauID = "dR03mvaVLoose"
-#tauID = "dR03mvaVVLoose"
-## ---------------------
-
 # this needs to be a function to we also use on the NN fw
 def read_from(
         Bkg_mass_rand,
