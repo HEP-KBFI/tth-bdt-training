@@ -39,6 +39,10 @@ from ROOT import gBenchmark, gRandom, gSystem, Double, gPad, TFitResultPtr, TMat
 import copy
 
 
+##--- Example as to how to run the code ----- ###
+##python sklearn_Xgboost_evtLevel_HH_parametric_twofold_2l_2tau_diagnostics.py --channel "2l_2tau" --bdtType "evtLevelSUM_HH_2l_2tau_res" --variables $VAR --tauID dR03mvaVLoose --Bkg_mass_rand oversampling --TrainMode 0 --BDT_Diagnostics_2l_2tau True  --ReweightVars True --doXML True  
+
+
 def lr_to_str(lr):
     if(lr >= 1.0):
         lr_label = "_lr_"+str(int(lr*1))
@@ -90,14 +94,20 @@ trainvar=options.variables
 #hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(options.treeDeph)+"_mcw_"+str(options.mcw)+"_lr_0o0"+str(int(options.lr*100))
 hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(options.treeDeph)+"_mcw_"+str(options.mcw)+lr_to_str(options.lr)
 
+
+print("do_ReweightVars", do_ReweightVars)
+print("do_2l_2tau_diagnostics", do_2l_2tau_diagnostics)
+
+
+
 if(TrainMode == 0):
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_all_Masses3"
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_all_Masses4"
 elif(TrainMode == 1):
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_Low_masses_only"
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_Low_masses_only4"
 elif(TrainMode == 2):
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_High_masses_only"
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_High_masses_only4"
 else:
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_all_Masses"
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_all_Masses4"
 
 
 print("do_ReweightVars:")
@@ -117,7 +127,7 @@ if "2l_2tau" in channel: execfile("../cards/info_2l_2tau_HH.py")
 
 
 if(options.ClassErr_vs_epoch == True):
-    channel+"_SplitMode_"+options.SplitMode+"_ScanMode_"+options.ScanMode
+    channel+"_SplitMode_"+str(options.SplitMode)+"_ScanMode_"+str(options.ScanMode)
     log_file_name=channel+".log"
     if 'evtLevelSUM_HH_2l_2tau_res' in bdtType :
         file1_ = open(log_file_name, 'w+')
@@ -735,7 +745,7 @@ if(do_2l_2tau_diagnostics == True):
 
     ## --- Making 1D THStack plots (background) --- ###
     MakeTHStack_New(channel, data, BDTvariables, label)
-
+    
     make_plots(BDTvariables, nbins,
                data.ix[data_do.target.values == 0],labelBKG, colorFast,
                data.ix[data_do.target.values == 1],'Signal', colorFastT,
@@ -745,8 +755,11 @@ if(do_2l_2tau_diagnostics == True):
                test_masses,
                mass_list
                )
+               
 else:
     print("No plots will be made for 2l_2tau diagnostics")
+
+
 
 roc_test = []
 roc_train = []
@@ -992,6 +1005,8 @@ ax.legend(loc='upper center', title="all masses", fontsize = 'small')
 nameout = channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False, options.variables, options.bdtType)))+'_'+hyppar+'_AllMass_'+(options.tauID)+'_XGBclassifier.pdf'
 fig.savefig(nameout)
 #fig.savefig(nameout.replace(".pdf", ".png"))
+
+
 
 
 #### ----- Interpolation check log files ----####
@@ -1412,7 +1427,7 @@ if options.HypOpt==False :
 		#plt.savefig(namesave.replace(".pdf",".png"))
 		ax.clear()
 
-## Scanning the classification error vs epoch (=ntrees) for a given set of hyper-parameter optimization
+## Scanning the classification error vs epoch (=ntrees) for a given set of hyper-parameter optimization (RUN IN CMSSW_10_X_Y ENVIRON.)
 if options.ClassErr_vs_epoch==True :
    if options.SplitMode == 0:
        ### ----- RANDOM SPLIT OF PANDAS DATAFRAME "data" ---- ####
@@ -1441,6 +1456,7 @@ if options.ClassErr_vs_epoch==True :
        y_train = data_even_target
        X_test  = data_odd
        y_test  = data_odd_target
+       print('Using Odd train Even test split')
    elif options.SplitMode == 2:
        ### ----- ODD-EVEN SPLIT OF PANDAS DATAFRAME "data" ---- ####
        data_even = data_even[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns
@@ -1456,6 +1472,7 @@ if options.ClassErr_vs_epoch==True :
        y_train = data_odd_target
        X_test  = data_even
        y_test  = data_even_target
+       print('Using Even train Odd test split')
    else:
        print("Invalid option SplitMode: Please give values 0/1/2")
        raise ValueError("Invalid parameter SplitMode = '%i' !!" % options.SplitMode)
