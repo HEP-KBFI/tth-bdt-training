@@ -13,6 +13,7 @@ from random import randint
 import pandas
 import glob
 from root_numpy import tree2array
+import matplotlib
 
 
 def load_ttHGen() :
@@ -135,11 +136,14 @@ def load_data_2017(
     masses = [],
     mass_randomization = "default",
     sel = None) :
-    print 'bdttype= ', bdtType
+    print "In data_manager::load_data_2017()::\n inputPath: ",inputPath, "\n channelInTree: ",channelInTree
+    print " variables: ",variables, "\n criteria: ",criteria,"\n bdtType: ",bdtType,"\n channel: ",channel
+    print " keys: ",keys,"\n masses: ",masses,"\n mass_randomization: ",mass_randomization
     my_cols_list=variables+['proces', 'key', 'target', "totalWeight"]
     data = pandas.DataFrame(columns=my_cols_list) ## right now an empty dataframe with columns = my_cols_list
+    #print "data: ",data
     for folderName in keys :
-        print '(folderName, channelTree) = ', (folderName, channelInTree)
+        #print '(folderName, channelTree) = ', (folderName, channelInTree)
         if 'TTT' in folderName :
             sampleName='TT'
             target=0
@@ -227,11 +231,14 @@ def load_data_2017(
                 procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
                 list=procP1
         else :
-            procP1=glob.glob(inputPath+"/"+folderName+"*/central/*.root") ## Works for the new folder structure (Saswati's datacards) 
+            print("inputPath: {}  folderName: {} ".format(inputPath,folderName))
+            procP1=glob.glob(inputPath+"/"+folderName+"*/central/*.root") ## Works for the new folder structure (Saswati's datacards)
+            print("i/p nTuples (1): {}".format(procP1))
             if len(procP1) == 0:
                 procP1=glob.glob(inputPath+"/"+folderName+"*/*.root") ## Works for the old folder structure (Ram's datacards)
+            print("i/p nTuples (2): {}".format(procP1))
             list=procP1
-            print(list) 
+            #print(list) 
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
             except :
@@ -242,6 +249,7 @@ def load_data_2017(
                 print (inputTree, "FAIL read inputTree", tfile)
                 continue
             if tree is not None :
+                #print "sampleName: ",sampleName,",  folderName: ",folderName, ", list[ii]: ",list[ii], ", nEvents: ",tree.GetEntries()
                 try: chunk_arr = tree2array(tree, selection=sel)
                 except :
                     print (inputTree, "FAIL load inputTree", tfile)
@@ -271,7 +279,7 @@ def load_data_2017(
                         chunk_df["lep2_eta"]=abs(chunk_df["lep2_eta"])
                         chunk_df["max_lep_eta"]=chunk_df[["lep1_eta", "lep2_eta"]].max(axis=1)
                         chunk_df["sum_lep_charge"]=chunk_df["lep1_charge"] + chunk_df["lep2_charge"]
-                if "HH" in bdtType :
+                if "HH" in bdtType and "gen_mHH" in variables:
                     if target == 1:
                         for mass in masses:
                             if str(mass) in folderName:
@@ -280,6 +288,7 @@ def load_data_2017(
                         if mass_randomization == "default":
                             ## Adding 1 rows/events in the data-frame which have "gen_mHH" values randomly chosen from masses array
                             chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
+                            #print "len(chunk_df): ",len(chunk_df), ", gen_mHH: ",chunk_df["gen_mHH"]
                         elif mass_randomization == "oversampling":
                             for mass in masses:
                                 ## ---- Adding rows/events (No. of rows = "len(masses)") in the data-frame  ---###
@@ -291,6 +300,7 @@ def load_data_2017(
                             raise ValueError("Invalid parameter mass_randomization = '%s' !!" % mass_randomization)
                     else:
                         raise ValueError("Invalid target = %i !!" % target)
+                #print "chunk_df: ",chunk_df
                 data=data.append(chunk_df, ignore_index=True)
                 #if mass_randomization == "default": data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
@@ -623,6 +633,7 @@ def make_plots(
         # define range for histograms by cutting 1% of data from both ends
         min_value, max_value = np.percentile(data1[feature], [0.0, 99])
         min_value2, max_value2 = np.percentile(data2[feature], [0.0, 99])
+        print('feather: {} \t min_value {}, max_value {},min_value2 {}, max_value2 {}'.format(feature, min_value,max_value,min_value2, max_value2))
         if feature == "gen_mHH" :
             nbin_local = 10*len(masses_all)
             range_local = [masses_all[0]-20, masses_all[len(masses_all)-1]+20]
@@ -639,11 +650,12 @@ def make_plots(
                                    )
         to_ymax = max(values1)
         to_ymin = min(values1)
-        if drawStatErr:
+        if drawStatErr:            
             normed = sum(data1[feature].values)
             mid = 0.5*(bins[1:] + bins[:-1])
             err=np.sqrt(values1*normed)/normed # denominator is because plot is normalized
             plt.errorbar(mid, values1, yerr=err, fmt='none', color= color1, ecolor= color1, edgecolor=color1, lw=2)
+            #print('data1[feature].values: {},  normed=sum(data1[feature].values): {} \n err: {}, \nbins: {}, \nbins[1:]: {}, \nbins[:-1]: {}, \nmid: {} \n'.format(data1[feature].values,sum(data1[feature].values), err, bins,bins[1:],bins[:-1], mid))
         if len(masses) == 0 : #'gen' not in feature:
             values2, bins, _ = plt.hist(
                                    data2[feature].values,
@@ -663,8 +675,15 @@ def make_plots(
                 plt.errorbar(mid, values2, yerr=err, fmt='none', color= color2, ecolor= color2, edgecolor=color2, lw=2)
         else :
             hist_params2 = {'normed': True, 'histtype': 'step', 'fill': False , 'lw':3}
-            colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c', ]
+            #colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c', ]
+            colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c',
+                           'chocolate','teal', 'pink', 'darkkhaki', 'maroon', 'slategray',
+                           'orange', 'silver', 'aquamarine', 'lavender', 'goldenrod', 'salmon',
+                           'tan', 'lime', 'lightcoral'
+            ]
+            
             for mm, mass in enumerate(masses) :
+                #print("mm: {}, mass: {}, color: {}".format(mm, mass, colors_mass[mm]))
                 values2, bins, _ = plt.hist(
                                        data2.loc[ (data2["gen_mHH"].astype(np.int) == int(mass)), feature].values,
                                        weights = data2.loc[ (data2["gen_mHH"].astype(np.int) == int(mass)), weights].values.astype(np.float64),
