@@ -1,9 +1,3 @@
-## --- Choose Tau ID ----
-#tauID = "dR03mvaLoose"
-#tauID = "dR03mvaVLoose"
-#tauID = "dR03mvaVVLoose"
-## ---------------------
-
 # this needs to be a function to we also use on the NN fw
 def read_from(
         Bkg_mass_rand,
@@ -99,6 +93,11 @@ def read_from(
 	masses = [250,260,270,280,300,350,400,450,500,550,600,650,700,750,800,850,900,1000]
 	masses_test = [300,500,800]
 
+	masses_low = [250,260,270,280,300,350,400]
+	masses_test_low = [300]
+
+	masses_high = [450,500,550,600,650,700,750,800,850,900,1000]
+	masses_test_high = [500,800]
 
 	output = {
 		"channelInTree" : channelInTree,
@@ -115,6 +114,10 @@ def read_from(
 		"keys" : keys,
 		"masses" : masses,
 		"masses_test": masses_test,
+		"masses_low" : masses_low,
+		"masses_test_low": masses_test_low,
+		"masses_high" : masses_high,
+		"masses_test_high": masses_test_high,
 		"mass_randomization" : mass_rand_algo,
 		}
 
@@ -220,15 +223,22 @@ def trainVars(all, trainvar = None, bdtType="evtLevelSUM_HH_2l_2tau_res"):
                 "dr_lep_tau_min_SS"
                 ]
 
-        if trainvar=="testVars2"  and bdtType=="evtLevelSUM_HH_2l_2tau_res" and all==False :return [
+        if trainvar=="testVars2"  and bdtType=="evtLevelSUM_HH_2l_2tau_res" and all==False :return [ ## Use this for all Tau ID.s: Loose, VLoose, VVLoose 
                 "diHiggsMass", "nBJet_medium", "tau1_pt", "dr_lep_tau_min_SS", "met_LD", "diHiggsVisMass", "m_ll", "tau2_pt", "dr_taus",
                 "mTauTau", "gen_mHH", "mT_lep1", "mT_lep2", "deltaEta_lep1_tau2", "dr_lep1_tau1_tau2_min", "max_tau_eta", "max_lep_eta", "nElectron",
 		"dr_lep_tau_min_OS", "mht", "met", "dr_lep1_tau1_tau2_max", "dr_leps", "tau1_eta", "deltaEta_lep1_tau1", "m_lep1_tau2"
-		#"lep2_eta", "dr_leps",
-                # "diHiggsMass", "m_ll", "met_LD", "gen_mHH", "tau1_pt", "dr_lep_tau_min_SS", "dr_leps", "dr_taus", "lep1_conePt", "mTauTau"
-                #"diHiggsVisMass",
-                #"mTauTauVis", "tau1_eta", "dr_leps", "tau1_pt", "nElectron", "nBJet_medium",
-                #"tau2_pt", "tau2_eta", "dr_taus", "dr_lep_tau_min_SS", "dr_lep1_tau1_tau2_min",
-                #"dr_lep_tau_min_OS", "lep1_conePt", "lep2_eta", "lep1_eta",
-                #"dr_lep_tau_min_SS"
-                ]
+		]
+
+        if trainvar=="finalVars_allMasses"  and bdtType=="evtLevelSUM_HH_2l_2tau_res" and all==False :return [ ## Use this for VLoose Tau ID only for training with all masses
+                "diHiggsMass", "diHiggsVisMass", "tau1_pt", "nBJet_medium", "gen_mHH", "nElectron", "dr_lep_tau_min_SS", "met_LD", "tau2_pt", "dr_lep_tau_min_OS"
+		]
+
+        if trainvar=="finalVars_LowMasses"  and bdtType=="evtLevelSUM_HH_2l_2tau_res" and all==False :return [ ## Use this for VLoose Tau ID only for training with Low masses (<= 400 GeV)
+                "diHiggsVisMass", "nBJet_medium", "nElectron", "tau1_pt", "dr_lep_tau_min_SS", "mT_lep1", "tau2_pt", "met", "mT_lep2",  "diHiggsMass", "gen_mHH"
+		]
+
+        if trainvar=="finalVars_HighMasses"  and bdtType=="evtLevelSUM_HH_2l_2tau_res" and all==False :return [ ## Use this for VLoose Tau ID only for training with High masses (> 400 GeV)
+		"diHiggsMass", "tau1_pt", "met_LD", "nBJet_medium", "dr_lep_tau_min_SS", "gen_mHH", "dr_lep1_tau1_tau2_min", "nElectron", "met", "dr_lep_tau_min_OS"
+		]
+
+
