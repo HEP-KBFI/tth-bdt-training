@@ -49,6 +49,7 @@ import shutil,subprocess
 proc=subprocess.Popen(["mkdir " + info["label"]],shell=True,stdout=subprocess.PIPE)
 out = proc.stdout.read()
 local = workingDir + "/" + info["label"] 
+#local=workingDir+"/"+options.channel+"_"+label+"/"+options.variables+"/"
 
 counter=0
 for ii, bdtType in enumerate(info["bdtTypes"]) :
