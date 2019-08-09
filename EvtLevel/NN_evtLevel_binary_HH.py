@@ -34,8 +34,8 @@ import tensorflow as tf
 print(tf.__version__)
 config = tf.ConfigProto(intra_op_parallelism_threads=32, \
                         inter_op_parallelism_threads=32, \
-                        allow_soft_placement=True, \
-                        device_count = {'CPU': 32}
+                        allow_soft_placement=True, \    
+                        device_count = {'CPU': 32} ## Will allot a maximum of 32 CPU cores
                        )
 session = tf.Session(config=config)
 #K.set_session(session)  ## Uncommenting this line along with "from keras import backend as K" gives Attribute error 
@@ -46,27 +46,50 @@ session = tf.Session(config=config)
 #plt.plot(x1, y1, x2, y2, marker = 'o')
 #plt.show()
 
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option("--channel ", type="string", dest="channel", help="The ones whose variables implemented now are:\n   - 1l_2tau\n   - 2lss_1tau\n It will create a local folder and store the report", default='T')
+parser.add_option("--variables", type="string", dest="variables", help="  Set of variables to use -- it shall be put by hand in the code, in the fuction trainVars(all)\n Example to 2ssl_2tau\n                              
+all==True -- all variables that should be loaded (training + weights) -- it is used only once\n   all==False -- only variables of training (not including weights) \n  For the channels implemented I defined 3 sets of variables/each to confront at limit level\n  trainvar=allVar -- all variables that are avaible to training (including lepton IDs, this is here just out of curiosity) \n  trainvar=oldVar -- a minimal set of variables (excluding lepton IDs and lep pt's)\n  trainvar=notForbidenVar -- a maximal set of variables (excluding lepton IDs and lep pt's) \n  trainvar=notForbidenVarNoMEM -- the same as above, but excluding as well MeM variables", default=None)
+parser.add_option("--bdtType", type="string", dest="bdtType", help=" evtLevelTT_TTH or evtLevelTTV_TTH", default='T')
+parser.add_option("--Bkg_mass_rand", type="string", dest="Bkg_mass_rand", help="fix gen_mHH randomiz. method for bkg.s", default='"default"')
+parser.add_option("--doPlots", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
+parser.add_option("--dohdf5", action="store_true", dest="dohdf5", help="Do save not write the hdf5 file", default=False)
+parser.add_option("--ReweightVars", action="store_true", dest="ReweightVars", help="Reweight Input variables with Fits", default=False)
+parser.add_option("--TrainMode", type="int", dest="TrainMode", help="Select the input mass range for the training \n 0: to include all masses \n 1: to include only low masses (<= 400 GeV) \n 2: to include only high masses (> 400 GeV)", default=0)
+(options, args) = parser.parse_args()
+
+TrainMode=options.TrainMode
+do_ReweightVars=options.ReweightVars
+tauID=options.tauID
+doPlots=options.doPlots
+bdtType=options.bdtType
+trainvar=options.variables
+variables=trainvar
+channel=options.channel
+Bkg_mass_rand=options.Bkg_mass_rand
+
+hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(options.treeDeph)+"_mcw_"+str(options.mcw)+lr_to_str(options.lr)
 
 ################
 ## load the data
 ################
-channel='2l_2tau_HH'
-bdtType = "evtLevelSUM_HH_2l_2tau_res"
-variables="testVars2"
-tauID = "dR03mvaVLoose"  ## Christian's choice from previous param. BDT studies
-Bkg_mass_rand="default"
+#channel='2l_2tau_HH'
+#bdtType = "evtLevelSUM_HH_2l_2tau_res"
+#variables="testVars2"
+#tauID = "dR03mvaVLoose"  ## Christian's choice from previous param. BDT studies
+#Bkg_mass_rand="default"
 #Bkg_mass_rand="oversampling"
 
 
 
-#startTime = datetime.now()
+startTime = datetime.now()
 execfile("../python/data_manager.py")
-#run("../python/data_manager.py")
 if channel=='2l_2tau_HH' :
     execfile("../cards/info_2l_2tau_HH.py")  
-    #run("../cards/info_2l_2tau_HH.py")
 
-output = read_from( Bkg_mass_rand, tauID)
+
+output = read_from(Bkg_mass_rand, tauID)
 
 
 print ("read from:", output["inputPath"])
@@ -113,13 +136,14 @@ for data_do in order_train :
             if "evtLevelSUM_HH_bb1l_res" in bdtType :
                 data_do.loc[(data_do['key']=='W'), [wei]]                         *= Wdatacard/data_do.loc[(data_do['key']=='W')].sum() ## Saswati check please !!!                                               
         if "evtLevelSUM_HH_2l_2tau_res" in bdtType :
-               data_do.loc[(data_do['key']=='TTZJets'), [wei]]                       *= output["TTZdatacard"]/data_do.loc[(data_do['key']=='TTZJets'), weights].sum() ## TTZJets                               
-               data_do.loc[(data_do['key']=='TTWJets'), [wei]]                       *= output["TTWdatacard"]/data_do.loc[(data_do['key']=='TTWJets'), weights].sum() ## TTWJets + TTWW                        
                data_do.loc[(data_do['key']=='ZZ'), [wei]]                            *= output["ZZdatacard"]/data_do.loc[(data_do['key']=='ZZ'), weights].sum() ## ZZ +ZZZ                                     
                data_do.loc[(data_do['key']=='WZ'), [wei]]                            *= output["WZdatacard"]/data_do.loc[(data_do['key']=='WZ'), weights].sum() ## WZ + WZZ_4F                                 
                data_do.loc[(data_do['key']=='WW'), [wei]]                            *= output["WWdatacard"]/data_do.loc[(data_do['key']=='WW'), weights].sum() ## WW + WWZ + WWW_4F    
+               #data_do.loc[(data_do['key']=='TTZJets'), [wei]]                       *= output["TTZdatacard"]/data_do.loc[(data_do['key']=='TTZJets'), weights].sum() ## TTZJets                               
+               #data_do.loc[(data_do['key']=='TTWJets'), [wei]]                       *= output["TTWdatacard"]/data_do.loc[(data_do['key']=='TTWJets'), weights].sum() ## TTWJets + TTWW                        
                #data_do.loc[(data_do['key']=='VH'), [wei]]                        *= output["VHdatacard"]/data_do.loc[(data_do['key']=='VH'), weights].sum() # consider removing                               
                #data_do.loc[(data_do['key']=='TTH'), [wei]]                       *= output["TTHdatacard"]/data_do.loc[(data_do['key']=='TTH'), weights].sum() # consider removing  
+
 
         ### Normalize sig/BKG and do table of nevents/mass
         for mass in output["masses"] :
@@ -128,8 +152,8 @@ for data_do in order_train :
         print ("Date: ", time.asctime( time.localtime(time.time()) ))
 
 
-        print("data_odd[weight_cx]", data_odd["weight_cx"])
-        print("data_odd[weight_train]", data_odd["weight_train"])
+        #print("data_odd[weight_cx]", data_odd["weight_cx"])
+        #print("data_odd[weight_train]", data_odd["weight_train"])
 
 
         print ("training statistics by mass")
@@ -153,10 +177,11 @@ for data_do in order_train :
 Check of the resulting weights - the sizes of the training weight
 """
 fig, ax = plt.subplots(figsize=(4, 4))
-keysToBKG = ['WW', 'WZ', 'ZZ', 'DY', 'TTTo2L2Nu', 'TTToSemiLeptonic','TTZJets', 'TTWJets'] # 'VH', 'TTH', 'TTToHadronic'
+keysToBKG = ['WW', 'WZ', 'ZZ', 'DY', 'TTTo2L2Nu', 'TTToSemiLeptonic'] # 'VH', 'TTH', 'TTToHadronic', 'TTZJets', 'TTWJets'
 if "evtLevelSUM_HH_bb1l_res" in bdtType : keysToBKG.append('W')
 #colors = ['cyan','orange','k','r','green','magenta','b',]
 vars = ["weight_train"]#"multitarget"]
+
 
 for kk, key in enumerate(keysToBKG) :
   for vv, var in enumerate(vars) : 
@@ -168,7 +193,8 @@ for kk, key in enumerate(keysToBKG) :
     )
     ax.set_xlabel(var)
 ax.legend(loc="best", title= channel)
-
+nameout = channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False, options.variables, options.bdtType)))+'_'+hyppar+'_mass_'+ str(mass)+'_'+(options.tauID)+'_tensorflowNNclassifier.pdf'
+fig.savefig(nameout)
 
 ## load the variables
 BDTvariables=trainVars(False, variables, bdtType)
@@ -280,14 +306,12 @@ k_model_binary  = KerasClassifier(
     verbose=2
 )
 
-print("data_odd[features].values", data_odd[features].values)
-print("data_odd[target].values", data_odd['target'].values)
-print("sample_weight=data_odd[weight_train].values", data_odd["weight_train"].values)
-print("sample_weight=data_odd[weight_train].astype(float32)", data_odd["weight_train"].astype('float32'))
-
-
-print("data_odd[weight_cx]", data_odd["weight_cx"])
-print("data_odd[weight_train]", data_odd["weight_train"])
+#print("data_odd[features].values", data_odd[features].values)
+#print("data_odd[target].values", data_odd['target'].values)
+#print("sample_weight=data_odd[weight_train].values", data_odd["weight_train"].values)
+#print("sample_weight=data_odd[weight_train].astype(float32)", data_odd["weight_train"].astype('float32'))
+#print("data_odd[weight_cx]", data_odd["weight_cx"])
+#print("data_odd[weight_train]", data_odd["weight_train"])
 
 
 history = k_model_binary.fit(

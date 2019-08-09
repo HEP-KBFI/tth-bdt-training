@@ -39,7 +39,7 @@ from ROOT import gBenchmark, gRandom, gSystem, Double, gPad, TFitResultPtr, TMat
 import copy
 
 
-##--- Example as to how to run the code ----- ###
+##--- Example as to how to run the code for 2l_2tau channel ----- ###
 ##python sklearn_Xgboost_evtLevel_HH_parametric_twofold_2l_2tau_diagnostics.py --channel "2l_2tau" --bdtType "evtLevelSUM_HH_2l_2tau_res" --variables $VAR --tauID dR03mvaVLoose --Bkg_mass_rand oversampling --TrainMode 0 --BDT_Diagnostics_2l_2tau True  --ReweightVars True --doXML True  
 
 
@@ -109,6 +109,7 @@ elif(TrainMode == 2):
 else:
     channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_all_Masses4"
 
+print("TrainMode", TrainMode)
 
 print("do_ReweightVars:")
 print(do_ReweightVars)
@@ -144,395 +145,11 @@ target='target'
 
 output = read_from(Bkg_mass_rand, tauID)
 
-def numpyarrayTProfileFill(data_X, data_Y, data_wt, hprof):
-    for x,y,w in np.nditer([data_X, data_Y, data_wt]):
-        #print("x: {}, y: {}, w: {}".format(x, y, w))
-        hprof.Fill(x,y,w)
-
-
-def numpyarrayHisto1DFill(data_X, data_wt, histo1D):
-    #for x,w in np.nditer([data_X, data_wt]):
-    for x,w in zip(data_X, data_wt):
-        #print("x: {},  w: {}".format(x, w))
-        histo1D.Fill(x,w)
-
-
-def AddHistToStack(data_copy, var_name,  hstack, nbins, X_min, X_max, FillColor, processName):
-    histo1D = TH1D( 'histo1D', processName, nbins, X_min, X_max)
-    data_X_array  = np.array(data_copy[var_name].values, dtype=np.float)
-    data_wt_array = np.array(data_copy['totalWeight'].values, dtype=np.float)
-    numpyarrayHisto1DFill(data_X_array, data_wt_array, histo1D)
-    histo1D.SetFillColor(FillColor)
-    #histo1D.Draw()
-    hstack.Add(histo1D)
-
-
-def BuildTHstack_2l_2tau(hstack, data_copy, var_name, nbins, X_min, X_max):
-    ttbar_samples = ['TTTo2L2Nu','TTToSemiLeptonic']
-    vv_samples = ['ZZ', 'WZ', 'WW']
-    ttv_samples = ['TTZJets', 'TTWJets']
-    data_copy_TT  =  data_copy.loc[(data_copy['key'].isin(ttbar_samples))] ## TTbar
-    data_copy_DY  =  data_copy.loc[(data_copy['key']=='DY')] ## DY
-    data_copy_VV  =  data_copy.loc[(data_copy['key'].isin(vv_samples))] ## VV
-    data_copy_TTV =  data_copy.loc[(data_copy['key'].isin(ttv_samples))] ## TTV
-    data_copy_TTH =  data_copy.loc[(data_copy['key']=='TTH')] ## TTH
-    data_copy_VH  =  data_copy.loc[(data_copy['key']=='VH')] ## VH
-
-    if(data_copy_TTH.empty != True): AddHistToStack(data_copy_TTH, var_name, hstack, nbins, X_min, X_max, 5, 'TTH') ## Yellow
-    if(data_copy_TTV.empty != True): AddHistToStack(data_copy_TTV, var_name, hstack, nbins, X_min, X_max, 1, 'TTV')  ## Black
-    if(data_copy_VH.empty != True): AddHistToStack(data_copy_VH, var_name, hstack, nbins, X_min, X_max, 6, 'VH')  ## Magenta
-    if(data_copy_VV.empty != True): AddHistToStack(data_copy_VV, var_name, hstack, nbins, X_min, X_max, 3, 'VV')    ## Green
-    if(data_copy_DY.empty != True): AddHistToStack(data_copy_DY, var_name, hstack, nbins, X_min, X_max, 2, 'DY')      ## Red
-    if(data_copy_TT.empty != True): AddHistToStack(data_copy_TT, var_name, hstack, nbins, X_min, X_max, 4, 'TTbar')  ## Blue
-
-
-def MakeTHStack_New(channel, data, var_name_list, label):
-    data_copy = data.copy(deep=True) ## Making a deep copy of data ( => separate data and index from data)
-    data_copy =  data_copy.loc[(data_copy[target]==0)] ## Only take backgrounds
-
-    Histo_Dict = {
-        "gen_mHH": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "diHiggsMass": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "diHiggsVisMass": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "met": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "mht": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "met_LD": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "tau1_pt": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "tau2_pt": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "mT_lep1": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "mT_lep2": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "m_ll": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "mTauTau": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "m_lep1_tau2": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "dr_lep_tau_min_SS": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "dr_lep_tau_min_OS": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "dr_taus": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "dr_lep1_tau1_tau2_min": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "dr_lep1_tau1_tau2_max": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "max_tau_eta": {'X_min': 0., 'X_max': 3.0, 'nbins': 30},
-        "max_lep_eta": {'X_min': 0., 'X_max': 3.0, 'nbins': 30},
-        "nElectron": {'X_min': 0., 'X_max': 3.0, 'nbins': 3},
-        "nBJet_medium": {'X_min': 0., 'X_max': 3.0, 'nbins': 3},
-        "dr_leps": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "tau1_eta": {'X_min': -3.0, 'X_max': 3.0, 'nbins': 60},
-        "deltaEta_lep1_tau1": {'X_min': -5.0, 'X_max': 5.0, 'nbins': 100},
-        "deltaEta_lep1_tau2": {'X_min': -5.0, 'X_max': 5.0, 'nbins': 100},
-        }
-
-    for var_name in var_name_list:
-        data_X  = np.array(data_copy[var_name].values, dtype=np.float)
-        data_wt = np.array(data_copy['totalWeight'].values, dtype=np.float)
-
-        N_x  = len(data_X)
-        N_wt = len(data_wt)
-
-        if(N_x == N_wt):
-            # Create a new canvas, and customize it.
-            c1 = TCanvas( 'c1', 'Dynamic Filling Example', 200, 10, 700, 500)
-            #c1.SetFillColor(42)
-            #c1.GetFrame().SetFillColor(21)
-            c1.GetFrame().SetBorderSize(6)
-            c1.GetFrame().SetBorderMode(-1)
-
-            #print("N_x: {}, N_wt: {}".format(N_x, N_wt))
-            print("Variable Name: {}".format(var_name))
-            PlotTitle = var_name
-            hstack  = THStack('hstack', PlotTitle)
-            BuildTHstack_2l_2tau(hstack, data_copy, var_name, Histo_Dict[var_name]['nbins'], Histo_Dict[var_name]['X_min'], Histo_Dict[var_name]['X_max'])
-            hstack.Draw("hist")
-            hstack.GetYaxis().SetTitle("Events")
-            hstack.GetXaxis().SetTitle(var_name)
-            c1.Modified()
-            c1.Update()
-            gPad.BuildLegend(0.75,0.75,0.95,0.95,"")
-            FileName = "{}/{}_{}_{}.root".format(channel, "THStack", var_name, label)
-            c1.SaveAs(FileName)
-        else:
-            print('Arrays not of same length')
-            print("N_x: {}, N_wt: {}".format(N_x, N_wt))
-
-
-def MakeHisto1D_New(channel, data, var_name_list, label):
-
-    Histo_Dict = {
-        "gen_mHH": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "diHiggsMass": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "diHiggsVisMass": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "met": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "mht": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "met_LD": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "tau1_pt": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "tau2_pt": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "mT_lep1": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "mT_lep2": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "m_ll": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "mTauTau": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "m_lep1_tau2": {'X_min': 0., 'X_max': 1100., 'nbins': 55},
-        "dr_lep_tau_min_SS": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "dr_lep_tau_min_OS": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "dr_taus": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "dr_lep1_tau1_tau2_min": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "dr_lep1_tau1_tau2_max": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "max_tau_eta": {'X_min': 0., 'X_max': 3.0, 'nbins': 30},
-        "max_lep_eta": {'X_min': 0., 'X_max': 3.0, 'nbins': 30},
-        "nElectron": {'X_min': 0., 'X_max': 3.0, 'nbins': 3},
-        "nBJet_medium": {'X_min': 0., 'X_max': 3.0, 'nbins': 3},
-        "dr_leps": {'X_min': 0., 'X_max': 1.0, 'nbins': 10},
-        "tau1_eta": {'X_min': -3.0, 'X_max': 3.0, 'nbins': 60},
-        "deltaEta_lep1_tau1": {'X_min': -5.0, 'X_max': 5.0, 'nbins': 100},
-        "deltaEta_lep1_tau2": {'X_min': -5.0, 'X_max': 5.0, 'nbins': 100},
-        }
-    
-    data_copy = data.copy(deep=True) ## Making a deep copy of data ( => separate data and index from data)
-    data_copy =  data_copy.loc[(data_copy[target]==0)] ## Only take backgrounds
-    
-    for var_name in var_name_list:
-        print("Variable Name: {}".format(var_name))
-        data_X  = np.array(data_copy[var_name].values, dtype=np.float)
-        data_wt = np.array(data_copy['totalWeight'].values, dtype=np.float)
-
-        N_x  = len(data_X)
-        N_wt = len(data_wt)
-
-        # Create a new canvas, and customize it.
-        c1 = TCanvas( 'c1', "Canvas", 200, 10, 700, 500)
-        #c1.SetFillColor(42)
-        #c1.GetFrame().SetFillColor(21)
-        c1.GetFrame().SetBorderSize(6)
-        c1.GetFrame().SetBorderMode(-1)
-
-        if(N_x == N_wt):
-            #print("N_x: {}, N_wt: {}".format(N_x, N_wt))
-            PlotTitle = var_name
-            histo1D  = TH1D( 'histo1D', PlotTitle, Histo_Dict[var_name]['nbins'], Histo_Dict[var_name]['X_min'], Histo_Dict[var_name]['X_max'])
-            histo1D.GetYaxis().SetTitle("Events")
-            histo1D.GetXaxis().SetTitle(var_name)
-            numpyarrayHisto1DFill(data_X, data_wt, histo1D)
-            histo1D.Draw()
-            c1.Modified()
-            c1.Update()
-            FileName = "{}/{}_{}_{}.root".format(channel, "Histo1D", var_name, label)
-            c1.SaveAs(FileName)
-        else:
-            print('Arrays not of same length')
-            print("N_x: {}, N_wt: {}".format(N_x, N_wt))
-
-
-
-def MakeTProfile_New(channel, data, var_name_list, Target, doFit, label, TrainMode, mass_list):
-    data_copy = data.copy(deep=True) ## Making a deep copy of data ( => separate data and index from data)
-    data_copy =  data_copy.loc[(data_copy[target]==Target)] ## Only take 1 for signal
-
-
-    # Create a new canvas, and customize it.
-    c1 = TCanvas( 'c1', 'Dynamic Filling Example', 200, 10, 700, 500)
-    #c1.SetFillColor(42)
-    #c1.GetFrame().SetFillColor(21)
-    c1.GetFrame().SetBorderSize(6)
-    c1.GetFrame().SetBorderMode(-1)
-    Y_Range_Dict = {
-       "diHiggsMass": {'y_min': 0., 'y_max': 1100.},
-       "diHiggsVisMass": {'y_min': 0., 'y_max': 1100.},
-       "met": {'y_min': 0., 'y_max': 1100.},
-       "mht": {'y_min': 0., 'y_max': 1100.},
-       "met_LD": {'y_min': 0., 'y_max': 1100.},
-       "tau1_pt": {'y_min': 0., 'y_max': 1100.},
-       "tau2_pt": {'y_min': 0., 'y_max': 1100.},
-       "mT_lep1": {'y_min': 0., 'y_max': 1100.},
-       "mT_lep2": {'y_min': 0., 'y_max': 1100.},
-       "m_ll": {'y_min': 0., 'y_max': 1100.},
-       "mTauTau": {'y_min': 0., 'y_max': 1100.},
-       "m_lep1_tau2": {'y_min': 0., 'y_max': 1100.},
-       "dr_lep_tau_min_SS": {'y_min': 0., 'y_max': 1.0},
-       "dr_lep_tau_min_OS": {'y_min': 0., 'y_max': 1.0},
-       "dr_taus": {'y_min': 0., 'y_max': 1.0},
-       "dr_lep1_tau1_tau2_min": {'y_min': 0., 'y_max': 1.0},
-       "dr_lep1_tau1_tau2_max": {'y_min': 0., 'y_max': 1.0},
-       "max_tau_eta": {'y_min': 0., 'y_max': 3.0},
-       "max_lep_eta": {'y_min': 0., 'y_max': 3.0},
-       "nElectron": {'y_min': 0., 'y_max': 3.0},
-       "nBJet_medium": {'y_min': 0., 'y_max': 3.0},
-       "dr_leps": {'y_min': 0., 'y_max': 1.0},
-       "tau1_eta": {'y_min': -3.0, 'y_max': 3.0},
-       "deltaEta_lep1_tau1": {'y_min': -5.0, 'y_max': 5.0},
-       "deltaEta_lep1_tau2": {'y_min': -5.0, 'y_max': 5.0},
-       }
-
-    for var_name in var_name_list:
-        print("Variable Name: {}".format(var_name))
-        if(Target == 1):
-            FileName = "{}/{}_{}_{}.root".format(channel, "TProfile_signal", var_name, label)
-            #TProfileFile = TFile(FileName, "RECREATE")
-            if(doFit): Fit_Func_FileName = "{}/{}_{}.root".format(channel, "TProfile_signal_fit_func", var_name)
-        elif(Target == 0):
-            FileName = "{}/{}_{}_{}.root".format(channel, "TProfile", var_name, label)
-            #TProfileFile = TFile(FileName, "RECREATE")
-        else:
-            FileName = "{}/{}_{}.root".format(channel, "TProfile", var_name, label)
-            #TProfileFile = TFile(FileName, "RECREATE")
-        #c1.SaveAs(FileName)
-
-        data_X  = np.array(data_copy['gen_mHH'].values, dtype=np.float)
-        data_Y  = np.array(data_copy[var_name].values, dtype=np.float)
-        data_wt = np.array(data_copy['totalWeight'].values, dtype=np.float)
-
-        N_x  = len(data_X)
-        N_y  = len(data_Y)
-        N_wt = len(data_wt)
-
-
-        if((N_x == N_y) and (N_y == N_wt)):
-            #print("N_x: {}, N_y: {}, N_wt: {}".format(N_x, N_y, N_wt))
-            PlotTitle = 'Profile of '+var_name+' vs gen_mHH'
-            #hprof  = TProfile( 'hprof', PlotTitle, 17, 250., 1100., y_min, y_max)
-            #xbins = array.array('d', [250., 260., 270., 280., 300., 350., 400., 450., 500., 550., 600., 650., 700., 750., 800., 850., 900., 1000.])
-            hprof  = TProfile( 'hprof', PlotTitle, (len(mass_list) - 1), mass_list[0], (mass_list[(len(mass_list) - 1)] + 100.0), Y_Range_Dict[var_name]['y_min'], Y_Range_Dict[var_name]['y_max'])
-            xbins = array.array('d', mass_list)
-            hprof.SetBins((len(xbins) - 1), xbins)
-            hprof.GetXaxis().SetTitle("gen_mHH (GeV)")
-            hprof.GetYaxis().SetTitle(var_name)
-            numpyarrayTProfileFill(data_X, data_Y, data_wt, hprof)
-            hprof.Draw()
-            c1.Modified()
-            c1.Update()
-            #c1.SaveAs(FileName)
-
-            if(doFit and (Target == 1)): ## do the fit for signal only
-                if(TrainMode == 0): ## All masses used in the training
-                    if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                    elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                    elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                    elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                    elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol4", 250.,1000.)
-                    elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol6", 250.,1000.) 
-                    elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol6", 250.,1000.) 
-                    elif(var_name == "nElectron"): f_old = TF1("f_old", "pol2", 250.,1000.)      
-                    elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol2", 250.,1000.)   
-                    #elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,1000.)   ## Not used as per Xandra's suggestion
-                    #elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion
-                    #elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol3", 250.,1000.) ## Not used as per Xandra's suggestion
-                    #elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion
-                    #elif(var_name == "mht"): f_old = TF1("f_old", "pol3", 250.,1000.)     ## Not used as per Xandra's suggestion
-                    #elif(var_name == "met"): f_old = TF1("f_old", "pol1", 250.,1000.)     ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol6", 250.,1000.)               ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol6", 250.,1000.) ## Not used as per Xandra's suggestion
-                    #elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)           ## Not used as per Xandra's suggestion
-                    #elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)           ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 250.,1000.)            ## Not used as per Xandra's suggestion
-                    #elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol2", 250.,1000.)           ## Not used as per Xandra's suggestion
-                    #elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion
-                    #elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion
-                    #elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol3", 250.,1000.)        ## Not used as per Xandra's suggestion
-                    else: f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(TrainMode == 1): ## Only Low masses used in the training
-                    if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol1", 250.,400.)
-                    elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 250.,400.)
-                    elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol4", 250.,400.)
-                    elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol4", 250.,400.)
-                    elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol4", 250.,400.)
-                    elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,400.)
-                    elif(var_name == "met"): f_old = TF1("f_old", "pol4", 250.,400.)
-                    elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol5", 250.,400.)
-                    elif(var_name == "nElectron"): f_old = TF1("f_old", "pol4", 250.,400.)
-                    elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol5", 250.,400.)
-                    #elif(var_name == "mht"): f_old = TF1("f_old", "pol4", 250.,400.)          ## Not used as per Xandra's suggestion
-                    #elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol4", 250.,400.)      ## Not used as per Xandra's suggestion
-                    #elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,400.)         ## Not used as per Xandra's suggestion
-                    #elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,400.)       ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol5", 250.,400.)      ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 250.,400.)                ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol4", 250.,400.)  ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol4", 250.,400.)  ## Not used as per Xandra's suggestion
-                    #elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,400.)            ## Not used as per Xandra's suggestion
-                    #elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 250.,400.)            ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol3", 250.,400.)                ## Not used as per Xandra's suggestion
-                    #elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol3", 250.,400.)               ## Not used as per Xandra's suggestion
-                    #elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol2", 250.,400.)     ## Not used as per Xandra's suggestion
-                    #elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol4", 250.,400.)     ## Not used as per Xandra's suggestion
-                    #elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,400.)            ## Not used as per Xandra's suggestion
-                    else:f_old = TF1("f_old", "pol6", 250.,400.)
-                elif(TrainMode == 2): ## Only High masses used in the training
-                    if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 450.,1000.)
-                    elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                    elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                    elif(var_name == "met"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                    elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                    elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                    elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                    elif(var_name == "nElectron"): f_old = TF1("f_old", "pol6", 450.,1000.)
-                    elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                    #elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol6", 450.,1000.)           ## Not used as per Xandra's suggestion
-                    #elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)           ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 450.,1000.)               ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 450.,1000.) ## Not used as per Xandra's suggestion
-                    #elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol4", 450.,1000.)  ## Not used as per Xandra's suggestion
-                    #elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 450.,1000.)            ## Not used as per Xandra's suggestion
-                    #elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol3", 450.,1000.)         ## Not used as per Xandra's suggestion
-                    #elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 450.,1000.)         ## Not used as per Xandra's suggestion
-                    #elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol1", 450.,1000.)         ## Not used as per Xandra's suggestion
-                    #elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 450.,1000.)         ## Not used as per Xandra's suggestion 
-                    #elif(var_name == "mht"): f_old = TF1("f_old", "pol1", 450.,1000.)             ## Not used as per Xandra's suggestion
-                    #elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 450.,1000.)               ## Not used as per Xandra's suggestion
-                    #elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)              ## Not used as per Xandra's suggestion
-                    #elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 450.,1000.)    ## Not used as per Xandra's suggestion
-                    #elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 450.,1000.)    ## Not used as per Xandra's suggestion
-                    #elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol6", 450.,1000.)           ## Not used as per Xandra's suggestion
-                    else:f_old = TF1("f_old", "pol6", 450.,1000.)
-                r_old = TFitResultPtr()
-                r_old = hprof.Fit(f_old, "SF") ## Fitting using Minuit instead of the linear fitter
-                f_old.Draw("same")
-                c1.Modified()
-                c1.Update()
-                c1.SaveAs(FileName)
-                FuncFile = TFile(Fit_Func_FileName, "RECREATE")
-                f_old.Write()
-                FuncFile.Close()
-            else:
-                print("No fit will be performed")
-                c1.SaveAs(FileName)
-        else:
-            print('Arrays not of same length')
-            print("N_x: {}, N_y: {}, N_wt: {}".format(N_x, N_y, N_wt))                   
-
-
-
-def ReweightDataframe_New(data, channel, var_name_list, masses):
-    
-    for var_name in var_name_list:
-        print("Variable Name: {}".format(var_name))
-        Fit_Func_FileName = "{}/{}_{}.root".format(channel, "TProfile_signal_fit_func", var_name)
-        file = TFile.Open(Fit_Func_FileName)   
-        func = TF1()
-        file.GetObject("f_old", func)
-        print("Number of parameters", func.GetNpar())
-        Npar = func.GetNpar()
-    
-        corr_factor_Dict = {}
-        for x in masses:
-            corr_factor_Dict[x] = func.Eval(x)
-            #print("Corr. factor: %f , gen_mHH: %f" % (corr_factor_Dict[x], x))
-
-        print("Started the scaling of ", var_name)
-
-        process = psutil.Process(os.getpid())
-        print(process.memory_info().rss)
-        print(datetime.now() - startTime)
-
-        for x in masses:
-            print("gen_mHH %f" % x) 
-            data.loc[(data['gen_mHH']==x), [var_name]] /= corr_factor_Dict[x]
-
-        print("Finished the scaling of ", var_name)
-        process = psutil.Process(os.getpid())
-        print(process.memory_info().rss)
-        print(datetime.now() - startTime)
-        file.Close()
-
-
+execfile("../cards/auxiliary_functions_2l_2tau_HH.py") ## Loading all the functions needed for fitting
 
 ##--- Choice of train mass ranges implemented
-if(TrainMode == 0): ## All Masses included in training
+if( TrainMode == 0 ): ## All Masses included in training
+    print("Training on all masses: 250-1000 GeV")
     data=load_data_2017(
         output["inputPath"],
         output["channelInTree"],
@@ -546,7 +163,8 @@ if(TrainMode == 0): ## All Masses included in training
         )
     mass_list = output["masses"]
     test_masses = output["masses_test"]
-elif(TrainMode == 1): ## Only Low Masses (<= 400 GeV) included in training
+elif( TrainMode == 1 ): ## Only Low Masses (<= 400 GeV) included in training
+    print("Training on Low masses only: 250-400 GeV")
     data=load_data_2017(
         output["inputPath"],
         output["channelInTree"],
@@ -560,7 +178,8 @@ elif(TrainMode == 1): ## Only Low Masses (<= 400 GeV) included in training
         )
     mass_list = output["masses_low"]
     test_masses = output["masses_test_low"]
-elif(TrainMode == 2): ## Only High Masses (> 400 GeV) included in training
+elif( TrainMode == 2 ): ## Only High Masses (> 400 GeV) included in training
+    print("Training on High masses only: 450-1000 GeV")
     data=load_data_2017(
         output["inputPath"],
         output["channelInTree"],
@@ -575,6 +194,7 @@ elif(TrainMode == 2): ## Only High Masses (> 400 GeV) included in training
     mass_list = output["masses_high"]
     test_masses = output["masses_test_high"]
 else:
+    print("TrainMode neither 0/1/2 switching back to Training on all masses: 250-1000 GeV")
     data=load_data_2017(
         output["inputPath"],
         output["channelInTree"],
@@ -592,7 +212,7 @@ else:
 data.dropna(subset=[weights],inplace = True)
 data.fillna(0)
 
-print("data", data)
+#print("data", data)
 
 
 ### Plot histograms of training variables
@@ -671,27 +291,10 @@ print ("separate datasets odd/even")
 data_even = data.loc[(data["event"].values % 2 == 0) ]
 data_odd = data.loc[~(data["event"].values % 2 == 0) ]
 
-#print("300 GeV events:", data.loc[(data['gen_mHH'] == 300), ["event"]]) 
-#print("500 GeV events:", data.loc[(data['gen_mHH'] == 500), ["event"]]) 
-#print("800 GeV events:", data.loc[(data['gen_mHH'] == 800), ["event"]]) 
+#data_even_test_800 = data.loc[((data['gen_mHH'] == 800) & (data['event'] == 101964) & (data['target'] == 1))]
+#print('data_even_test_800', data_even_test_800)
 
-'''
-data_even_test_300 = data.loc[(data['gen_mHH'] == 300) & (data['event'] == 297676)]
-data_odd_test_300 = data.loc[(data['gen_mHH'] == 300) & (data['event'] == 298569)]
-#data_even_test_300.loc[(data_even_test_300['gen_mHH'] == 300), ["gen_mHH"]] = 250 ## allot different gen_mHH mass to the events
-#data_odd_test_300.loc[(data_odd_test_300['gen_mHH'] == 300), ["gen_mHH"]] = 250   ## allot different gen_mHH mass to the events
-
-data_even_test_500 = data.loc[(data['gen_mHH'] == 500) & (data['event'] == 198922)]
-data_odd_test_500 = data.loc[(data['gen_mHH'] == 500) & (data['event'] == 198919)]
-#data_even_test_500.loc[(data_even_test_500['gen_mHH'] == 500), ["gen_mHH"]] = 450 ## allot different gen_mHH mass to the events
-#data_odd_test_500.loc[(data_odd_test_500['gen_mHH'] == 500), ["gen_mHH"]] = 450   ## allot different gen_mHH mass to the events
-
-data_even_test_800 = data.loc[(data['gen_mHH'] == 800) & (data['event'] == 194762)]
-data_odd_test_800 = data.loc[(data['gen_mHH'] == 800) & (data['event'] == 194499)]
-#data_even_test_800.loc[(data_even_test_800['gen_mHH'] == 800), ["gen_mHH"]] = 750 ## allot different gen_mHH mass to the events
-#data_odd_test_800.loc[(data_odd_test_800['gen_mHH'] == 800), ["gen_mHH"]] = 750   ## allot different gen_mHH mass to the events
-'''
-
+#print("diHiggsMass: {}, diHiggsVisMass: {}, tau1_pt: {}, nBJet_medium: {}, nElectron: {}, dr_lep_tau_min_SS: {}, met_LD: {}, tau2_pt: {}, dr_lep_tau_min_OS: {}, gen_mHH: {}".format(data_even_test_800["diHiggsMass"], data_even_test_800["diHiggsVisMass"], data_even_test_800["tau1_pt"], data_even_test_800["nBJet_medium"], data_even_test_800["nElectron"], data_even_test_800["dr_lep_tau_min_SS"], data_even_test_800["met_LD"], data_even_test_800["tau2_pt"], data_even_test_800["dr_lep_tau_min_OS"], data_even_test_800["gen_mHH"]) )
 
 
 order_train = [data_odd, data_even]
@@ -782,6 +385,11 @@ for dd, data_do in  enumerate(order_train):
     else : val_data = 0
 
     print ("XGBoost trained", order_train_name[dd])
+
+    #if(dd == 0): ## Odd train Even test 
+    #    proba_even_test_800 = cls.predict_proba(data_even_test_800[trainVars(False, options.variables, options.bdtType)].values)
+    #    print('proba_even_test_800[:,1]', proba_even_test_800[:,1])
+
     if options.doXML==True :
         pklpath=channel+"/"+channel+"_XGB_"+trainvar+"_"+bdtType+"_"+str(len(trainVars(False, options.variables, options.bdtType)))+"Var_"+order_train_name[dd]
         print ("Date: ", time.asctime( time.localtime(time.time()) ))

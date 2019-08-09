@@ -189,32 +189,33 @@ def MakeTProfile_New(channel, data, var_name_list, Target, doFit, label, TrainMo
     c1.GetFrame().SetBorderSize(6)
     c1.GetFrame().SetBorderMode(-1)
 
-    Y_Range_Dict = {
-       "diHiggsMass": {'y_min': 0., 'y_max': 1100.},
-       "diHiggsVisMass": {'y_min': 0., 'y_max': 1100.},
-       "met": {'y_min': 0., 'y_max': 1100.},
-       "mht": {'y_min': 0., 'y_max': 1100.},
-       "met_LD": {'y_min': 0., 'y_max': 1100.},
-       "tau1_pt": {'y_min': 0., 'y_max': 1100.},
-       "tau2_pt": {'y_min': 0., 'y_max': 1100.},
-       "mT_lep1": {'y_min': 0., 'y_max': 1100.},
-       "mT_lep2": {'y_min': 0., 'y_max': 1100.},
-       "m_ll": {'y_min': 0., 'y_max': 1100.},
-       "mTauTau": {'y_min': 0., 'y_max': 1100.},
-       "m_lep1_tau2": {'y_min': 0., 'y_max': 1100.},
-       "dr_lep_tau_min_SS": {'y_min': 0., 'y_max': 1.0},
-       "dr_lep_tau_min_OS": {'y_min': 0., 'y_max': 1.0},
-       "dr_taus": {'y_min': 0., 'y_max': 1.0},
-       "dr_lep1_tau1_tau2_min": {'y_min': 0., 'y_max': 1.0},
-       "dr_lep1_tau1_tau2_max": {'y_min': 0., 'y_max': 1.0},
-       "max_tau_eta": {'y_min': 0., 'y_max': 3.0},
-       "max_lep_eta": {'y_min': 0., 'y_max': 3.0},
-       "nElectron": {'y_min': 0., 'y_max': 3.0},
-       "nBJet_medium": {'y_min': 0., 'y_max': 3.0},
-       "dr_leps": {'y_min': 0., 'y_max': 1.0},
-       "tau1_eta": {'y_min': -3.0, 'y_max': 3.0},
-       "deltaEta_lep1_tau1": {'y_min': -5.0, 'y_max': 5.0},
-       "deltaEta_lep1_tau2": {'y_min': -5.0, 'y_max': 5.0},
+    
+    Func_Dict = {
+       "diHiggsMass": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol6", 'fitFunc_LowMassTraining': "pol1", 'fitFunc_HighMassTraining': "pol6"},
+       "diHiggsVisMass": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol1", 'fitFunc_LowMassTraining': "pol4", 'fitFunc_HighMassTraining': "pol4"},
+       "met": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol1", 'fitFunc_LowMassTraining': "pol4", 'fitFunc_HighMassTraining': "pol1"},
+       "mht": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol3", 'fitFunc_LowMassTraining': "pol4", 'fitFunc_HighMassTraining': "pol1"},
+       "met_LD": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol1", 'fitFunc_LowMassTraining': "pol1", 'fitFunc_HighMassTraining': "pol1"},
+       "tau1_pt": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol1", 'fitFunc_LowMassTraining': "pol1", 'fitFunc_HighMassTraining': "pol1"},
+       "tau2_pt": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol4", 'fitFunc_LowMassTraining': "pol4", 'fitFunc_HighMassTraining': "pol3"},
+       "mT_lep1": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol3", 'fitFunc_LowMassTraining': "pol4", 'fitFunc_HighMassTraining': "pol1"},
+       "mT_lep2": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol1", 'fitFunc_LowMassTraining': "pol1", 'fitFunc_HighMassTraining': "pol1"},
+       "m_ll": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol1", 'fitFunc_LowMassTraining': "pol1", 'fitFunc_HighMassTraining': "pol1"},
+       "mTauTau": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol1", 'fitFunc_LowMassTraining': "pol4", 'fitFunc_HighMassTraining': "pol1"},
+       "m_lep1_tau2": {'y_min': 0., 'y_max': 1100., 'fitFunc_AllMassTraining': "pol3", 'fitFunc_LowMassTraining': "pol1", 'fitFunc_HighMassTraining': "pol6"},
+       "dr_lep_tau_min_SS": {'y_min': 0., 'y_max': 1.0, 'fitFunc_AllMassTraining': "pol6", 'fitFunc_LowMassTraining': "pol5", 'fitFunc_HighMassTraining': "pol4"},
+       "dr_lep_tau_min_OS": {'y_min': 0., 'y_max': 1.0, 'fitFunc_AllMassTraining': "pol6", 'fitFunc_LowMassTraining': "pol5", 'fitFunc_HighMassTraining': "pol4"},
+       "dr_taus": {'y_min': 0., 'y_max': 1.0, 'fitFunc_AllMassTraining': "pol6", 'fitFunc_LowMassTraining': "pol4", 'fitFunc_HighMassTraining': "pol4"},
+       "dr_lep1_tau1_tau2_max": {'y_min': 0., 'y_max': 1.0, 'fitFunc_AllMassTraining': "pol1", 'fitFunc_LowMassTraining': "pol4", 'fitFunc_HighMassTraining': "pol1"},
+       "dr_lep1_tau1_tau2_min": {'y_min': 0., 'y_max': 1.0, 'fitFunc_AllMassTraining': "pol6", 'fitFunc_LowMassTraining': "pol4", 'fitFunc_HighMassTraining': "pol4"},
+       "max_tau_eta": {'y_min': 0., 'y_max': 3.0, 'fitFunc_AllMassTraining': "pol3", 'fitFunc_LowMassTraining': "pol1", 'fitFunc_HighMassTraining': "pol1"},
+       "max_lep_eta": {'y_min': 0., 'y_max': 3.0, 'fitFunc_AllMassTraining': "pol3", 'fitFunc_LowMassTraining': "pol3", 'fitFunc_HighMassTraining': "pol6"},
+       "nElectron": {'y_min': 0., 'y_max': 3.0, 'fitFunc_AllMassTraining': "pol2", 'fitFunc_LowMassTraining': "pol4", 'fitFunc_HighMassTraining': "pol6"},
+       "nBJet_medium": {'y_min': 0., 'y_max': 3.0, 'fitFunc_AllMassTraining': "pol2", 'fitFunc_LowMassTraining': "pol5", 'fitFunc_HighMassTraining': "pol4"},
+       "dr_leps": {'y_min': 0., 'y_max': 1.0, 'fitFunc_AllMassTraining': "pol6", 'fitFunc_LowMassTraining': "pol3", 'fitFunc_HighMassTraining': "pol6"},
+       "tau1_eta": {'y_min': -3.0, 'y_max': 3.0, 'fitFunc_AllMassTraining': "pol2", 'fitFunc_LowMassTraining': "pol3", 'fitFunc_HighMassTraining': "pol1"},
+       "deltaEta_lep1_tau1": {'y_min': -5.0, 'y_max': 5.0, 'fitFunc_AllMassTraining': "pol1", 'fitFunc_LowMassTraining': "pol2", 'fitFunc_HighMassTraining': "pol1"},
+       "deltaEta_lep1_tau2": {'y_min': -5.0, 'y_max': 5.0, 'fitFunc_AllMassTraining': "pol1", 'fitFunc_LowMassTraining': "pol4", 'fitFunc_HighMassTraining': "pol1"},
        }
 
     for var_name in var_name_list:
@@ -244,7 +245,7 @@ def MakeTProfile_New(channel, data, var_name_list, Target, doFit, label, TrainMo
             PlotTitle = 'Profile of '+var_name+' vs gen_mHH'
             #hprof  = TProfile( 'hprof', PlotTitle, 17, 250., 1100., y_min, y_max)                                                                                                                                                                 
             #xbins = array.array('d', [250., 260., 270., 280., 300., 350., 400., 450., 500., 550., 600., 650., 700., 750., 800., 850., 900., 1000.])                                                                                              
-            hprof  = TProfile( 'hprof', PlotTitle, (len(mass_list) - 1), mass_list[0], (mass_list[(len(mass_list) - 1)] + 100.0), Y_Range_Dict[var_name]['y_min'], Y_Range_Dict[var_name]['y_max'])
+            hprof  = TProfile( 'hprof', PlotTitle, (len(mass_list) - 1), mass_list[0], (mass_list[(len(mass_list) - 1)] + 100.0), Func_Dict[var_name]['y_min'], Func_Dict[var_name]['y_max'])
             xbins = array.array('d', mass_list)
             hprof.SetBins((len(xbins) - 1), xbins)
             hprof.GetXaxis().SetTitle("gen_mHH (GeV)")
@@ -254,90 +255,18 @@ def MakeTProfile_New(channel, data, var_name_list, Target, doFit, label, TrainMo
             c1.Modified()
             c1.Update()
             #c1.SaveAs(FileName)
-        
+          
+            fitFuncName = "fitFunction_" + var_name
+            print("fitFuncName", fitFuncName)
+
 
             if(doFit and (Target == 1)): ## do the fit for signal only                                                                                                                                                                             
-                if(TrainMode == 0): ## All masses used in the training                                                                                                                                                                              
-                    if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                    elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                    elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                    elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol1", 250.,1000.)    
-                    #elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,1000.)   ## Not used as per Xandra's suggestion                                                                                                                  
-                    elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol4", 250.,1000.)
-                    #elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion                                                                                                                   
-                    #elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol3", 250.,1000.) ## Not used as per Xandra's suggestion                                                                                                                  
-                    #elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion                                                                                                                  
-                    #elif(var_name == "mht"): f_old = TF1("f_old", "pol3", 250.,1000.)     ## Not used as per Xandra's suggestion                                                                                                                   
-                    #elif(var_name == "met"): f_old = TF1("f_old", "pol1", 250.,1000.)     ## Not used as per Xandra's suggestion                                                                                                              
-                    elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                    elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                    #elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol6", 250.,1000.)               ## Not used as per Xandra's suggestion                                                                                                    
-                    #elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion                                                                                                     
-                    #elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol6", 250.,1000.) ## Not used as per Xandra's suggestion                                                                                                      
-                    #elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)           ## Not used as per Xandra's suggestion                                                                                                    
-                    #elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)           ## Not used as per Xandra's suggestion                                                                                                    
-                    elif(var_name == "nElectron"): f_old = TF1("f_old", "pol2", 250.,1000.)
-                    elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol2", 250.,1000.)
-                    #elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 250.,1000.)            ## Not used as per Xandra's suggestion                                                                                                        
-                    #elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol2", 250.,1000.)           ## Not used as per Xandra's suggestion                                                                                                        
-                    #elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion                                                                                                       
-                    #elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,1000.) ## Not used as per Xandra's suggestion                                                                                                     
-                    #elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol3", 250.,1000.)        ## Not used as per Xandra's suggestion                                                                                                          
-                    else: f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(TrainMode == 1): ## Only Low masses used in the training                                                                                                                                                                   
-                    if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol1", 250.,400.)
-                    elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 250.,400.)
-                    #elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,400.)       ## Not used as per Xandra's suggestion                                                                                                            
-                    elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol4", 250.,400.)
-                    #elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,400.)         ## Not used as per Xandra's suggestion                                                                                                               
-                    elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol4", 250.,400.)
-                    #elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol4", 250.,400.)      ## Not used as per Xandra's suggestion                                                                                                           
-                    elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol4", 250.,400.)
-                    elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,400.)
-                    #elif(var_name == "mht"): f_old = TF1("f_old", "pol4", 250.,400.)          ## Not used as per Xandra's suggestion                                                                                                               
-                    elif(var_name == "met"): f_old = TF1("f_old", "pol4", 250.,400.)
-                    elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol5", 250.,400.)
-                    #elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol5", 250.,400.)      ## Not used as per Xandra's suggestion                                                                                                 
-                    #elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 250.,400.)                ## Not used as per Xandra's suggestion                                                                                                 
-                    #elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol4", 250.,400.)  ## Not used as per Xandra's suggestion                                                                                                  
-                    #elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol4", 250.,400.)  ## Not used as per Xandra's suggestion                                                                                                  
-                    #elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,400.)            ## Not used as per Xandra's suggestion                                                                                                  
-                    #elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 250.,400.)            ## Not used as per Xandra's suggestion                                                                                                  
-                    elif(var_name == "nElectron"): f_old = TF1("f_old", "pol4", 250.,400.)
-                    elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol5", 250.,400.)
-                    #elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol3", 250.,400.)                ## Not used as per Xandra's suggestion                                                                                                 
-                    #elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol3", 250.,400.)               ## Not used as per Xandra's suggestion                                                                                                
-                    #elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol2", 250.,400.)     ## Not used as per Xandra's suggestion                                                                                                 
-                    #elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol4", 250.,400.)     ## Not used as per Xandra's suggestion                                                                                                 
-                    #elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,400.)            ## Not used as per Xandra's suggestion                                                                                                  
-                    else:f_old = TF1("f_old", "pol6", 250.,400.) 
-                elif(TrainMode == 2): ## Only High masses used in the training                                                                                                                                                                   
-                    if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 450.,1000.)
-                    elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                    elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                    #elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol4", 450.,1000.)  ## Not used as per Xandra's suggestion                                                                                                          
-                    #elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 450.,1000.)            ## Not used as per Xandra's suggestion                                                                                                       
-                    #elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol3", 450.,1000.)         ## Not used as per Xandra's suggestion                                                                                                           
-                    #elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 450.,1000.)         ## Not used as per Xandra's suggestion                                                                                                            
-                    #elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol1", 450.,1000.)         ## Not used as per Xandra's suggestion                                                                                                        
-                    #elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 450.,1000.)         ## Not used as per Xandra's suggestion                                                                                                          
-                    #elif(var_name == "mht"): f_old = TF1("f_old", "pol1", 450.,1000.)             ## Not used as per Xandra's suggestion                                                                                                         
-                    elif(var_name == "met"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                    elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                    elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                    #elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 450.,1000.)               ## Not used as per Xandra's suggestion                                                                                                   
-                    #elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 450.,1000.) ## Not used as per Xandra's suggestion                                                                                                  
-                    elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                    #elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol6", 450.,1000.)           ## Not used as per Xandra's suggestion                                                                                               
-                    #elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)           ## Not used as per Xandra's suggestion                                                                                                  
-                    elif(var_name == "nElectron"): f_old = TF1("f_old", "pol6", 450.,1000.)
-                    elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                    #elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 450.,1000.)               ## Not used as per Xandra's suggestion                                                                                                  
-                    #elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)              ## Not used as per Xandra's suggestion                                                                                              
-                    #elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 450.,1000.)    ## Not used as per Xandra's suggestion                                                                                                    
-                    #elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 450.,1000.)    ## Not used as per Xandra's suggestion                                                                                                    
-                    #elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol6", 450.,1000.)           ## Not used as per Xandra's suggestion                                                                                                   
-                    else:f_old = TF1("f_old", "pol6", 450.,1000.)    
+                if(TrainMode == 0): ## All masses used in the training
+                    f_old = TF1(fitFuncName, Func_Dict[var_name]['fitFunc_AllMassTraining'], 250., 1000.)
+                elif(TrainMode == 1): ## Only Low masses used in the training
+                    f_old = TF1(fitFuncName, Func_Dict[var_name]['fitFunc_LowMassTraining'], 250., 400.)
+                elif(TrainMode == 2): ## Only High masses used in the training
+                    f_old = TF1(fitFuncName, Func_Dict[var_name]['fitFunc_HighMassTraining'], 450., 1000.)                                                                                                                                                              
                 r_old = TFitResultPtr()
                 r_old = hprof.Fit(f_old, "SF") ## Fitting using Minuit instead of the linear fitter                                                                                                                                                
                 f_old.Draw("same")
@@ -362,7 +291,8 @@ def ReweightDataframe_New(data, channel, var_name_list, masses):
         Fit_Func_FileName = "{}/{}_{}.root".format(channel, "TProfile_signal_fit_func", var_name)
         file = TFile.Open(Fit_Func_FileName)
         func = TF1()
-        file.GetObject("f_old", func)
+        fitFuncName = "fitFunction_" + var_name
+        file.GetObject(fitFuncName, func)
         print("Number of parameters", func.GetNpar())
         Npar = func.GetNpar()
 
@@ -386,47 +316,6 @@ def ReweightDataframe_New(data, channel, var_name_list, masses):
         print(datetime.now() - startTime)
         file.Close()       
 
-
-###########################################                                                                                                                                                                                                                         
-## Settings for NN training in jupyter .nb                                                                                                                                                                                                                          
-##########################################                                                                                                                                                                                                                          
-#channel='2l_2tau_HH'                                                                                                                                                                                                                                               
-bdtType = "evtLevelSUM_HH_2l_2tau_res"
-
-## --- Choose Tau ID ----                                                                                                                                                                                                                                           
-#tauID = "dR03mvaLoose"                                                                                                                                                                                                                                             
-tauID = "dR03mvaVLoose"
-#tauID = "dR03mvaVVLoose"                                                                                                                                                                                                                                           
-## ---------------------                                                                                                                                                                                                                                            
-
-
-
-##-------Choose your background gen_mHH randomiz. method ----##                                                                                                                                                                                                     
-#Bkg_mass_rand="default"                                                                                                                                                                                                                                            
-Bkg_mass_rand="oversampling"
-##----------------------------------------------------------##                                                                                                                                                                                                      
-
-##-------- Choose Input variables and mass range for NN training --------------##                                                                                                                                                                                   
-variables="finalVars_allMasses"  ## To include all masses use these (for tauID = "dR03mvaVLoose")                                                                                                                                                                   
-TrainMode=0                      ## To include all masses use these (for tauID = "dR03mvaVLoose")                                                                                                                                                                   
-
-#variables="finalVars_LowMasses" ## To include Low masses (=< 400 GeV) only use these (for tauID = "dR03mvaVLoose")                                                                                                                                                 
-#TrainMode=1                     ## To include Low masses (=< 400 GeV) only use these (for tauID = "dR03mvaVLoose")                                                                                                                                                 
-
-#variables="finalVars_HighMasses" ## To include High masses (> 400 GeV) only use these (for tauID = "dR03mvaVLoose")                                                                                                                                                
-#TrainMode=2                      ## To include High masses (> 400 GeV) only use these (for tauID = "dR03mvaVLoose")                                                                                                                                                
-##----------------------------------------------------------##                                                                                                                                                                                                      
-
-## --- To reweight Input Variables set this to true ---- #
-do_ReweightVars=True
-##----------------------------------------------------------##                                                                                                                                                                                                      
-
-## --- Set this to true to get Histograms and THStack plots ---- ###                                                                                                                                                                                                
-do_2l_2tau_diagnostics=True
-##----------------------------------------------------------##                                                                                                                                                                                                      
-
-#weights="totalWeight" ## Was used in the BDT code                                                                                                                                                                                                                  
-#target='target'       ## Was used in the BDT code                                                                                                                                                                                                                  
 
 
 
