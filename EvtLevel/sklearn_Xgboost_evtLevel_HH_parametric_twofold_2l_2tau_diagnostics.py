@@ -39,6 +39,10 @@ from ROOT import gBenchmark, gRandom, gSystem, Double, gPad, TFitResultPtr, TMat
 import copy
 
 
+##--- Example as to how to run the code for 2l_2tau channel ----- ###
+##python sklearn_Xgboost_evtLevel_HH_parametric_twofold_2l_2tau_diagnostics.py --channel "2l_2tau" --bdtType "evtLevelSUM_HH_2l_2tau_res" --variables $VAR --tauID dR03mvaVLoose --Bkg_mass_rand oversampling --TrainMode 0 --BDT_Diagnostics_2l_2tau True  --ReweightVars True --doXML True  
+
+
 def lr_to_str(lr):
     if(lr >= 1.0):
         lr_label = "_lr_"+str(int(lr*1))
@@ -90,15 +94,22 @@ trainvar=options.variables
 #hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(options.treeDeph)+"_mcw_"+str(options.mcw)+"_lr_0o0"+str(int(options.lr*100))
 hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(options.treeDeph)+"_mcw_"+str(options.mcw)+lr_to_str(options.lr)
 
-if(TrainMode == 0):
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_all_Masses"
-elif(TrainMode == 1):
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_Low_masses_only"
-elif(TrainMode == 2):
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_High_masses_only"
-else:
-    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_all_Masses"
 
+print("do_ReweightVars", do_ReweightVars)
+print("do_2l_2tau_diagnostics", do_2l_2tau_diagnostics)
+
+
+
+if(TrainMode == 0):
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_all_Masses4"
+elif(TrainMode == 1):
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_Low_masses_only4"
+elif(TrainMode == 2):
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_High_masses_only4"
+else:
+    channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables+"_Train_all_Masses4"
+
+print("TrainMode", TrainMode)
 
 print("do_ReweightVars:")
 print(do_ReweightVars)
@@ -114,19 +125,10 @@ print (startTime)
 
 if "bb2l" in channel   : execfile("../cards/info_bb2l_HH.py")
 if "2l_2tau" in channel: execfile("../cards/info_2l_2tau_HH.py")
-'''
-    if(TrainMode == 0):
-        execfile("../cards/info_2l_2tau_HH.py")
-    elif(TrainMode == 1):
-        execfile("../cards/info_2l_2tau_HH_low_Mass_only.py")
-    elif(TrainMode == 2):    
-        execfile("../cards/info_2l_2tau_HH_High_Mass_only.py")
-    else:    
-        execfile("../cards/info_2l_2tau_HH.py")
-'''
+
 
 if(options.ClassErr_vs_epoch == True):
-    channel+"_SplitMode_"+options.SplitMode+"_ScanMode_"+options.ScanMode
+    channel+"_SplitMode_"+str(options.SplitMode)+"_ScanMode_"+str(options.ScanMode)
     log_file_name=channel+".log"
     if 'evtLevelSUM_HH_2l_2tau_res' in bdtType :
         file1_ = open(log_file_name, 'w+')
@@ -143,296 +145,11 @@ target='target'
 
 output = read_from(Bkg_mass_rand, tauID)
 
-def numpyarrayTProfileFill(data_X, data_Y, data_wt, hprof):
-    for x,y,w in np.nditer([data_X, data_Y, data_wt]):
-        #print("x: {}, y: {}, w: {}".format(x, y, w))
-        hprof.Fill(x,y,w)
-
-
-def numpyarrayHisto1DFill(data_X, data_wt, histo1D):
-    #for x,w in np.nditer([data_X, data_wt]):
-    for x,w in zip(data_X, data_wt):
-        #print("x: {},  w: {}".format(x, w))
-        histo1D.Fill(x,w)
-
-
-def AddHistToStack(data_copy, var_name,  hstack, nbins, X_min, X_max, FillColor, processName):
-    histo1D = TH1D( 'histo1D', processName, nbins, X_min, X_max)
-    data_X_array  = np.array(data_copy[var_name].values, dtype=np.float)
-    data_wt_array = np.array(data_copy['totalWeight'].values, dtype=np.float)
-    numpyarrayHisto1DFill(data_X_array, data_wt_array, histo1D)
-    histo1D.SetFillColor(FillColor)
-    #histo1D.Draw()
-    hstack.Add(histo1D)
-
-
-def BuildTHstack_2l_2tau(hstack, data_copy, var_name, nbins, X_min, X_max):
-    ttbar_samples = ['TTTo2L2Nu','TTToSemiLeptonic']
-    vv_samples = ['ZZ', 'WZ', 'WW']
-    ttv_samples = ['TTZJets', 'TTWJets']
-    data_copy_TT  =  data_copy.loc[(data_copy['key'].isin(ttbar_samples))] ## TTbar
-    data_copy_DY  =  data_copy.loc[(data_copy['key']=='DY')] ## DY
-    data_copy_VV  =  data_copy.loc[(data_copy['key'].isin(vv_samples))] ## VV
-    data_copy_TTV =  data_copy.loc[(data_copy['key'].isin(ttv_samples))] ## TTV
-    data_copy_TTH =  data_copy.loc[(data_copy['key']=='TTH')] ## TTH
-    data_copy_VH  =  data_copy.loc[(data_copy['key']=='VH')] ## VH
-
-    if(data_copy_TTH.empty != True): AddHistToStack(data_copy_TTH, var_name, hstack, nbins, X_min, X_max, 5, 'TTH') ## Yellow
-    if(data_copy_TTV.empty != True): AddHistToStack(data_copy_TTV, var_name, hstack, nbins, X_min, X_max, 1, 'TTV')  ## Black
-    if(data_copy_VH.empty != True): AddHistToStack(data_copy_VH, var_name, hstack, nbins, X_min, X_max, 6, 'VH')  ## Magenta
-    if(data_copy_VV.empty != True): AddHistToStack(data_copy_VV, var_name, hstack, nbins, X_min, X_max, 3, 'VV')    ## Green
-    if(data_copy_DY.empty != True): AddHistToStack(data_copy_DY, var_name, hstack, nbins, X_min, X_max, 2, 'DY')      ## Red
-    if(data_copy_TT.empty != True): AddHistToStack(data_copy_TT, var_name, hstack, nbins, X_min, X_max, 4, 'TTbar')  ## Blue
-
-
-def MakeTHStack(channel, data, var_name, nbins, X_min, X_max, label):
-    data_copy = data.copy(deep=True) ## Making a deep copy of data ( => separate data and index from data)
-    data_copy =  data_copy.loc[(data_copy[target]==0)] ## Only take backgrounds
-    data_X  = np.array(data_copy[var_name].values, dtype=np.float)
-    data_wt = np.array(data_copy['totalWeight'].values, dtype=np.float)
-
-    N_x  = len(data_X)
-    N_wt = len(data_wt)
-
-    # Create a new canvas, and customize it.
-    c1 = TCanvas( 'c1', 'Dynamic Filling Example', 200, 10, 700, 500)
-    #c1.SetFillColor(42)
-    #c1.GetFrame().SetFillColor(21)
-    c1.GetFrame().SetBorderSize(6)
-    c1.GetFrame().SetBorderMode(-1)
-
-    if(N_x == N_wt):
-       #print("N_x: {}, N_wt: {}".format(N_x, N_wt))
-       PlotTitle = var_name
-       hstack  = THStack('hstack', PlotTitle)
-       BuildTHstack_2l_2tau(hstack, data_copy, var_name, nbins, X_min, X_max)
-       hstack.Draw("hist")
-       hstack.GetYaxis().SetTitle("Events")
-       hstack.GetXaxis().SetTitle(var_name)
-       c1.Modified()
-       c1.Update()
-       gPad.BuildLegend(0.75,0.75,0.95,0.95,"")
-       FileName = "{}/{}_{}_{}.root".format(channel, "THStack", var_name, label)
-       c1.SaveAs(FileName)
-    else:
-        print('Arrays not of same length')
-        print("N_x: {}, N_wt: {}".format(N_x, N_wt))
-
-
-def MakeHisto1D(channel, data, var_name, nbins, X_min, X_max, label):
-    data_copy = data.copy(deep=True) ## Making a deep copy of data ( => separate data and index from data)
-    data_copy =  data_copy.loc[(data_copy[target]==0)] ## Only take backgrounds
-    data_X  = np.array(data_copy[var_name].values, dtype=np.float)
-    data_wt = np.array(data_copy['totalWeight'].values, dtype=np.float)
-
-    N_x  = len(data_X)
-    N_wt = len(data_wt)
-
-    # Create a new canvas, and customize it.
-    c1 = TCanvas( 'c1', "Canvas", 200, 10, 700, 500)
-    #c1.SetFillColor(42)
-    #c1.GetFrame().SetFillColor(21)
-    c1.GetFrame().SetBorderSize(6)
-    c1.GetFrame().SetBorderMode(-1)
-
-    if(N_x == N_wt):
-       #print("N_x: {}, N_wt: {}".format(N_x, N_wt))
-       PlotTitle = var_name
-       histo1D  = TH1D( 'histo1D', PlotTitle, nbins, X_min, X_max)
-       histo1D.GetYaxis().SetTitle("Events")
-       histo1D.GetXaxis().SetTitle(var_name)
-       numpyarrayHisto1DFill(data_X, data_wt, histo1D)
-       histo1D.Draw()
-       c1.Modified()
-       c1.Update()
-       FileName = "{}/{}_{}_{}.root".format(channel, "Histo1D", var_name, label)
-       c1.SaveAs(FileName)
-    else:
-     print('Arrays not of same length')
-     print("N_x: {}, N_wt: {}".format(N_x, N_wt))
-
-
-
-def MakeTProfile(channel, data, var_name, y_min, y_max, Target, doFit, label, TrainMode):
-    data_copy = data.copy(deep=True) ## Making a deep copy of data ( => separate data and index from data)
-    data_copy =  data_copy.loc[(data_copy[target]==Target)] ## Only take 1 for signal
-    data_Y  = np.array(data_copy[var_name].values, dtype=np.float)
-    data_X  = np.array(data_copy['gen_mHH'].values, dtype=np.float)
-    data_wt = np.array(data_copy['totalWeight'].values, dtype=np.float)
-
-    N_x  = len(data_X)
-    N_y  = len(data_Y)
-    N_wt = len(data_wt)
-
-    # Create a new canvas, and customize it.
-    c1 = TCanvas( 'c1', 'Dynamic Filling Example', 200, 10, 700, 500)
-    #c1.SetFillColor(42)
-    #c1.GetFrame().SetFillColor(21)
-    c1.GetFrame().SetBorderSize(6)
-    c1.GetFrame().SetBorderMode(-1)
-
-    if (Target == 1):
-        FileName = "{}/{}_{}_{}.root".format(channel, "TProfile_signal", var_name, label)
-        #TProfileFile = TFile(FileName, "RECREATE")
-        Fit_Func_FileName = "{}/{}_{}.root".format(channel, "TProfile_signal_fit_func", var_name)
-    elif(Target == 0):
-        FileName = "{}/{}_{}_{}.root".format(channel, "TProfile", var_name, label)
-        #TProfileFile = TFile(FileName, "RECREATE")
-    else:
-        FileName = "{}/{}_{}.root".format(channel, "TProfile", var_name, label)
-        #TProfileFile = TFile(FileName, "RECREATE")
-    #c1.SaveAs(FileName)
-
-
-    if((N_x == N_y) and (N_y == N_wt)):
-        #print("N_x: {}, N_y: {}, N_wt: {}".format(N_x, N_y, N_wt))
-        PlotTitle = 'Profile of '+var_name+' vs gen_mHH'
-        hprof  = TProfile( 'hprof', PlotTitle, 17, 250., 1100., y_min, y_max)
-        xbins = array.array('d', [250., 260., 270., 280., 300., 350., 400., 450., 500., 550., 600., 650., 700., 750., 800., 850., 900., 1000.])
-        hprof.SetBins((len(xbins) - 1), xbins)
-        hprof.GetXaxis().SetTitle("gen_mHH (GeV)")
-        hprof.GetYaxis().SetTitle(var_name)
-        numpyarrayTProfileFill(data_X, data_Y, data_wt, hprof)
-        hprof.Draw()
-        c1.Modified()
-        c1.Update()
-        #c1.SaveAs(FileName)
-
-        if(doFit and (Target == 1)): ## do the fit for signal only
-            if(TrainMode == 0): ## All masses used in the training
-                #f_old = TF1("f_old", "[0]+[1]*x", 250.,1000.)
-                if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol4", 250.,1000.)
-                elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol3", 250.,1000.)
-                elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "mht"): f_old = TF1("f_old", "pol3", 250.,1000.)
-                elif(var_name == "met"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)
-                elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol3", 250.,1000.)
-                elif(var_name == "nElectron"): f_old = TF1("f_old", "pol2", 250.,1000.)
-                elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol2", 250.,1000.)
-                elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 250.,1000.)
-                elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol2", 250.,1000.)
-                elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,1000.)
-                elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol3", 250.,1000.)
-                else:f_old = TF1("f_old", "pol6", 250.,1000.)
-            elif(TrainMode == 1): ## Only Low masses used in the training
-                if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol1", 250.,400.)
-                elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 250.,400.)
-                elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 250.,400.)
-                elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 250.,400.)
-                elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 250.,400.)
-                elif(var_name == "mht"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "met"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol5", 250.,400.)
-                elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol5", 250.,400.)
-                elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol3", 250.,400.)
-                elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 250.,400.)
-                elif(var_name == "nElectron"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol5", 250.,400.)
-                elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol3", 250.,400.)
-                elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol3", 250.,400.)
-                elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol2", 250.,400.)
-                elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol4", 250.,400.)
-                elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol1", 250.,400.)
-                else:f_old = TF1("f_old", "pol6", 250.,400.)
-            elif(TrainMode == 2): ## Only High masses used in the training
-                if(var_name == "diHiggsMass"): f_old = TF1("f_old", "pol6", 450.,1000.)
-                elif(var_name == "tau1_pt"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "met_LD"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "diHiggsVisMass"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                elif(var_name == "m_ll"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "tau2_pt"): f_old = TF1("f_old", "pol3", 450.,1000.)
-                elif(var_name == "mTauTau"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "mT_lep1"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "mT_lep2"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "mht"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "met"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "dr_lep_tau_min_SS"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                elif(var_name == "dr_lep_tau_min_OS"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                elif(var_name == "dr_taus"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                elif(var_name == "dr_lep1_tau1_tau2_max"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "dr_lep1_tau1_tau2_min"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                elif(var_name == "max_lep_eta"): f_old = TF1("f_old", "pol6", 450.,1000.)
-                elif(var_name == "max_tau_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "nElectron"): f_old = TF1("f_old", "pol6", 450.,1000.)
-                elif(var_name == "nBJet_medium"): f_old = TF1("f_old", "pol4", 450.,1000.)
-                elif(var_name == "dr_leps"): f_old = TF1("f_old", "pol6", 450.,1000.)
-                elif(var_name == "tau1_eta"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "deltaEta_lep1_tau1"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "deltaEta_lep1_tau2"): f_old = TF1("f_old", "pol1", 450.,1000.)
-                elif(var_name == "m_lep1_tau2"): f_old = TF1("f_old", "pol6", 450.,1000.)
-                else:f_old = TF1("f_old", "pol6", 450.,1000.)
-            r_old = TFitResultPtr()
-            r_old = hprof.Fit(f_old, "SF") ## Fitting using Minuit instead of the linear fitter
-            f_old.Draw("same")
-            c1.Modified()
-            c1.Update()
-            c1.SaveAs(FileName)
-
-            FuncFile = TFile(Fit_Func_FileName, "RECREATE")
-            f_old.Write()
-            FuncFile.Close()
-        else:
-            print("No fit will be performed")
-            c1.SaveAs(FileName)
-
-    else:
-        print('Arrays not of same length')
-        print("N_x: {}, N_y: {}, N_wt: {}".format(N_x, N_y, N_wt))
-
-
-def ReweightDataframe(data, channel, var_name, masses):
-
-    Fit_Func_FileName = "{}/{}_{}.root".format(channel, "TProfile_signal_fit_func", var_name)
-    file = TFile.Open(Fit_Func_FileName)
-    func = TF1()
-    file.GetObject("f_old", func)
-    print("Number of parameters", func.GetNpar())
-    Npar = func.GetNpar()
-    
-    corr_factor_Dict = {}
-    for x in masses:
-        corr_factor_Dict[x] = func.Eval(x)
-        #print("Corr. factor: %f , gen_mHH: %f" % (corr_factor_Dict[x], x))
-
-    print("Started the scaling of ", var_name)
-
-    process = psutil.Process(os.getpid())
-    print(process.memory_info().rss)
-    print(datetime.now() - startTime)
-
-    for x in masses:
-        print("gen_mHH %f" % x) 
-        data.loc[(data['gen_mHH']==x), [var_name]] /= corr_factor_Dict[x]
-
-    print("Finished the scaling of ", var_name)
-    process = psutil.Process(os.getpid())
-    print(process.memory_info().rss)
-    print(datetime.now() - startTime)
-    file.Close()
-
+execfile("../cards/auxiliary_functions_2l_2tau_HH.py") ## Loading all the functions needed for fitting
 
 ##--- Choice of train mass ranges implemented
-if(TrainMode == 0): ## All Masses included in training
+if( TrainMode == 0 ): ## All Masses included in training
+    print("Training on all masses: 250-1000 GeV")
     data=load_data_2017(
         output["inputPath"],
         output["channelInTree"],
@@ -446,7 +163,8 @@ if(TrainMode == 0): ## All Masses included in training
         )
     mass_list = output["masses"]
     test_masses = output["masses_test"]
-elif(TrainMode == 1): ## Only Low Masses (<= 400 GeV) included in training
+elif( TrainMode == 1 ): ## Only Low Masses (<= 400 GeV) included in training
+    print("Training on Low masses only: 250-400 GeV")
     data=load_data_2017(
         output["inputPath"],
         output["channelInTree"],
@@ -460,7 +178,8 @@ elif(TrainMode == 1): ## Only Low Masses (<= 400 GeV) included in training
         )
     mass_list = output["masses_low"]
     test_masses = output["masses_test_low"]
-elif(TrainMode == 2): ## Only High Masses (> 400 GeV) included in training
+elif( TrainMode == 2 ): ## Only High Masses (> 400 GeV) included in training
+    print("Training on High masses only: 450-1000 GeV")
     data=load_data_2017(
         output["inputPath"],
         output["channelInTree"],
@@ -475,6 +194,7 @@ elif(TrainMode == 2): ## Only High Masses (> 400 GeV) included in training
     mass_list = output["masses_high"]
     test_masses = output["masses_test_high"]
 else:
+    print("TrainMode neither 0/1/2 switching back to Training on all masses: 250-1000 GeV")
     data=load_data_2017(
         output["inputPath"],
         output["channelInTree"],
@@ -489,22 +209,10 @@ else:
     mass_list = output["masses"]
     test_masses = output["masses_test"]
     
-'''
-if(TrainMode == 0): ## All Masses included in training
-    test_masses = output["masses_test"]
-elif(TrainMode == 1): ## Only Low Masses included in training 
-    test_masses = output["masses_test_low"]
-elif(TrainMode == 2): ## Only High Masses included in training 
-    test_masses = output["masses_test_high"]
-else:
-    test_masses = output["masses_test"]
-'''
-
-
 data.dropna(subset=[weights],inplace = True)
 data.fillna(0)
 
-print("data", data)
+#print("data", data)
 
 
 ### Plot histograms of training variables
@@ -544,8 +252,6 @@ make_plots(BDTvariables, nbins,
     channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT.pdf",
     printmin,
     plotResiduals,
-    #output["masses_test"],
-    #output["masses"]
     test_masses,
     mass_list
     )
@@ -563,143 +269,20 @@ if(do_2l_2tau_diagnostics == True):
 
 
     ## --- Making TProfile plots with fits (Signal) --- ###
-    MakeTProfile(channel, data, "diHiggsMass", 0., 1100., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "tau1_pt", 0., 1100., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "met_LD", 0., 1100., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "diHiggsVisMass", 0., 1100., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "m_ll", 0., 1100., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "tau2_pt", 0., 1100., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "mTauTau", 0., 1100., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "mT_lep1", 0., 1100., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "mT_lep2", 0., 1100., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "mht", 0., 1100., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "met", 0., 1100., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_lep_tau_min_SS", 0., 1.0, 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_lep_tau_min_OS", 0., 1.0, 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_taus", 0., 1.0, 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_min", 0., 1.0, 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_max", 0., 1.0, 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "max_tau_eta", 0., 3.0, 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "max_lep_eta", 0., 3.0, 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "nElectron", 0., 3., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "nBJet_medium", 0., 3., 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_leps", 0., 1.0, 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "tau1_eta", -3.0, 3.0, 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "deltaEta_lep1_tau1", -5.0, 5.0, 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "deltaEta_lep1_tau2", -5.0, 5.0, 1, DoFits, "before", TrainMode)
-    MakeTProfile(channel, data, "m_lep1_tau2", 0., 1100., 1, DoFits, "before", TrainMode)
-
+    MakeTProfile_New(channel, data, BDTvariables_wo_gen_mHH, 1, DoFits, "before", TrainMode, mass_list)
     
     ## --- Making TProfile plots (background) --- ###
-    MakeTProfile(channel, data, "diHiggsMass", 0., 1100., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "tau1_pt", 0., 1100., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "met_LD", 0., 1100., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "diHiggsVisMass", 0., 1100., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "m_ll", 0., 1100., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "tau2_pt", 0., 1100., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "mTauTau", 0., 1100., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "mT_lep1", 0., 1100., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "mT_lep2", 0., 1100., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "mht", 0., 1100., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "met", 0., 1100., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_lep_tau_min_SS", 0., 1.0, 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_lep_tau_min_OS", 0., 1.0, 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_taus", 0., 1.0, 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_min", 0., 1.0, 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_lep1_tau1_tau2_max", 0., 1.0, 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "max_tau_eta", 0., 3.0, 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "max_lep_eta", 0., 3.0, 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "nElectron", 0., 3., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "nBJet_medium", 0., 3., 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "dr_leps", 0., 1.0, 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "tau1_eta", -3.0, 3.0, 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "deltaEta_lep1_tau1", -5.0, 5.0, 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "deltaEta_lep1_tau2", -5.0, 5.0, 0, False, "before", TrainMode)
-    MakeTProfile(channel, data, "m_lep1_tau2", 0., 1100., 0, False, "before", TrainMode)
-    
+    MakeTProfile_New(channel, data, BDTvariables_wo_gen_mHH, 0, False, "before", TrainMode, mass_list)
+
     ## --- Making 1D Histo plots (background) --- ###
-    MakeHisto1D(channel, data, "gen_mHH", 55, 0., 1100., "before") ## Makes sense only to plot it for backgrounds
-    MakeHisto1D(channel, data, "diHiggsMass", 55, 0., 1100., "before")
-    MakeHisto1D(channel, data, "tau1_pt", 55, 0., 1100., "before")
-    MakeHisto1D(channel, data, "met_LD", 55,  0., 1100., "before")
-    MakeHisto1D(channel, data, "diHiggsVisMass", 55, 0., 1100., "before")
-    MakeHisto1D(channel, data, "m_ll", 55,  0., 1100., "before")
-    MakeHisto1D(channel, data, "tau2_pt", 55,  0., 1100., "before")
-    MakeHisto1D(channel, data, "mTauTau", 55, 0., 1100., "before")
-    MakeHisto1D(channel, data, "mT_lep1", 55, 0., 1100., "before")
-    MakeHisto1D(channel, data, "mT_lep2", 55,  0., 1100., "before")
-    MakeHisto1D(channel, data, "mht", 55, 0., 1100., "before")
-    MakeHisto1D(channel, data, "met", 55, 0., 1100., "before")
-    MakeHisto1D(channel, data, "dr_lep_tau_min_SS", 10, 0., 1.0, "before")
-    MakeHisto1D(channel, data, "dr_lep_tau_min_OS", 10, 0., 1.0, "before")
-    MakeHisto1D(channel, data, "dr_taus", 10, 0., 1.0, "before")
-    MakeHisto1D(channel, data, "dr_lep1_tau1_tau2_min", 10, 0., 1.0, "before")
-    MakeHisto1D(channel, data, "dr_lep1_tau1_tau2_max", 10, 0., 1.0, "before")
-    MakeHisto1D(channel, data, "max_tau_eta", 30, 0., 3.0, "before")
-    MakeHisto1D(channel, data, "max_lep_eta", 30, 0., 3.0, "before")
-    MakeHisto1D(channel, data, "nElectron", 3, 0., 3., "before")
-    MakeHisto1D(channel, data, "nBJet_medium", 3, 0., 3., "before")
-    MakeHisto1D(channel, data, "dr_leps", 10, 0., 1.0, "before")
-    MakeHisto1D(channel, data, "tau1_eta", 60, -3.0, 3.0, "before")
-    MakeHisto1D(channel, data, "deltaEta_lep1_tau1", 100, -5.0, 5.0, "before")
-    MakeHisto1D(channel, data, "deltaEta_lep1_tau2", 100, -5.0, 5.0, "before")
-    MakeHisto1D(channel, data, "m_lep1_tau2", 55, 0., 1100., "before")
+    MakeHisto1D_New(channel, data, BDTvariables, "before")
 
     ## --- Making 1D THStack plots (background) --- ###
-    MakeTHStack(channel, data, "gen_mHH", 55, 0., 1100., "before") ## Makes sense only to plot it for backgrounds
-    MakeTHStack(channel, data, "diHiggsMass", 55, 0., 1100., "before")
-    MakeTHStack(channel, data, "tau1_pt", 55, 0., 1100., "before")
-    MakeTHStack(channel, data, "met_LD", 55,  0., 1100., "before")
-    MakeTHStack(channel, data, "diHiggsVisMass", 55, 0., 1100., "before")
-    MakeTHStack(channel, data, "m_ll", 55,  0., 1100., "before")
-    MakeTHStack(channel, data, "tau2_pt", 55,  0., 1100., "before")
-    MakeTHStack(channel, data, "mTauTau", 55, 0., 1100., "before")
-    MakeTHStack(channel, data, "mT_lep1", 55, 0., 1100., "before")
-    MakeTHStack(channel, data, "mT_lep2", 55,  0., 1100., "before")
-    MakeTHStack(channel, data, "mht", 55, 0., 1100., "before")
-    MakeTHStack(channel, data, "met", 55, 0., 1100., "before")
-    MakeTHStack(channel, data, "dr_lep_tau_min_SS", 10, 0., 1.0, "before")
-    MakeTHStack(channel, data, "dr_lep_tau_min_OS", 10, 0., 1.0, "before")
-    MakeTHStack(channel, data, "dr_taus", 10, 0., 1.0, "before")
-    MakeTHStack(channel, data, "dr_lep1_tau1_tau2_min", 10, 0., 1.0, "before")
-    MakeTHStack(channel, data, "dr_lep1_tau1_tau2_max", 10, 0., 1.0, "before")
-    MakeTHStack(channel, data, "max_tau_eta", 30, 0., 3.0, "before")
-    MakeTHStack(channel, data, "max_lep_eta", 30, 0., 3.0, "before")
-    MakeTHStack(channel, data, "nElectron", 3, 0., 3., "before")
-    MakeTHStack(channel, data, "nBJet_medium", 3, 0., 3., "before")
-    MakeTHStack(channel, data, "dr_leps", 10, 0., 1.0, "before")
-    MakeTHStack(channel, data, "tau1_eta", 60, -3.0, 3.0, "before")
-    MakeTHStack(channel, data, "deltaEta_lep1_tau1", 100, -5.0, 5.0, "before")
-    MakeTHStack(channel, data, "deltaEta_lep1_tau2", 100, -5.0, 5.0, "before")
-    MakeTHStack(channel, data, "m_lep1_tau2", 55, 0., 1100., "before")
-    
+    MakeTHStack_New(channel, data, BDTvariables, "before")
+
     if(do_ReweightVars): 
         ## ----- SCALING I/P VAR.S IN DATA USING THE FITS DONE ABOVE---- ###
-        ReweightDataframe(data, channel, "diHiggsMass", mass_list)
-        ReweightDataframe(data, channel, "tau1_pt", mass_list)
-        ReweightDataframe(data, channel, "met_LD", mass_list)
-        ReweightDataframe(data, channel, "diHiggsVisMass", mass_list)
-        ReweightDataframe(data, channel, "m_ll", mass_list)
-        ReweightDataframe(data, channel, "tau2_pt", mass_list)
-        ReweightDataframe(data, channel, "mTauTau", mass_list)
-        ReweightDataframe(data, channel, "mT_lep1", mass_list)
-        ReweightDataframe(data, channel, "mT_lep2", mass_list)
-        ReweightDataframe(data, channel, "mht", mass_list)
-        ReweightDataframe(data, channel, "met", mass_list)
-        ReweightDataframe(data, channel, "dr_lep_tau_min_SS", mass_list)
-        ReweightDataframe(data, channel, "dr_lep_tau_min_OS", mass_list)
-        ReweightDataframe(data, channel, "dr_taus", mass_list)
-        ReweightDataframe(data, channel, "dr_lep1_tau1_tau2_min", mass_list)
-        ReweightDataframe(data, channel, "dr_lep1_tau1_tau2_max", mass_list)
-        ReweightDataframe(data, channel, "max_tau_eta", mass_list)
-        ReweightDataframe(data, channel, "max_lep_eta", mass_list)
-        ReweightDataframe(data, channel, "nElectron", mass_list)
-        ReweightDataframe(data, channel, "nBJet_medium", mass_list)
-        ReweightDataframe(data, channel, "dr_leps", mass_list)
-        ReweightDataframe(data, channel, "tau1_eta", mass_list)
-        ReweightDataframe(data, channel, "deltaEta_lep1_tau1", mass_list)
-        ReweightDataframe(data, channel, "deltaEta_lep1_tau2", mass_list)
-        ReweightDataframe(data, channel, "m_lep1_tau2", mass_list)
+        ReweightDataframe_New(data, channel, BDTvariables_wo_gen_mHH, mass_list)
 else:
     print("No plots and fits will be made for 2l_2tau diagnostics")
 
@@ -708,27 +291,10 @@ print ("separate datasets odd/even")
 data_even = data.loc[(data["event"].values % 2 == 0) ]
 data_odd = data.loc[~(data["event"].values % 2 == 0) ]
 
-#print("300 GeV events:", data.loc[(data['gen_mHH'] == 300), ["event"]]) 
-#print("500 GeV events:", data.loc[(data['gen_mHH'] == 500), ["event"]]) 
-#print("800 GeV events:", data.loc[(data['gen_mHH'] == 800), ["event"]]) 
+#data_even_test_800 = data.loc[((data['gen_mHH'] == 800) & (data['event'] == 101964) & (data['target'] == 1))]
+#print('data_even_test_800', data_even_test_800)
 
-'''
-data_even_test_300 = data.loc[(data['gen_mHH'] == 300) & (data['event'] == 297676)]
-data_odd_test_300 = data.loc[(data['gen_mHH'] == 300) & (data['event'] == 298569)]
-#data_even_test_300.loc[(data_even_test_300['gen_mHH'] == 300), ["gen_mHH"]] = 250 ## allot different gen_mHH mass to the events
-#data_odd_test_300.loc[(data_odd_test_300['gen_mHH'] == 300), ["gen_mHH"]] = 250   ## allot different gen_mHH mass to the events
-
-data_even_test_500 = data.loc[(data['gen_mHH'] == 500) & (data['event'] == 198922)]
-data_odd_test_500 = data.loc[(data['gen_mHH'] == 500) & (data['event'] == 198919)]
-#data_even_test_500.loc[(data_even_test_500['gen_mHH'] == 500), ["gen_mHH"]] = 450 ## allot different gen_mHH mass to the events
-#data_odd_test_500.loc[(data_odd_test_500['gen_mHH'] == 500), ["gen_mHH"]] = 450   ## allot different gen_mHH mass to the events
-
-data_even_test_800 = data.loc[(data['gen_mHH'] == 800) & (data['event'] == 194762)]
-data_odd_test_800 = data.loc[(data['gen_mHH'] == 800) & (data['event'] == 194499)]
-#data_even_test_800.loc[(data_even_test_800['gen_mHH'] == 800), ["gen_mHH"]] = 750 ## allot different gen_mHH mass to the events
-#data_odd_test_800.loc[(data_odd_test_800['gen_mHH'] == 800), ["gen_mHH"]] = 750   ## allot different gen_mHH mass to the events
-'''
-
+#print("diHiggsMass: {}, diHiggsVisMass: {}, tau1_pt: {}, nBJet_medium: {}, nElectron: {}, dr_lep_tau_min_SS: {}, met_LD: {}, tau2_pt: {}, dr_lep_tau_min_OS: {}, gen_mHH: {}".format(data_even_test_800["diHiggsMass"], data_even_test_800["diHiggsVisMass"], data_even_test_800["tau1_pt"], data_even_test_800["nBJet_medium"], data_even_test_800["nElectron"], data_even_test_800["dr_lep_tau_min_SS"], data_even_test_800["met_LD"], data_even_test_800["tau2_pt"], data_even_test_800["dr_lep_tau_min_OS"], data_even_test_800["gen_mHH"]) )
 
 
 order_train = [data_odd, data_even]
@@ -770,138 +336,33 @@ if(do_2l_2tau_diagnostics == True):
     data_do.loc[data_do['target']==1, [weights]] *= 0.5
     label = "after"
 
-    #for data_do in order_train:
-    #    if(data_do.equals(data_even)): 
-    #        label = "data_even_after"
-    #    elif(data_do.equals(data_odd)):    
-    #        label = "data_odd_after"
 
-        
     ## --- Making TProfile plots w/o fitting (Signal) --- ###
-    MakeTProfile(channel, data_do, "diHiggsMass", 0., 1100., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "tau1_pt", 0., 1100., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "met_LD", 0., 1100., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "diHiggsVisMass", 0., 1100., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "m_ll", 0., 1100., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "tau2_pt", 0., 1100., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "mTauTau", 0., 1100., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "mT_lep1", 0., 1100., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "mT_lep2", 0., 1100., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "mht", 0., 1100., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "met", 0., 1100., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_lep_tau_min_SS", 0., 1.0, 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_lep_tau_min_OS", 0., 1.0, 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_taus", 0., 1.0, 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_min", 0., 1.0, 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_max", 0., 1.0, 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "max_tau_eta", 0., 3.0, 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "max_lep_eta", 0., 3.0, 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "nElectron", 0., 3., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "nBJet_medium", 0., 3., 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_leps", 0., 1.0, 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "tau1_eta", -3.0, 3.0, 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "deltaEta_lep1_tau1", -5.0, 5.0, 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "deltaEta_lep1_tau2", -5.0, 5.0, 1, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "m_lep1_tau2", 0., 1100., 1, False, label, TrainMode)
-    
-    
-    ## --- Making TProfile plots (background) --- ###
-    MakeTProfile(channel, data_do, "diHiggsMass", 0., 1100., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "tau1_pt", 0., 1100., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "met_LD", 0., 1100., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "diHiggsVisMass", 0., 1100., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "m_ll", 0., 1100., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "tau2_pt", 0., 1100., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "mTauTau", 0., 1100., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "mT_lep1", 0., 1100., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "mT_lep2", 0., 1100., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "mht", 0., 1100., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "met", 0., 1100., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_lep_tau_min_SS", 0., 1.0, 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_lep_tau_min_OS", 0., 1.0, 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_taus", 0., 1.0, 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_min", 0., 1.0, 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_lep1_tau1_tau2_max", 0., 1.0, 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "max_tau_eta", 0., 3.0, 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "max_lep_eta", 0., 3.0, 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "nElectron", 0., 3., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "nBJet_medium", 0., 3., 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "dr_leps", 0., 1.0, 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "tau1_eta", -3.0, 3.0, 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "deltaEta_lep1_tau1", -5.0, 5.0, 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "deltaEta_lep1_tau2", -5.0, 5.0, 0, False, label, TrainMode)
-    MakeTProfile(channel, data_do, "m_lep1_tau2", 0., 1100., 0, False, label, TrainMode)
+    MakeTProfile_New(channel, data, BDTvariables_wo_gen_mHH, 1, False, label, TrainMode, mass_list)
 
-    
+    ## --- Making TProfile plots (background) --- ###
+    MakeTProfile_New(channel, data, BDTvariables_wo_gen_mHH, 0, False, label, TrainMode, mass_list)
+
     ## --- Making 1D Histo plots (background) --- ###
-    MakeHisto1D(channel, data_do, "gen_mHH", 55, 0., 1100., label) ## Makes sense only to plot it for backgrounds
-    MakeHisto1D(channel, data_do, "diHiggsMass", 55, 0., 1100., label)
-    MakeHisto1D(channel, data_do, "tau1_pt", 55, 0., 1100., label)
-    MakeHisto1D(channel, data_do, "met_LD", 55,  0., 1100., label)
-    MakeHisto1D(channel, data_do, "diHiggsVisMass", 55, 0., 1100., label)
-    MakeHisto1D(channel, data_do, "m_ll", 55,  0., 1100., label)
-    MakeHisto1D(channel, data_do, "tau2_pt", 55,  0., 1100., label)
-    MakeHisto1D(channel, data_do, "mTauTau", 55, 0., 1100., label)
-    MakeHisto1D(channel, data_do, "mT_lep1", 55, 0., 1100., label)
-    MakeHisto1D(channel, data_do, "mT_lep2", 55,  0., 1100., label)
-    MakeHisto1D(channel, data_do, "mht", 55, 0., 1100., label)
-    MakeHisto1D(channel, data_do, "met", 55, 0., 1100., label)
-    MakeHisto1D(channel, data_do, "dr_lep_tau_min_SS", 10, 0., 1.0, label)
-    MakeHisto1D(channel, data_do, "dr_lep_tau_min_OS", 10, 0., 1.0, label)
-    MakeHisto1D(channel, data_do, "dr_taus", 10, 0., 1.0, label)
-    MakeHisto1D(channel, data_do, "dr_lep1_tau1_tau2_min", 10, 0., 1.0, label)
-    MakeHisto1D(channel, data_do, "dr_lep1_tau1_tau2_max", 10, 0., 1.0, label)
-    MakeHisto1D(channel, data_do, "max_tau_eta", 30, 0., 3.0, label)
-    MakeHisto1D(channel, data_do, "max_lep_eta", 30, 0., 3.0, label)
-    MakeHisto1D(channel, data_do, "nElectron", 3, 0., 3., label)
-    MakeHisto1D(channel, data_do, "nBJet_medium", 3, 0., 3., label)
-    MakeHisto1D(channel, data_do, "dr_leps", 10, 0., 1.0, label)
-    MakeHisto1D(channel, data_do, "tau1_eta", 60, -3.0, 3.0, label)
-    MakeHisto1D(channel, data_do, "deltaEta_lep1_tau1", 100, -5.0, 5.0, label)
-    MakeHisto1D(channel, data_do, "deltaEta_lep1_tau2", 100, -5.0, 5.0, label)
-    MakeHisto1D(channel, data_do, "m_lep1_tau2", 55, 0., 1100., label)
+    MakeHisto1D_New(channel, data,  BDTvariables, label)
 
     ## --- Making 1D THStack plots (background) --- ###
-    MakeTHStack(channel, data_do, "gen_mHH", 55, 0., 1100., label) ## Makes sense only to plot it for backgrounds
-    MakeTHStack(channel, data_do, "diHiggsMass", 55, 0., 1100., label)
-    MakeTHStack(channel, data_do, "tau1_pt", 55, 0., 1100., label)
-    MakeTHStack(channel, data_do, "met_LD", 55,  0., 1100., label)
-    MakeTHStack(channel, data_do, "diHiggsVisMass", 55, 0., 1100., label)
-    MakeTHStack(channel, data_do, "m_ll", 55,  0., 1100., label)
-    MakeTHStack(channel, data_do, "tau2_pt", 55,  0., 1100., label)
-    MakeTHStack(channel, data_do, "mTauTau", 55, 0., 1100., label)
-    MakeTHStack(channel, data_do, "mT_lep1", 55, 0., 1100., label)
-    MakeTHStack(channel, data_do, "mT_lep2", 55,  0., 1100., label)
-    MakeTHStack(channel, data_do, "mht", 55, 0., 1100., label)
-    MakeTHStack(channel, data_do, "met", 55, 0., 1100., label)
-    MakeTHStack(channel, data_do, "dr_lep_tau_min_SS", 10, 0., 1.0, label)
-    MakeTHStack(channel, data_do, "dr_lep_tau_min_OS", 10, 0., 1.0, label)
-    MakeTHStack(channel, data_do, "dr_taus", 10, 0., 1.0, label)
-    MakeTHStack(channel, data_do, "dr_lep1_tau1_tau2_min", 10, 0., 1.0, label)
-    MakeTHStack(channel, data_do, "dr_lep1_tau1_tau2_max", 10, 0., 1.0, label)
-    MakeTHStack(channel, data_do, "max_tau_eta", 30, 0., 3.0, label)
-    MakeTHStack(channel, data_do, "max_lep_eta", 30, 0., 3.0, label)
-    MakeTHStack(channel, data_do, "nElectron", 3, 0., 3., label)
-    MakeTHStack(channel, data_do, "nBJet_medium", 3, 0., 3., label)
-    MakeTHStack(channel, data_do, "dr_leps", 10, 0., 1.0, label)
-    MakeTHStack(channel, data_do, "tau1_eta", 60, -3.0, 3.0, label)
-    MakeTHStack(channel, data_do, "deltaEta_lep1_tau1", 100, -5.0, 5.0, label)
-    MakeTHStack(channel, data_do, "deltaEta_lep1_tau2", 100, -5.0, 5.0, label)
-    MakeTHStack(channel, data_do, "m_lep1_tau2", 55, 0., 1100., label)
-
+    MakeTHStack_New(channel, data, BDTvariables, label)
+    
     make_plots(BDTvariables, nbins,
                data.ix[data_do.target.values == 0],labelBKG, colorFast,
                data.ix[data_do.target.values == 1],'Signal', colorFastT,
                channel+"/"+bdtType+"_"+trainvar+"_Variables_BDT_after.pdf",
                printmin,
                plotResiduals,
-               #output["masses_test"],
-               #output["masses"]
                test_masses,
                mass_list
                )
+               
 else:
     print("No plots will be made for 2l_2tau diagnostics")
+
+
 
 roc_test = []
 roc_train = []
@@ -924,6 +385,11 @@ for dd, data_do in  enumerate(order_train):
     else : val_data = 0
 
     print ("XGBoost trained", order_train_name[dd])
+
+    #if(dd == 0): ## Odd train Even test 
+    #    proba_even_test_800 = cls.predict_proba(data_even_test_800[trainVars(False, options.variables, options.bdtType)].values)
+    #    print('proba_even_test_800[:,1]', proba_even_test_800[:,1])
+
     if options.doXML==True :
         pklpath=channel+"/"+channel+"_XGB_"+trainvar+"_"+bdtType+"_"+str(len(trainVars(False, options.variables, options.bdtType)))+"Var_"+order_train_name[dd]
         print ("Date: ", time.asctime( time.localtime(time.time()) ))
@@ -1149,6 +615,8 @@ fig.savefig(nameout)
 #fig.savefig(nameout.replace(".pdf", ".png"))
 
 
+
+
 #### ----- Interpolation check log files ----####
 #for mm, mass in enumerate(output["masses_test"]): ## Loop over the test masses
 for mm, mass in enumerate(test_masses): ## Loop over the test masses
@@ -1225,7 +693,7 @@ for mm, mass in enumerate(test_masses): ## Loop over the test masses
                    printmin,
                    plotResiduals,
                    masses_test2,
-                   [250,260,270,280,300,350,400,450,500,550,600,650,700,750,800,850,900,1000]
+                   [250.,260.,270.,280.,300.,350.,400.,450.,500.,550.,600.,650.,700.,750.,800.,850.,900.,1000.]
                    )
 
         ################# WITH gen_mHH #####################
@@ -1567,7 +1035,7 @@ if options.HypOpt==False :
 		#plt.savefig(namesave.replace(".pdf",".png"))
 		ax.clear()
 
-## Scanning the classification error vs epoch (=ntrees) for a given set of hyper-parameter optimization
+## Scanning the classification error vs epoch (=ntrees) for a given set of hyper-parameter optimization (RUN IN CMSSW_10_X_Y ENVIRON.)
 if options.ClassErr_vs_epoch==True :
    if options.SplitMode == 0:
        ### ----- RANDOM SPLIT OF PANDAS DATAFRAME "data" ---- ####
@@ -1596,6 +1064,7 @@ if options.ClassErr_vs_epoch==True :
        y_train = data_even_target
        X_test  = data_odd
        y_test  = data_odd_target
+       print('Using Odd train Even test split')
    elif options.SplitMode == 2:
        ### ----- ODD-EVEN SPLIT OF PANDAS DATAFRAME "data" ---- ####
        data_even = data_even[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns
@@ -1611,6 +1080,7 @@ if options.ClassErr_vs_epoch==True :
        y_train = data_odd_target
        X_test  = data_even
        y_test  = data_even_target
+       print('Using Even train Odd test split')
    else:
        print("Invalid option SplitMode: Please give values 0/1/2")
        raise ValueError("Invalid parameter SplitMode = '%i' !!" % options.SplitMode)

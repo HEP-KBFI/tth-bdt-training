@@ -7,12 +7,14 @@ import numpy as np
 from numpy.lib.recfunctions import append_fields
 from itertools import product
 from ROOT.Math import PtEtaPhiEVector,VectorUtil
+from math import sqrt, sin, cos, tan, exp
 import ROOT
 import math , array
 from random import randint
 import pandas
 import glob
 from root_numpy import tree2array
+import matplotlib
 
 
 def load_ttHGen() :
@@ -27,100 +29,19 @@ def load_ttHGen() :
     		continue
     	try: tree = tfile.Get("tree")
     	except :
-    		#print "Doesn't exist"
-    		#print ('file ', list[ii],' corrupt')
     		continue
     	if tree is not None :
     		try:
     			chunk_arr = tree2array(tree) #,  start=start, stop = stop)
     		except :
-    			#print "Doesn't exist"
-    			#print ('file ', list[ii],' corrupt')
     			continue
     		else :
     			chunk_df = pandas.DataFrame(chunk_arr) #
-    			#if ii ==0 : print (chunk_df.columns.values.tolist())
     			chunk_df['key']=folderName
     			chunk_df['target']=target
     			data=data.append(chunk_df, ignore_index=True)
     	else : print ("file "+list[ii]+"was empty")
     	tfile.Close()
-        	#if len(data) == 0 : continue
-        #print ("weigths", data.loc[data['target']==0]["totalWeight"].sum() , data.loc[data['target']==1]["totalWeight"].sum() )
-        return data
-
-
-
-def load_dataGen(inputPath,channelInTree,variables,criteria,testtruth,folderName) :
-    print variables
-    my_cols_list=variables+['key','target','file']+criteria #,'tau_frWeight','lep1_frWeight','lep1_frWeight' trainVars(False)
-    # if channel=='2lss_1tau' : my_cols_list=my_cols_list+['tau_frWeight','lep1_frWeight','lep2_frWeight']
-    # those last are only for channels where selection is relaxed (2lss_1tau) === solve later
-    data = pandas.DataFrame(columns=my_cols_list)
-    #if bdtType=="all" : keys=['ttHToNonbb','TTZToLLNuNu','TTWJetsToLNu','TTTo2L2Nu','TTToSemilepton']
-    #if bdtType=="all" : keys=['TTToSemilepton']
-    #for folderName in keys :
-    if 1>0 :
-    	print (folderName, channelInTree)
-    	if 'TTT' in folderName :
-    		sampleName='TT'
-    		target=0
-    	if folderName=='ttHToNonbb' :
-    		sampleName='signal'
-    		target=1
-    	if 'TTW' in folderName :
-    		sampleName='TTW'
-    		target=0
-    	if 'TTZ' in folderName :
-    		sampleName='TTZ'
-    		target=0
-    	inputTree = channelInTree+'/sel/evtntupleGen/'+sampleName+'/evtTree'
-        # inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
-    	if ('TTT' in folderName) or folderName=='ttHToNonbb' :
-            procP1=glob.glob(inputPath+"/"+folderName+"_fastsim_p1/"+folderName+"_fastsim_p1_forBDTtraining*OS_central_*.root")
-            procP2=glob.glob(inputPath+"/"+folderName+"_fastsim_p2/"+folderName+"_fastsim_p2_forBDTtraining*OS_central_*.root")
-            procP3=glob.glob(inputPath+"/"+folderName+"_fastsim_p3/"+folderName+"_fastsim_p3_forBDTtraining*OS_central_*.root")
-            list=procP1+procP2+procP3
-        else :
-            procP1=glob.glob(inputPath+"/"+folderName+"_fastsim/"+folderName+"_fastsim_forBDTtraining*OS_central_*.root")
-            list=procP1
-    	#print ("Date: ", time.asctime( time.localtime(time.time()) ))
-    	for ii in range(0, len(list)) : #
-    		#print (list[ii],inputTree)
-    		try: tfile = ROOT.TFile(list[ii])
-    		except :
-    			#print "Doesn't exist"
-    			#print ('file ', list[ii],' corrupt')
-    			continue
-    		try: tree = tfile.Get(inputTree)
-    		except :
-    			#print "Doesn't exist"
-    			#print ('file ', list[ii],' corrupt')
-    			continue
-    		if tree is not None :
-    			try:
-    				chunk_arr = tree2array(tree) #,  start=start, stop = stop)
-    			except :
-    				#print "Doesn't exist"
-    				#print ('file ', list[ii],' corrupt')
-    				continue
-    			else :
-    				chunk_df = pandas.DataFrame(chunk_arr) #
-    				#if ii ==0 : print (chunk_df.columns.values.tolist())
-    				chunk_df['key']=folderName
-    				chunk_df['target']=target
-    				data=data.append(chunk_df, ignore_index=True)
-    		else : print ("file "+list[ii]+"was empty")
-    		tfile.Close()
-    	#if len(data) == 0 : continue
-        data = data.ix[data.evtWeight.values <1]
-    	nS = len(data.ix[(data.target.values == 0) & (data.key.values==folderName)])
-    	nB = len(data.ix[(data.target.values == 1) & (data.key.values==folderName)])
-    if folderName=='ttHToNonbb' : print (data.columns.values.tolist())
-    nS = len(data.ix[data.target.values == 0])
-    nB = len(data.ix[data.target.values == 1])
-    print channelInTree," length of sig, bkg: ", nS, nB
-    #print ("weigths", data.loc[data['target']==0]["totalWeight"].sum() , data.loc[data['target']==1]["totalWeight"].sum() )
     return data
 
 
@@ -135,11 +56,14 @@ def load_data_2017(
     masses = [],
     mass_randomization = "default",
     sel = None) :
-    print 'bdttype= ', bdtType
+    print "In data_manager::load_data_2017()::\n inputPath: ",inputPath, "\n channelInTree: ",channelInTree
+    print " variables: ",variables, "\n criteria: ",criteria,"\n bdtType: ",bdtType,"\n channel: ",channel
+    print " keys: ",keys,"\n masses: ",masses,"\n mass_randomization: ",mass_randomization
     my_cols_list=variables+['proces', 'key', 'target', "totalWeight"]
     data = pandas.DataFrame(columns=my_cols_list) ## right now an empty dataframe with columns = my_cols_list
+    #print "data: ",data
     for folderName in keys :
-        print '(folderName, channelTree) = ', (folderName, channelInTree)
+        print ('(folderName, channelTree) = ', (folderName, channelInTree))
         if 'TTT' in folderName :
             sampleName='TT'
             target=0
@@ -230,9 +154,11 @@ def load_data_2017(
                 procP1=glob.glob(inputPath+"/"+folderName+"*/"+folderName+"*.root")
                 list=procP1
         else :
+            print("inputPath: {}  folderName: {} ".format(inputPath,folderName))
             procP1=glob.glob(inputPath+"/"+folderName+"*/central/*.root") ## Works for the new folder structure (Saswati's datacards)
             if len(procP1) == 0:
                 procP1=glob.glob(inputPath+"/"+folderName+"*/*.root") ## Works for the old folder structure (Ram's datacards)
+            print("i/p nTuples : {}".format(procP1))
             list=procP1
         for ii in range(0, len(list)) :
             try: tfile = ROOT.TFile(list[ii])
@@ -244,6 +170,7 @@ def load_data_2017(
                 print (inputTree, "FAIL read inputTree", tfile)
                 continue
             if tree is not None :
+                #print "sampleName: ",sampleName,",  folderName: ",folderName, ", list[ii]: ",list[ii], ", nEvents: ",tree.GetEntries()
                 try: chunk_arr = tree2array(tree, selection=sel)
                 except :
                     print (inputTree, "FAIL load inputTree", tfile)
@@ -273,27 +200,27 @@ def load_data_2017(
                         chunk_df["lep2_eta"]=abs(chunk_df["lep2_eta"])
                         chunk_df["max_lep_eta"]=chunk_df[["lep1_eta", "lep2_eta"]].max(axis=1)
                         chunk_df["sum_lep_charge"]=chunk_df["lep1_charge"] + chunk_df["lep2_charge"]
-                    if "HH" in bdtType :
+                    if "HH" in bdtType and "gen_mHH" in variables:
                         if target == 1:
                             for mass in masses:
                                 if str(mass) in folderName:
-                                 chunk_df["gen_mHH"]=mass
+                                    chunk_df["gen_mHH"]=mass
                         elif target == 0:
                             if mass_randomization == "default":
                                 ## Adding 1 rows/events in the data-frame which have "gen_mHH" values randomly chosen from masses array
                                 chunk_df["gen_mHH"]=np.random.choice(masses, size=len(chunk_df))
-                                data=data.append(chunk_df, ignore_index=True)
                             elif mass_randomization == "oversampling":
                                 for mass in masses:
                                     ## ---- Adding rows/events (No. of rows = "len(masses)") in the data-frame  ---###
                                     ## ---- which differ only in their "gen_mHH" values => [evtWeight for each   ---###
                                     ## ----- row should be scaled by "1/len(masses)" in the sklearn script]     ---###
                                     chunk_df["gen_mHH"] = mass
+                                    data=data.append(chunk_df, ignore_index=True)
                             else:
                                 raise ValueError("Invalid parameter mass_randomization = '%s' !!" % mass_randomization)
                         else:
                             raise ValueError("Invalid target = %i !!" % target)
-                    data=data.append(chunk_df, ignore_index=True)
+                    if((mass_randomization != "oversampling") or ((mass_randomization == "oversampling") and (target == 1)) ): data=data.append(chunk_df, ignore_index=True)
             else : print ("file "+list[ii]+"was empty")
             tfile.Close()
         if len(data) == 0 : continue
@@ -308,18 +235,18 @@ def load_data_2017(
             elif folderName == 'W' : data.drop(data.tail(2933623).index,inplace = True)
         nS = len(data.ix[(data.target.values == 1) & (data.key.values==folderName) ])
         nB = len(data.ix[(data.target.values == 0) & (data.key.values==folderName) ])
-        print folderName,"size of sig, bkg, evtweight, tot weight of data: ", nS, nB , data.ix[ (data.key.values==folderName)]["evtWeight"].sum(), data.ix[(data.key.values==folderName)]["totalWeight"].sum()
+        print (folderName,"size of sig, bkg, evtweight, tot weight of data: ", nS, nB , data.ix[ (data.key.values==folderName)]["evtWeight"].sum(), data.ix[(data.key.values==folderName)]["totalWeight"].sum())
         nNW = len(data.ix[(data["totalWeight"].values < 0) & (data.key.values==folderName) ])
-        print folderName, "events with -ve weights", nNW
-    print 'data to list = ', (data.columns.values.tolist())
+        print (folderName, "events with -ve weights", nNW)
+    print ('data to list = ', (data.columns.values.tolist()))
     n = len(data)
     nS = len(data.ix[data.target.values == 1])
     nB = len(data.ix[data.target.values == 0])
-    print channelInTree," size of sig, bkg: ", nS, nB
+    print (channelInTree," size of sig, bkg: ", nS, nB)
     return data
 
 def load_data(inputPath,channelInTree,variables,criteria,testtruth,bdtType) :
-    print variables
+    print (variables)
     my_cols_list=variables+['key','target',"totalWeight"]
     data = pandas.DataFrame(columns=my_cols_list)
     if bdtType=="evtLevelTT_TTH" : keys=['ttHToNonbb','TTTo2L2Nu','TTToSemilepton']
@@ -342,10 +269,10 @@ def load_data(inputPath,channelInTree,variables,criteria,testtruth,bdtType) :
         	target=0
         inputTree = channelInTree+'/sel/evtntuple/'+sampleName+'/evtTree'
         if ('TTT' in folderName) or folderName=='ttHToNonbb' :
-             	procP1=glob.glob(inputPath+"/"+folderName+"_fastsim_p1/"+folderName+"*.root")
-        	procP2=glob.glob(inputPath+"/"+folderName+"_fastsim_p2/"+folderName+"*.root")
-        	procP3=glob.glob(inputPath+"/"+folderName+"_fastsim_p3/"+folderName+"*.root")
-        	list=procP1+procP2+procP3
+            procP1=glob.glob(inputPath+"/"+folderName+"_fastsim_p1/"+folderName+"*.root")
+            procP2=glob.glob(inputPath+"/"+folderName+"_fastsim_p2/"+folderName+"*.root")
+            procP3=glob.glob(inputPath+"/"+folderName+"_fastsim_p3/"+folderName+"*.root")
+            list=procP1+procP2+procP3
         else :
         	procP1=glob.glob(inputPath+"/"+folderName+"_fastsim/"+folderName+"*.root")
         	list=procP1
@@ -407,13 +334,9 @@ def load_data(inputPath,channelInTree,variables,criteria,testtruth,bdtType) :
         if len(data) == 0 : continue
         nS = len(data.ix[(data.target.values == 1) & (data.key.values==folderName) ])
         nB = len(data.ix[(data.target.values == 0) & (data.key.values==folderName) ])
-        print folderName,"length of sig, bkg: ", nS, nB , data.ix[ (data.key.values==folderName)]["totalWeight"].sum(), data.ix[(data.key.values==folderName)]["totalWeight"].sum()
+        print (folderName,"length of sig, bkg: ", nS, nB , data.ix[ (data.key.values==folderName)]["totalWeight"].sum(), data.ix[(data.key.values==folderName)]["totalWeight"].sum())
         if channel=="2l_2tau" :
-            print "tau1 all | lep  ",sampleName , len(data.ix[(data["tau1_fake_prob"].values != 1) & (data.proces.values==sampleName)]), len(data.ix[(data["tau1_fake_test"].values != 1) & (data.proces.values==sampleName)])
-            print "tau2 all | lep  ",sampleName , len(data.ix[(data["tau2_fake_prob"].values != 1) & (data.proces.values==sampleName)]), len(data.ix[(data["tau2_fake_test"].values != 1) & (data.proces.values==sampleName)])
-            print "tau1&2 all | lep  ",sampleName ,len(data.ix[(data["tau1_fake_prob"].values != 1) & (data["tau2_fake_prob"].values != 1) & (data.proces.values==sampleName)]), len(data.ix[(data["tau1_fake_test"].values != 1) & (data['tau2_fake_test'].values != 1) & (data.proces.values==sampleName)])
             datatest=data["evtWeight"]*data["lep1_fake_prob"]*data["lep2_fake_prob"]*data["tau1_fake_test"]*data["tau2_fake_test"]
-            print "sum of weights with/ without lepton in FR ",sampleName , datatest.ix[ (data.proces.values==sampleName)].sum(),data.ix[ (data.proces.values==sampleName)]["totalWeight"].sum()
         if (channel=="1l_2tau" or channel=="2lss_1tau" or channel=="2los_1tau") :
             nSthuth = len(data.ix[(data.target.values == 0) & (data.bWj1Wj2_isGenMatched.values==1) & (data.key.values==folderName)])
             nBtruth = len(data.ix[(data.target.values == 1) & (data.bWj1Wj2_isGenMatched.values==1) & (data.key.values==folderName)])
@@ -421,16 +344,15 @@ def load_data(inputPath,channelInTree,variables,criteria,testtruth,bdtType) :
             nBtruthKin = len(data.ix[(data.target.values == 1) & (data.bWj1Wj2_isGenMatchedWithKinFit.values==1) & (data.key.values==folderName)])
             nShadthuth = len(data.ix[(data.target.values == 0) & (data.hadtruth.values==1) & (data.key.values==folderName)])
             nBhadtruth = len(data.ix[(data.target.values == 1) & (data.hadtruth.values==1) & (data.key.values==folderName)])
-            print "truth:              ", nSthuth, nBtruth
-            print "truth Kin:          ", nSthuthKin, nBtruthKin
-            print "hadtruth:           ", nShadthuth, nBhadtruth
+            print ("truth:              ", nSthuth, nBtruth)
+            print ("truth Kin:          ", nSthuthKin, nBtruthKin)
+            print ("hadtruth:           ", nShadthuth, nBhadtruth)
     print (data.columns.values.tolist())
     n = len(data)
     nS = len(data.ix[data.target.values == 1])
     nB = len(data.ix[data.target.values == 0])
-    print channelInTree," length of sig, bkg: ", nS, nB
+    print (channelInTree," length of sig, bkg: ", nS, nB)
     return data
-
 
 def load_data_2l2t():
     keys=['ttH','ttbar','ttv']
@@ -449,11 +371,11 @@ def load_data_2l2t():
         chunk_df['totalWeight']=chunk_df[weight]
         chunk_df['target']=1 if folderName=='ttH' else 0
         data=data.append(chunk_df, ignore_index=True)
-        print folderName,keystoDraw[nn]," length of sig, bkg: ", len(data.ix[data.key.values == keystoDraw[nn]])
+        print (folderName,keystoDraw[nn]," length of sig, bkg: ", len(data.ix[data.key.values == keystoDraw[nn]]))
     return data
 
 def load_data_fullsim(inputPath,channelInTree,variables,criteria,testtruth,bdtType) :
-    print variables
+    print (variables)
     my_cols_list=variables+['key','target','file']+criteria #,'tau_frWeight','lep1_frWeight','lep1_frWeight' trainVars(False)
     # if channel=='2lss_1tau' : my_cols_list=my_cols_list+['tau_frWeight','lep1_frWeight','lep2_frWeight']
     # those last are only for channels where selection is relaxed (2lss_1tau) === solve later
@@ -574,13 +496,9 @@ def load_data_fullsim(inputPath,channelInTree,variables,criteria,testtruth,bdtTy
         if len(dataloc) == 0 : continue
         nS = len(dataloc.ix[(dataloc.target.values == 0) & (dataloc.proces.values==sampleName)])
         nB = len(dataloc.ix[(dataloc.target.values == 1) & (dataloc.proces.values==sampleName)])
-        print sampleName,"length of sig, bkg: ", nS, nB, dataloc.ix[(dataloc.proces.values==sampleName)]["totalWeight"].sum(), dataloc.ix[(dataloc.proces.values==sampleName)]["totalWeight"].sum()
+        print (sampleName,"length of sig, bkg: ", nS, nB, dataloc.ix[(dataloc.proces.values==sampleName)]["totalWeight"].sum(), dataloc.ix[(dataloc.proces.values==sampleName)]["totalWeight"].sum())
         if channel=="2l_2tau" :
-            print "tau1 all | lep  ",sampleName , len(dataloc.ix[(dataloc["tau1_fake_prob"].values != 1) & (dataloc.proces.values==sampleName)]), len(dataloc.ix[(dataloc["tau1_fake_test"].values != 1) & (dataloc.proces.values==sampleName)])
-            print "tau2 all | lep  ",sampleName , len(dataloc.ix[(dataloc["tau2_fake_prob"].values != 1) & (dataloc.proces.values==sampleName)]), len(dataloc.ix[(dataloc["tau2_fake_test"].values != 1) & (dataloc.proces.values==sampleName)])
-            print "tau1&2 all | lep  ",sampleName ,len(dataloc.ix[(dataloc["tau1_fake_prob"].values != 1) & (dataloc["tau2_fake_prob"].values != 1) & (dataloc.proces.values==sampleName)]), len(dataloc.ix[(dataloc["tau1_fake_test"].values != 1) & (dataloc['tau2_fake_test'].values != 1) & (dataloc.proces.values==sampleName)])
             datatest=dataloc["evtWeight"]*dataloc["lep1_fake_prob"]*dataloc["lep2_fake_prob"]*dataloc["tau1_fake_test"]*dataloc["tau2_fake_test"]
-            print "sum of weights with/ without lepton in FR ",sampleName , datatest.ix[ (dataloc.proces.values==sampleName)].sum(),dataloc.ix[ (dataloc.proces.values==sampleName)]["totalWeight"].sum()
         if (channel=="1l_2tau" or channel=="2lss_1tau") :
             nSthuth = len(dataloc.ix[(dataloc.target.values == 0) & (dataloc.bWj1Wj2_isGenMatched.values==1) & (dataloc.proces.values==sampleName)])
             nBtruth = len(dataloc.ix[(dataloc.target.values == 1) & (dataloc.bWj1Wj2_isGenMatched.values==1) & (dataloc.proces.values==sampleName)])
@@ -588,14 +506,14 @@ def load_data_fullsim(inputPath,channelInTree,variables,criteria,testtruth,bdtTy
             nBtruthKin = len(dataloc.ix[(dataloc.target.values == 1) & (dataloc.bWj1Wj2_isGenMatchedWithKinFit.values==1) & (dataloc.proces.values==sampleName)])
             nShadthuth = len(dataloc.ix[(dataloc.target.values == 0) & (dataloc.hadtruth.values==1) & (dataloc.proces.values==sampleName)])
             nBhadtruth = len(dataloc.ix[(dataloc.target.values == 1) & (dataloc.hadtruth.values==1) & (dataloc.proces.values==sampleName)])
-            print "truth:              ", nSthuth, nBtruth
-            print "truth Kin:          ", nSthuthKin, nBtruthKin
-            print "hadtruth:           ", nShadthuth, nBhadtruth
+            print ("truth:              ", nSthuth, nBtruth)
+            print ("truth Kin:          ", nSthuthKin, nBtruthKin)
+            print ("hadtruth:           ", nShadthuth, nBhadtruth)
     if 'ttHToNonbb' in folderName : print (dataloc.columns.values.tolist())
     n = len(dataloc)
     nS = len(dataloc.ix[dataloc.target.values == 0])
     nB = len(dataloc.ix[dataloc.target.values == 1])
-    print sampleName," length of sig, bkg: ", nS, nB
+    print (sampleName," length of sig, bkg: ", nS, nB)
     return dataloc
 
 def normalize(arr): return (arr-arr.min())/(arr.max()-arr.min())
@@ -610,7 +528,7 @@ def make_plots(
     masses = [],
     masses_all = []
     ) :
-    print 'length of features to plot and features to plot', (len(featuresToPlot), featuresToPlot)
+    print ('length of features to plot and features to plot', (len(featuresToPlot), featuresToPlot))
     hist_params = {'normed': True, 'histtype': 'bar', 'fill': True , 'lw':3, 'alpha' : 0.4}
     sizeArray=int(math.sqrt(len(featuresToPlot))) if math.sqrt(len(featuresToPlot)) % int(math.sqrt(len(featuresToPlot))) == 0 else int(math.sqrt(len(featuresToPlot)))+1
     drawStatErr=True
@@ -624,13 +542,14 @@ def make_plots(
         # define range for histograms by cutting 1% of data from both ends
         min_value, max_value = np.percentile(data1[feature], [0.0, 99])
         min_value2, max_value2 = np.percentile(data2[feature], [0.0, 99])
+        print('feather: {} \t min_value {}, max_value {},min_value2 {}, max_value2 {}'.format(feature, min_value,max_value,min_value2, max_value2))
         if feature == "gen_mHH" :
             nbin_local = 10*len(masses_all)
             range_local = [masses_all[0]-20, masses_all[len(masses_all)-1]+20]
         else :
             nbin_local = nbin
             range_local = (min(min_value,min_value2),  max(max_value,max_value2))
-        if printmin : print 'printing min and max value= ', (min_value, max_value,feature)
+        if printmin : print ('printing min and max value= ', (min_value, max_value,feature))
         values1, bins, _ = plt.hist(
                                    data1[feature].values,
                                    weights = data1[weights].values.astype(np.float64),
@@ -640,11 +559,12 @@ def make_plots(
                                    )
         to_ymax = max(values1)
         to_ymin = min(values1)
-        if drawStatErr:
+        if drawStatErr:            
             normed = sum(data1[feature].values)
             mid = 0.5*(bins[1:] + bins[:-1])
             err=np.sqrt(values1*normed)/normed # denominator is because plot is normalized
             plt.errorbar(mid, values1, yerr=err, fmt='none', color= color1, ecolor= color1, edgecolor=color1, lw=2)
+            #print('data1[feature].values: {},  normed=sum(data1[feature].values): {} \n err: {}, \nbins: {}, \nbins[1:]: {}, \nbins[:-1]: {}, \nmid: {} \n'.format(data1[feature].values,sum(data1[feature].values), err, bins,bins[1:],bins[:-1], mid))
         if len(masses) == 0 : #'gen' not in feature:
             values2, bins, _ = plt.hist(
                                    data2[feature].values,
@@ -664,8 +584,15 @@ def make_plots(
                 plt.errorbar(mid, values2, yerr=err, fmt='none', color= color2, ecolor= color2, edgecolor=color2, lw=2)
         else :
             hist_params2 = {'normed': True, 'histtype': 'step', 'fill': False , 'lw':3}
-            colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c', ]
+            #colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c', ]
+            colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c',
+                           'chocolate','teal', 'pink', 'darkkhaki', 'maroon', 'slategray',
+                           'orange', 'silver', 'aquamarine', 'lavender', 'goldenrod', 'salmon',
+                           'tan', 'lime', 'lightcoral'
+            ]
+            
             for mm, mass in enumerate(masses) :
+                #print("mm: {}, mass: {}, color: {}".format(mm, mass, colors_mass[mm]))
                 values2, bins, _ = plt.hist(
                                        data2.loc[ (data2["gen_mHH"].astype(np.int) == int(mass)), feature].values,
                                        weights = data2.loc[ (data2["gen_mHH"].astype(np.int) == int(mass)), weights].values.astype(np.float64),
@@ -707,7 +634,7 @@ def make_plots(
             l = plt.plot(bins, y, 'r--', linewidth=2)
             plt.ylim(ymin=0)
             plt.title(feature+' '+r'mu=%.3f, sig=%.3f$' %(mu, sigma))
-            print feature+' '+r'mu=%.3f, sig=%.3f$' %(mu, sigma)
+            print (feature+' '+r'mu=%.3f, sig=%.3f$' %(mu, sigma))
         plt.savefig(channel+"/"+bdtType+"_"+trainvar+"_Variables_Signal_fullsim_residuals.pdf")
         plt.clf()
 
@@ -821,109 +748,131 @@ def divisorGenerator(n):
     for divisor in reversed(large_divisors):
         yield divisor
 
-def doStackPlot(hTT,hTTH,hTTW,hEWK,hRares,name,label):
+def doStackPlot(hTT,hTTH,hTTW,hEWK,hRares, hTH,name,label):
     print ("hTT, hTTH, hTTW, hEWK")
-    print (hTT.Integral(),hTTH.Integral(),hTTW.Integral(),hEWK.Integral())
+    doBottom = False
+    print (hTT.Integral(),hTTH.Integral(),hTH.Integral(),hTTW.Integral(),hEWK.Integral())
     hTT.SetFillColor( 17 );
     hTTH.SetFillColor( ROOT.kRed );
+    hTH.SetFillColor( ROOT.kMagenta )
+    hTH.Scale(10)
     hTTW.SetFillColor( 8 );
-    hEWK.SetFillColor( 6 );
+    hEWK.SetFillColor( ROOT.kBlue );
     hRares.SetFillColor( 65 );
     mc  = ROOT.THStack("mc","");
     mc.Add(hRares);
     mc.Add(hEWK);
     mc.Add(hTTW);
-    mc.Add(hTTH);
-    mc.Add( hTT );
-    c4 = ROOT.TCanvas("c5","",500,500);
+    mc.Add( hTT )
+    mc.Add( hTTH )
+    mc.Add( hTH )
+    if doBottom : 
+        c4 = ROOT.TCanvas("c5","",500,500)
+    else : c4 = ROOT.TCanvas("c5","",800,800)
     c4.cd();
-    c4.Divide(1,2,0,0);
-    c4.cd(1)
-    ROOT.gPad.SetLogy()
+    if doBottom :
+        c4.Divide(1,2,0,0);
+        c4.cd(1)
+        ROOT.gPad.SetBottomMargin(0.001)
+        ROOT.gPad.SetTopMargin(0.065)
+        ROOT.gPad.SetRightMargin(0.01)
+        ROOT.gPad.SetLeftMargin(0.12)
+    else :
+        ROOT.gStyle.SetHatchesSpacing(100)
+        ROOT.gPad.SetLeftMargin(0.12)
+        ROOT.gPad.SetBottomMargin(0.12)
+        ROOT.gPad.SetRightMargin(0.12)
+    #ROOT.gPad.SetLogy()
     ROOT.gPad.SetLogx()
-    ROOT.gPad.SetBottomMargin(0.001)
-    ROOT.gPad.SetTopMargin(0.065)
-    ROOT.gPad.SetRightMargin(0.01)
-    ROOT.gPad.SetLeftMargin(0.12)
     mc.Draw("HIST");
-    mc.SetMaximum(15* mc.GetMaximum());
-    mc.SetMinimum(max(0.04* mc.GetMinimum(),0.1));
+    mc.SetMaximum(1.2* mc.GetMaximum());
+    mc.SetMinimum(max(0.04* mc.GetMinimum(),0.1))
     mc.GetYaxis().SetRangeUser(0.01,110);
     mc.GetXaxis().SetRangeUser(0.0001,1.0);
     mc.GetHistogram().GetYaxis().SetTitle("Expected events/bin");
-    mc.GetHistogram().GetXaxis().SetTitle("Bin in the bdt1#times bdt2 plane");
-    mc.GetHistogram().GetXaxis().SetTitleSize(0.06);
-    mc.GetHistogram().GetXaxis().SetLabelSize(.06);
-    mc.GetHistogram().GetYaxis().SetTitleSize(0.06);
-    mc.GetHistogram().GetYaxis().SetLabelSize(.06);
-    l = ROOT.TLegend(0.16,0.6,0.3,0.9);
+    mc.GetHistogram().GetXaxis().SetTitle("NN");
+    if doBottom :
+        mc.GetHistogram().GetXaxis().SetTitleSize(0.06)
+        mc.GetHistogram().GetXaxis().SetLabelSize(.06)
+        mc.GetHistogram().GetYaxis().SetTitleSize(0.06)
+        mc.GetHistogram().GetYaxis().SetLabelSize(.06)
+    else :
+        mc.GetHistogram().GetXaxis().SetTitleSize(0.03)
+        mc.GetHistogram().GetXaxis().SetLabelSize(.03)
+        mc.GetHistogram().GetYaxis().SetTitleSize(0.03)
+        mc.GetHistogram().GetYaxis().SetLabelSize(.03)
+    l = ROOT.TLegend(0.16,0.75,0.45,0.9);
     l.AddEntry(hTTH  , "ttH", "f");
+    l.AddEntry(hTH  , "tH * 10", "f");
     l.AddEntry(hTTW  , "ttV"       , "f");
-    l.AddEntry(hTT, "tt"        , "f");
+    l.AddEntry(hTT, "fakes"        , "f");
     l.AddEntry(hRares, "rares"        , "f");
     l.AddEntry(hEWK, "EWK"        , "f");
+    l.SetNColumns(2)
     l.Draw();
     latex= ROOT.TLatex();
-    latex.SetTextSize(0.065);
+    if doBottom : latex.SetTextSize(0.065)
+    else :        latex.SetTextSize(0.032)
     latex.SetTextAlign(13);  #//align at top
     latex.SetTextFont(62);
     latex.DrawLatexNDC(.15,1.0,"CMS Simulation");
     latex.DrawLatexNDC(.8,1.0,"#it{36 fb^{-1}}");
-    latex.DrawLatexNDC(.55,.8,label);
+    latex.DrawLatexNDC(.3,.7,label.replace("output_NN_2lss_ttH_tH_4cat_onlyTHQ_v4_", "") );
     #latex.DrawLatexNDC(.55,.9,BDTvar);
-    c4.cd(2)
-    #ROOT.gPad.SetLogx()
-    ROOT.gStyle.SetHatchesSpacing(100)
-    ROOT.gPad.SetLeftMargin(0.12)
-    ROOT.gPad.SetBottomMargin(0.12)
-    ROOT.gPad.SetTopMargin(0.001)
-    ROOT.gPad.SetRightMargin(0.005)
-    if not hTT.GetSumw2N() : hTT.Sumw2()
-    h2=hTT.Clone()
-    h2.Add(hTTW)
-    hBKG1D=h2.Clone()
-    h3=hTTH.Clone()
-    h4=hTT.Clone()
-    if not h2.GetSumw2N() : h2.Sumw2()
-    if not h3.GetSumw2N() : h3.Sumw2()
-    for binn in range(0,h2.GetNbinsX()+1) :
-    	ratio=0
-    	ratio3=0
-    	if h2.GetBinContent(binn) >0 :
-    		ratio=h2.GetBinError(binn)/h2.GetBinContent(binn)
-    		h2.SetBinContent(binn,ratio)
-    	if hBKG1D.GetBinContent(binn) > 0 :
-    		ratio3=h3.GetBinContent(binn)/hBKG1D.GetBinContent(binn)
-    		h3.SetBinContent(binn,ratio3)
-    	if h4.GetBinContent(binn) > 0 : h4.SetBinContent(binn,h4.GetBinError(binn)/h4.GetBinContent(binn))
-    	print (binn,hTT.GetBinContent(binn),ratio,ratio3)
-    h2.SetLineWidth(3)
-    h2.SetLineColor(2)
-    h2.SetFillStyle(3690)
-    h3.SetLineWidth(3)
-    h3.SetFillStyle(3690)
-    h3.SetLineColor(28)
-    h4.SetLineWidth(3)
-    h4.SetFillStyle(3690)
-    h4.SetLineColor(6)
-    h3.Draw("HIST")
-    h3.GetYaxis().SetTitle("S/B");
-    h3.GetXaxis().SetTitle("Bin in the bdt1#times bdt2 plane");
-    h3.GetYaxis().SetTitleSize(0.06);
-    h3.GetYaxis().SetLabelSize(.06)
-    h3.GetXaxis().SetTitleSize(0.06);
-    h3.GetXaxis().SetLabelSize(.06)
-    l2 = ROOT.TLegend(0.16,0.77,0.4,0.98);
-    l2.AddEntry(h3  , "S/B" , "l");
-    l2.AddEntry(h2  , "ttV + tt err/cont", "l");
-    l2.AddEntry(h4  , "tt err/cont", "l");
-    l2.Draw("same");
-    h2.Draw("HIST,SAME")
-    h4.Draw("HIST,SAME")
+    if doBottom :
+        c4.cd(2)
+        #ROOT.gPad.SetLogx()
+        ROOT.gStyle.SetHatchesSpacing(100)
+        ROOT.gPad.SetLeftMargin(0.12)
+        ROOT.gPad.SetBottomMargin(0.12)
+        ROOT.gPad.SetTopMargin(0.001)
+        ROOT.gPad.SetRightMargin(0.005)
+        if not hTT.GetSumw2N() : hTT.Sumw2()
+        h2=hTT.Clone()
+        h2.Add(hTTW)
+        hBKG1D=h2.Clone()
+        h3=hTTH.Clone()
+        #h4=hTT.Clone()
+        if not h2.GetSumw2N() : h2.Sumw2()
+        if not h3.GetSumw2N() : h3.Sumw2()
+        for binn in range(0,h2.GetNbinsX()+1) :
+            ratio=0
+            ratio3=0
+            if h2.GetBinContent(binn) >0 :
+                ratio=h2.GetBinError(binn)/h2.GetBinContent(binn)
+                h2.SetBinContent(binn,ratio)
+            if hBKG1D.GetBinContent(binn) > 0 :
+                ratio3=h3.GetBinContent(binn)/hBKG1D.GetBinContent(binn)
+                h3.SetBinContent(binn,ratio3)
+            #if h4.GetBinContent(binn) > 0 : h4.SetBinContent(binn,h4.GetBinError(binn)/h4.GetBinContent(binn))
+            print (binn,hTT.GetBinContent(binn),ratio,ratio3)
+        h2.SetLineWidth(3)
+        h2.SetLineColor(2)
+        h2.SetFillStyle(3690)
+        h3.SetLineWidth(3)
+        h3.SetFillStyle(3690)
+        h3.SetLineColor(28)
+        #h4.SetLineWidth(3)
+        #h4.SetFillStyle(3690)
+        #h4.SetLineColor(6)
+        h3.Draw("HIST")
+        h3.GetYaxis().SetTitle("S/B");
+        h3.GetXaxis().SetTitle("NN");
+        h3.GetYaxis().SetTitleSize(0.06);
+        h3.GetYaxis().SetLabelSize(.06)
+        h3.GetXaxis().SetTitleSize(0.06);
+        h3.GetXaxis().SetLabelSize(.06)
+        l2 = ROOT.TLegend(0.16,0.77,0.4,0.98);
+        l2.AddEntry(h3  , "S/B" , "l");
+        l2.AddEntry(h2  , "ttV + tt err/cont", "l");
+        #l2.AddEntry(h4  , "tt err/cont", "l");
+        l2.Draw("same");
+        h2.Draw("HIST,SAME")
+        #h4.Draw("HIST,SAME")
 
     c4.Modified();
     c4.Update();
-    print ("s/B in last bin (tight)", h3.GetNbinsX(), h3.GetBinContent(h3.GetNbinsX()), h3.GetBinContent(h3.GetNbinsX()-1), h2.GetBinContent(h3.GetNbinsX()))
+    if doBottom : print ("s/B in last bin (tight)", h3.GetNbinsX(), h3.GetBinContent(h3.GetNbinsX()), h3.GetBinContent(h3.GetNbinsX()-1), h2.GetBinContent(h3.GetNbinsX()))
     c4.SaveAs(name+".pdf")
     print ("saved",name+".pdf")
 
@@ -943,7 +892,7 @@ def finMaxMin(histSource) :
 def getQuantiles(histoP,ntarget,xmax) :
     #c = ROOT.TCanvas("c1","",600,600)
     #histoP.Rebin(4)
-    histoP.Scale(1./histoP.Integral());
+    histoP.Scale(1./histoP.Integral())
     histoP.GetCumulative()#.Draw();
     #histoP.Draw();
     histoP.GetXaxis().SetRangeUser(0.,1.)
@@ -963,58 +912,34 @@ def getQuantiles(histoP,ntarget,xmax) :
     #yqbin[0]=0.0
     for  ii in range(1,ntarget+1) : yqbin[ii]=yq[ii]
     yqbin[ntarget]=xmax # +1 if first is not 0
-    print "getQuantiles::    xq: ",xq
-    print "getQuantiles:: yqbin: ",yqbin
-    for  ii in range(1,ntarget+1) :
-        print "\t ii: ",ii,", xq: ",xq[ii],", yqbin: ",yqbin[ii],", histoP.IntegralCumutative: ",histoP.Integral(1,histoP.GetXaxis().FindBin(yqbin[ii]))
+    #print ("getQuantiles::    xq: ",xq)
+    #print ("getQuantiles:: yqbin: ",yqbin)
+    #for  ii in range(1,ntarget+1) :
+    #    print ("\t ii: ",ii,", xq: ",xq[ii],", yqbin: ",yqbin[ii],", histoP.IntegralCumutative: ",histoP.Integral(1,histoP.GetXaxis().FindBin(yqbin[ii])))
     return yqbin
 
 def getQuantilesWStat(histoP,nmin) :
     histogramBinning=[]
-    xAxis = histogram.GetXaxis();
+    xAxis = histogram.GetXaxis()
     histogramBinning = histogramBinning + [xAxis.GetBinLowEdge(1)]
-    sumEvents = 0.;
-    numBins = xAxis.GetNbins();
+    sumEvents = 0.
+    numBins = xAxis.GetNbins()
     for idxBin in range(1, numBins) :
         print ("bin #" , idxBin , " (x=" , xAxis.GetBinLowEdge(idxBin) ,  xAxis.GetBinUpEdge(idxBin) , "):" , " binContent = ",  histogram.GetBinContent(idxBin) , " +/- " << histogram.GetBinError(idxBin) )
         sumEvents = sumEvents + histogram.GetBinContent(idxBin);
         if ( sumEvents >= minEvents ) :
             histogramBinning.push_back(xAxis.GetBinUpEdge(idxBin));
-            sumEvents = 0.;
+            sumEvents = 0.
     if ( abs(histogramBinning.back() - xAxis.GetBinUpEdge(numBins)) > 1.e-3 ) :
         if histogramBinning.size() >= 2 : histogramBinning = [xAxis.GetBinUpEdge(numBins)];
         else :  histogramBinning= histogramBinning+ [xAxis.GetBinUpEdge(numBins)];
     #assert(histogramBinning.size() >= 2);
-    print "binning =  "
+    print ("binning =  ")
     for  bin in histogramBinning : print ( bin)
-    return histogramBinning;
-
-    """
-    std::vector<double> compBinning(TH1* histogram, double minEvents) {
-    std::cout << "<compBinning>:" << std::endl;
-    std::vector<double> histogramBinning;
-    const TAxis* xAxis = histogram->GetXaxis();
-    histogramBinning.push_back(xAxis->GetBinLowEdge(1));
-    double sumEvents = 0.; int numBins = xAxis->GetNbins();
-    for ( int idxBin = 1; idxBin <= numBins; ++idxBin ) {
-        std::cout << "bin #" << idxBin << " (x=" << xAxis->GetBinLowEdge(idxBin) << ".." << xAxis->GetBinUpEdge(idxBin) << "):" << " binContent = " << histogram->GetBinContent(idxBin) << " +/- " << histogram->GetBinError(idxBin) << std::endl; sumEvents += histogram->GetBinContent(idxBin);
-        if ( sumEvents >= minEvents ) { histogramBinning.push_back(xAxis->GetBinUpEdge(idxBin)); sumEvents = 0.; }
-    }
-    if ( TMath::Abs(histogramBinning.back() - xAxis->GetBinUpEdge(numBins)) > 1.e-3 ) {
-        if ( histogramBinning.size() >= 2 ) histogramBinning.back() = xAxis->GetBinUpEdge(numBins);
-        else histogramBinning.push_back(xAxis->GetBinUpEdge(numBins));
-    }
-    assert(histogramBinning.size() >= 2);
-    std::cout << "binning = { ";
-    for ( std::vector<double>::const_iterator bin = histogramBinning.begin(); bin != histogramBinning.end(); ++bin ) {
-        if ( bin != histogramBinning.begin() ) std::cout << ", "; std::cout << (*bin); } std::cout << " }" << std::endl; return histogramBinning;
-        }
-    """
-
-
+    return histogramBinning
 
 def GetRatio(histSource,namepdf) :
-    file = TFile(histSource,"READ");
+    file = TFile(histSource,"READ")
     file.cd()
     hSum = TH1F()
     h2 = TH1F()
@@ -1061,11 +986,19 @@ def GetRatio(histSource,namepdf) :
     print (hSum.GetBinContent(hSum.GetNbinsX()))
     return [ratio,ratioP,ratiohSum,ratiohSumP]
 
+def rebinRegular(
+    histSource,
+    nbin, 
+    BINtype,
+    originalBinning,
+    doplots,
+    bdtType, 
+    nQuantMax=6,
+    withFolder=False,
+    partialCopy=False
+    ) :
+    print ("rebinRegular")
 
-def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtType, withFolder=False) :
-    print "data_manager::rebinRegular::";
-    print "histSource: ",histSource, ", nbin: ",nbin, ", BINtype: ",BINtype, ", originalBinning: ",originalBinning, \
-        ", doplots: ",doplots, ", variables: ",variables, ", bdtType: ",bdtType, ", withFolder: ",withFolder;
     minmax = finMaxMin(histSource) # [[0], [1]], [0]=first, last bin above 0; [1]= their corresponding x-value
     errOcontTTLast=[]
     errOcontTTPLast=[]
@@ -1097,9 +1030,11 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
         xmax=1.0
         xmaxdef=minmax[1][1]
         xmindef=minmax[1][0]
-    print "enumerate(nbin): ",enumerate(nbin), ", nbin: ",nbin
+    print ("enumerate(nbin): ",enumerate(nbin), ", nbin: ",nbin)
+    isMoreThan02 = 0
+    bin_isMoreThan02 = 0
     for nn,nbins in enumerate(nbin) :
-        print "\n\nnn: ",nn,", nbins: ",nbins
+        print ("\n\nnn: ",nn,", nbins: ",nbins)
         file = TFile(histSource+".root","READ");
         file.cd()
         histograms=[]
@@ -1110,21 +1045,19 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
         hSumAll = TH1F()
         ratiohSum=1.
         ratiohSumP=1.
-        ###///
         ### rebin and  write the histograms
         if BINtype=="none" : name=histSource+"_"+str(nbins)+"bins_none.root"
         if BINtype=="regular" or options.BINtype == "mTauTauVis": name=histSource+"_"+str(nbins)+"bins.root"
         if BINtype=="ranged" : name=histSource+"_"+str(nbins)+"bins_ranged.root"
-        if BINtype=="quantiles" :
-            name=histSource+"_"+str(nbins)+"bins_quantiles.root"
-
+        if BINtype=="quantiles" : name=histSource+"_"+str(nbins)+"bins_quantiles.root"
         fileOut  = TFile(name, "recreate");
-        #for folder in folders :
         if withFolder : folders_Loop = file.GetListOfKeys()
         else : folders_Loop = ["none"]
         for nkey, keyF in enumerate(folders_Loop) :
-            print "nkey: ",nkey,", keyF: ",keyF
+            print ("nkey: ",nkey,", keyF: ",keyF)
             if withFolder :
+                if partialCopy : 
+                    if str(source) not in str(keyF.GetName()) : continue
                 obj =  keyF.ReadObj()
                 loop_on = obj.GetListOfKeys()
                 histograms=[]
@@ -1149,12 +1082,10 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                factor=1.
                if  not h2.GetSumw2N() : h2.Sumw2()
                if  not hSum.GetSumw2N() : hSum.Sumw2()
-               #if withFolder :
                if withFolder : h2.SetName("x_"+str(h2.GetName()))
                histograms.append(h2.Clone())
                print ("h2.Integral:", h2.Integral())
                if "fakes_data" in h2.GetName() : hFakes=h2.Clone()
-               #if "fakes_data" in h2.GetName() or "TT" in h2.GetName() or "EWK" in h2.GetName() or "Rares" in h2.GetName() : #  or "tH" in keyO.GetName()
                if "fakes_data" in h2.GetName() : hFakes=h2.Clone()
                if h2.GetName().find("signal") ==-1 and h2.GetName().find("data_obs") ==-1:
                    #hSumDumb2 = obj # h2_rebin #
@@ -1163,19 +1094,19 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                        hSumAll.SetName("hSumAllBk1")
                    else : hSumAll.Add(h2)
             #################################################
-            print ("hSumAll.Integral: ", hSumAll.Integral(), ", hFakes.Integral: ",hFakes.Integral())
-            nbinsQuant= getQuantiles(hFakes,nbins,xmax) # getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero
-            print ("Bins by quantiles ",nbins,nbinsQuant)
+            #print ("hSumAll.Integral: ", hSumAll.Integral(), ", hFakes.Integral: ",hFakes.Integral())
+            nbinsQuant =  getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero ## getQuantiles(hFakes,nbins,xmax) #
+            #print ("Bins by quantiles ",nbins,nbinsQuant)
             if withFolder: fileOut.mkdir(keyF.GetName()+"/")
             hTTi = TH1F()
             hTTHi = TH1F()
+            hTHi = TH1F()
             hEWKi = TH1F()
             hTTWi = TH1F()
             hRaresi = TH1F()
             histo = TH1F()
-            #for nn, histogram in enumerate(histograms) :  # original
             for nn1, histogram in enumerate(histograms) :
-                print "nn1: ",nn1,", histogram: ",histogram,", histo:",histo.GetName()
+                #print ("nn1: ",nn1,", histogram: ",histogram,", histo:",histo.GetName())
                 #if BINtype=="quantiles" : ### fix that -- I do not want these written to the file
                 histogramCopy=histogram.Clone()
                 nameHisto=histogramCopy.GetName()
@@ -1220,7 +1151,7 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                 elif BINtype=="quantiles" :
                     #print ("hSumAll", hSumAll.Integral(), hFakes.Integral())
                     nbinsQuant= getQuantiles(hSumAll,nbins,xmax) # getQuantiles(hSumAll,nbins,xmax) ## nbins+1 if first quantile is zero
-                    print ("Bins by quantiles",nbins,nbinsQuant)
+                    #print ("Bins by quantiles",nbins,nbinsQuant)
                     xmaxLbin=xmaxLbin+[nbinsQuant[nbins-2]]
                     histo=TH1F( nameHisto, nameHisto , nbins , nbinsQuant) # nbins+1 if first is zero
                 elif BINtype=="mTauTauVis" :
@@ -1267,6 +1198,11 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                         hTTHi=histo.Clone()
                         hTTHi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
                     else : hTTHi.Add(histo.Clone())
+                if "tHW" in histo.GetName() or "tHq" in histo.GetName() :
+                    if not hTHi.Integral()>0 :
+                        hTHi=histo.Clone()
+                        hTHi.SetName(histo.GetName()+"toplot_"+str(nn)+BINtype)
+                    else : hTHi.Add(histo.Clone())
                 if withFolder :
                     #print (histo.GetName(),histo.Integral(), BINtype)
                     fileOut.cd("/"+keyF.GetName()+"/")
@@ -1283,17 +1219,18 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                         histoCumulative = histoClone1.GetCumulative()
                         histoCumulative.Write("",TObject.kOverwrite)
             print (name+" created")
+            print ("nkey ", nkey )
             if nkey == 0 :
-                if doplots and bdtType=="1B_VT":
-                    if nbins==4 : # nbins==6
+                if doplots :
+                    if isMoreThan02 == 1 : # nbins==6
                         if BINtype=="none" : namepdf=histSource
-                        if BINtype=="regular" : namepdf=histSource+"_"+str(nbins)+"bins"
-                        if BINtype=="ranged" : namepdf=histSource+"_"+str(nbins)+"bins_ranged"
+                        if BINtype=="regular" : namepdf=histSource+"_"+str(nbins-1)+"bins"
+                        if BINtype=="ranged" : namepdf=histSource+"_"+str(nbins-1)+"bins_ranged"
                         if BINtype=="quantiles" :
-                            namepdf=histSource+"_"+str(nbins)+"bins_quantiles"
-                            label=str(nbins)+" bins "+BINtype+" "+variables+"  "+bdtType ## nbins+1 if it starts with 0
-                        else : label=str(nbins)+" bins "+BINtype+" "+variables+" "+bdtType
-                        doStackPlot(hTTi,hTTHi,hTTWi,hEWKi,hRaresi,namepdf,label)
+                            namepdf=histSource+"_"+str(nbins-1)+"bins_quantiles"
+                            label=str(nbins-1) + " bins \n" + BINtype + " \n" + bdtType.replace("2lss_output_NN_2lss_ttH_tH_4cat_onlyTHQ_v4_", "")  ## nbins+1 if it starts with 0
+                        else : label=str(nbins-1)+" bins \n"+BINtype+" \n"+bdtType.replace("2lss_output_NN_2lss_ttH_tH_4cat_onlyTHQ_v4_", "") 
+                        doStackPlot(hTTi,hTTHi,hTTWi,hEWKi,hRaresi,hTHi,namepdf,label)
                         print (namepdf+" created")
                 #hSumCopy=hSum.Clone()
                 hSumCopy=hSumAll.Clone()
@@ -1311,7 +1248,6 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                     hSumi.SetBinContent(newbin, hSumi.GetBinContent(newbin)+content)
                     hSumi.SetBinError(newbin,sqrt(binError*binError+ binErrorCopy*binErrorCopy))
                 hSumi.SetBinErrorOption(1)
-                #if not hSum.GetSumw2N() : hSum.Sumw2()
                 if hSumi.GetBinContent(hSumi.GetNbinsX()) >0 :
                     ratiohSum=hSumi.GetBinError(hSumi.GetNbinsX())/hSumi.GetBinContent(hSumi.GetNbinsX())
                 if hSumi.GetBinContent(hSumi.GetNbinsX()-1) >0 : ratiohSumP=hSumi.GetBinError(hSumi.GetNbinsX()-1)/hSumi.GetBinContent(hSumi.GetNbinsX()-1)
@@ -1319,24 +1255,27 @@ def rebinRegular(histSource,nbin, BINtype,originalBinning,doplots,variables,bdtT
                 errOcontSUMPLast=errOcontSUMPLast+[ratiohSumP] if ratiohSumP<1.001 else errOcontSUMPLast+[1.0]
                 errSUMLast=errSUMLast+[hSumi.GetBinError(hSumi.GetNbinsX())]
                 contSUMLast=contSUMLast+[hSumi.GetBinContent(hSumi.GetNbinsX())]
-                if 1==1:
-                    fileOut.cd()
-                    hSumCopy.Write()
-                    hSumi.Write()
-
+                if ratiohSum > 0.199 or nbins > nQuantMax : 
+                    isMoreThan02 = isMoreThan02 + 1
+                    if isMoreThan02 == 1 :
+                        bin_isMoreThan02 = nbins
+                fileOut.cd()
+                hSumCopy.Write()
+                hSumi.Write()
                 if BINtype=="quantiles" :
-                    print "nbins: ",nbins
-                    print "nbinsQuant: ",nbinsQuant
+                    print ("nbins: ",nbins)
+                    print ("nbinsQuant: ",nbinsQuant)
                     lastQuant=lastQuant+[nbinsQuant[nbins]]   # original
                     xmaxQuant=xmaxQuant+[xmaxdef]
                     xminQuant=xminQuant+[xmindef]
                 print ("it should be only one ",  nkey, errOcontTTLast)
     print ("min",xmindef,xmin)
     print ("max",xmaxdef,xmax)
-    return [errOcontTTLast,errOcontTTPLast,errOcontSUMLast,errOcontSUMPLast,lastQuant,xmaxQuant,xminQuant]
+    print ("isMoreThan02", isMoreThan02, bin_isMoreThan02)
+    return [errOcontTTLast,errOcontTTPLast,errOcontSUMLast,errOcontSUMPLast,lastQuant,xmaxQuant,xminQuant, bin_isMoreThan02]
 
 def ReadLimits(bdtType,nbin, BINtype,channel,local,nstart,ntarget):
-    print "ReadLimits:: bdtType: ",bdtType,", nbin:",nbin,", BINtype: ",BINtype,", channel: ",channel,", local: ",local,", ",nstart,", ntarget: ",ntarget
+    print ("ReadLimits:: bdtType: ",bdtType,", nbin:",nbin,", BINtype: ",BINtype,", channel: ",channel,", local: ",local,", ",nstart,", ntarget: ",ntarget)
     central=[]
     do1=[]
     do2=[]
@@ -1386,7 +1325,6 @@ def evaluateFOM(clf,keys,features,tag,train,test,nBdeplet,nB,nS,f_score_dicts,da
     print ("events raw: ",int(datatest["counter"].min()),int(datatest["counter"].max()))
     for ii in  np.unique(data["counter"].values):   #range(int(datatest["counter"].min(axis=0)),int(datatest["counter"].max())) :
         if countEvt > 20000 : continue
-        #print ii
         row=datatest.loc[datatest["counter"].values == ii]
         if len(row)>0 :
             countEvt=countEvt+1
@@ -1428,10 +1366,10 @@ def evaluateFOM(clf,keys,features,tag,train,test,nBdeplet,nB,nS,f_score_dicts,da
 ####################################################################################################
 
 def run_cmd(command):
-  print "executing command = '%s'" % command
+  print ("executing command = '%s'" % command)
   p = subprocess.Popen(command, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
   stdout, stderr = p.communicate()
-  print stderr
+  print (stderr)
   return stdout
 
 ###########################################################
@@ -1492,7 +1430,7 @@ Process & \multicolumn{2}{c|}{channel} \\
         filey.write(r'Rares  & $%.2f$ & $%.2f$ \\' % (c_cat.cp().process(['Rares_faketau']).GetRate()+c_cat.cp().process(['Rares_gentau']).GetRate(), AddSystQuad2(c_cat.cp().process(['Rares_faketau']).GetUncertainty(*uargs),c_cat.cp().process(['Rares_gentau']).GetUncertainty(*uargs)))+"\n")
         filey.write(r'tH  & $%.2f$ & $%.2f$ \\' % (c_cat.cp().process(['tH_faketau']).GetRate()+c_cat.cp().process(['tH_gentau']).GetRate(), AddSystQuad2(c_cat.cp().process(['tH_faketau']).GetUncertainty(*uargs),c_cat.cp().process(['tH_gentau']).GetUncertainty(*uargs)))+"\n")
     else :
-        print channel
+        print (channel)
         filey.write(r'ttH,H$\rightarrow$ZZ  & $%.2f$ & $%.2f$ \\' % (c_cat.cp().process(['ttH_hzz']).GetRate(), c_cat.cp().process(['ttH_hzz']).GetUncertainty(*uargs))+"\n")
         filey.write(r'tt$\rightarrow$WW  & $%.2f$ & $%.2f$ \\' % (c_cat.cp().process(['ttH_hww']).GetRate(), c_cat.cp().process(['ttH_hww']).GetUncertainty(*uargs))+"\n")
         filey.write(r'tt$\rightarrow \tau \tau$  & $%.2f$ & $%.2f$ \\' % (c_cat.cp().process(['ttH_htt']).GetRate(), c_cat.cp().process(['ttH_htt']).GetUncertainty(*uargs))+"\n")
@@ -1776,14 +1714,14 @@ def val_tune_rf(estimator,x_train,y_train,x_val,y_val,params, fileToWrite):
     results = []
     for param in params_list:
         print ("Date: ", time.asctime( time.localtime(time.time()) ))
-        print '=========  ',param
+        print ('=========  ',param)
         estimator.set_params(**param)
         estimator.fit(x_train,y_train)
         preds_prob = estimator.predict_proba(x_val)
         preds_prob_train = estimator.predict_proba(x_train)
         # print preds_prob[:,1]
         result = roc_auc_score(y_val,preds_prob[:,1])
-        print 'roc_auc_score : %f'%result
+        print ('roc_auc_score : %f'%result)
         results.append((param,result))
         fileToWrite.write(str(param)+"\n")
         fileToWrite.write(str(roc_auc_score(y_val,preds_prob[:,1]))+" "+str(roc_auc_score(y_train,preds_prob_train[:,1])))

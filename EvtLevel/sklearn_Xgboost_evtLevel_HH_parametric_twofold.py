@@ -26,6 +26,8 @@ import pickle
 import root_numpy
 import xgboost as xgb
 from sklearn.metrics import roc_curve, auc
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score
 
 import ROOT
 import glob
@@ -90,15 +92,19 @@ parser.add_option("--HypOpt", action="store_true", dest="HypOpt", help="If you c
 parser.add_option("--doXML", action="store_true", dest="doXML", help="Do save not write the xml file", default=False)
 parser.add_option("--doPlots", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
 parser.add_option("--nonResonant", action="store_true", dest="doPlots", help="Fastsim Loose/Tight vs Fullsim variables plots", default=False)
-parser.add_option("--ntrees", type="int", dest="ntrees", help="hyp", default=1000)
-parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=2)
+parser.add_option("--ntrees", type="int", dest="ntrees", help="hyp", default=2000) #1000 1500
+parser.add_option("--treeDeph", type="int", dest="treeDeph", help="hyp", default=2) #3
 parser.add_option("--lr", type="float", dest="lr", help="hyp", default=0.01)
-parser.add_option("--mcw", type="int", dest="mcw", help="hyp", default=1)
-parser.add_option("--tauID", type="string", dest="tauID", help="sample to pick training events", default='"dR03mvaVLoose"')
+#parser.add_option("--mcw", type="int", dest="mcw", help="hyp", default=1)
+parser.add_option("--mcw", type="float", dest="mcw", help="hyp", default=1)
+#parser.add_option("--tauID", type="string", dest="tauID", help="sample to pick training events", default='"dR03mvaVLoose"')
+parser.add_option("--tauID", type="string", dest="tauID", help="sample to pick training events", default='')
 parser.add_option("--Bkg_mass_rand", type="string", dest="Bkg_mass_rand", help="fix gen_mHH randomiz. method for bkg.s", default='"default"')
 parser.add_option("--ClassErr_vs_epoch", action="store_true", dest="ClassErr_vs_epoch", help="Makes plots of classification error vs epoch for a grid of hyperparam.s", default=False)
+parser.add_option("--gridSearchCV", action="store_true", dest="gridSearchCV", help="Search optimal values for XGB training parameters", default=False)
 (options, args) = parser.parse_args()
 
+print "-ntrees ",options.ntrees,"  --treeDeph ",options.treeDeph,"  --lr ",options.lr
 tauID=options.tauID
 Bkg_mass_rand=options.Bkg_mass_rand
 doPlots=options.doPlots
@@ -108,17 +114,30 @@ hyppar=str(options.variables)+"_ntrees_"+str(options.ntrees)+"_deph_"+str(option
 
 #channel=options.channel+"_HH"
 #channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand  ## DEF LINE
-if 'evtLevelSUM_HH_bb2l_res' in bdtType : channel = options.channel+"_HH"
-else : channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables
+channel=options.channel+"_HH_"+tauID+"_"+options.Bkg_mass_rand+"_"+options.variables
+
+#if 'evtLevelSUM_HH_bb2l_res' in bdtType :
+if 'bb2l' in options.channel:
+    execfile("../cards/info_bb2l_HH.py")
+    channel = options.channel+"_HH"
+if '3l_0tau' in options.channel:
+    execfile("../cards/info_3l_0tau_HH.py")
+    channel=options.channel+"_HH_BkMassRndm"+options.Bkg_mass_rand+"_Vars"+str(len(trainVars(False, options.variables, options.bdtType)))+"_ntrees_"+str(options.ntrees)+"_deph_"+str(options.treeDeph)+"_mcw_"+str(options.mcw)+"_lr_"+str(options.lr)
+    if options.gridSearchCV == True:
+        channel += "_gridSearchCV"
+if "2l_2tau" in options.channel :
+    execfile("../cards/info_2l_2tau_HH.py")
 
 
 print (startTime)
 
-if "bb2l" in channel  : execfile("../cards/info_bb2l_HH.py")
-if "2l_2tau" in channel : execfile("../cards/info_2l_2tau_HH.py")
+
 
 import shutil,subprocess
 proc=subprocess.Popen(['mkdir '+channel],shell=True,stdout=subprocess.PIPE)
+out = proc.stdout.read()
+
+proc=subprocess.Popen(['cp /home/ssawant/VHbbNtuples_9_4_x/CMSSW_9_4_6_patch1_rpst2/CMSSW_9_4_6_patch1/src/tth-bdt-training/EvtLevel/sklearn_Xgboost_evtLevel_HH_parametric_twofold.py '+channel+'/'],shell=True,stdout=subprocess.PIPE)
 out = proc.stdout.read()
 
 weights="totalWeight"
@@ -142,13 +161,37 @@ data=load_data_2017(
 data.dropna(subset=[weights],inplace = True)
 data.fillna(0)
 
+
+print "\n\n\nData all\nEvent table before normalizing:: \n %30s  %10s   %s " % ("Process", "nEvents", "nEventsWeighted")
+for key in output["keys"]:
+    nEvents = int(len(data.loc[(data['key']==key)]))
+    nEventsWtg = float(data.loc[(data['key']==key), [weights]].sum())
+    #print " \n\n",key," sum: ",len(data.loc[(data['key']==key)]),", \t ",data.loc[(data['key']==key), [weights]].sum()
+    print " %30s  %10i  %10.3f" % (key,nEvents,nEventsWtg)
+
+print("\nnWeighted Events \t\t\t\t\t\t %s \t %s" % ('BDT','Datacards'))    
+ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
+print("ttbar_samples: %s \t %f \t %f" % (str(ttbar_samples),data.loc[(data['key'].isin(ttbar_samples)), [weights]].sum(),output["TTdatacard"]))
+print("DY \t\t\t\t\t\t\t %f \t %f" % (data.loc[(data['key']=='DY'), [weights]].sum(), output["DYdatacard"]))
+print("WZ \t\t\t\t\t\t\t %f \t %f" % (data.loc[(data['key']=='WZ'), [weights]].sum(), output["WZdatacard"]))
+print("TTZ \t\t\t\t\t\t\t %f \t %f" % (data.loc[(data['key']=='TTZJets'), [weights]].sum(), output["TTZdatacard"]))
+print("TTV \t\t\t\t\t\t\t %f \t %f" % (data.loc[(data['key']=='TTWJets'), [weights]].sum(), output["TTWdatacard"]))
+for key in output["keys"]:
+    if not 'signal' in key: continue
+    sProcess = key
+    sDatacard = key+'datacard'
+    print("%s \t\t\t\t %f \t %f" % (sProcess, data.loc[(data['key']==sProcess), [weights]].sum(), output[sDatacard]))
+
+    
 ### Plot histograms of training variables
 
 hist_params = {'normed': True, 'histtype': 'bar', 'fill': False , 'lw':5}
 if 'evtLevelSUM' in bdtType :
 	labelBKG = "SUM BKG"
-	if channel in ["3l_0tau_HH"]:
-		labelBKG = "WZ+tt+ttV"
+	#if channel in ["3l_0tau_HH"]:
+        if "3l_0tau_HH" in channel:
+	    #labelBKG = "WZ+DY+tt+ttV"
+            labelBKG = "VV+DY+tt+ttV"
 elif 'evtLevelWZ' in bdtType :
 	labelBKG = "WZ"
 elif 'evtLevelDY' in bdtType :
@@ -188,7 +231,29 @@ order_train_name = ["odd","even"]
 
 print ("balance datasets by even/odd chunck")
 
-for data_do in order_train :
+#for data_do in order_train :
+for idx, data_do in enumerate(order_train) :
+    print "\n\ndata %i %s \nEvent table before normalizing:: \n %30s  %10s   %s " % (idx,order_train_name[idx],"Process", "nEvents", "nEventsWeighted")
+    for key in output["keys"]:
+        nEvents = int(len(data_do.loc[(data_do['key']==key)]))
+        nEventsWtg = float(data_do.loc[(data_do['key']==key), [weights]].sum())
+        #print " \n\n",key," sum: ",len(data.loc[(data['key']==key)]),", \t ",data.loc[(data['key']==key), [weights]].sum()
+        print " %30s  %10i  %10.3f" % (key,nEvents,nEventsWtg)
+
+    print("\nnWeighted Events \t\t\t\t\t\t %s \t %s" % ('BDT','Datacards'))
+    ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
+    print("ttbar_samples: %s \t %f \t %f" % (str(ttbar_samples),data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]].sum(),output["TTdatacard"]))
+    print("DY \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='DY'), [weights]].sum(), output["DYdatacard"]))
+    print("WZ \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='WZ'), [weights]].sum(), output["WZdatacard"]))
+    print("TTZ \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='TTZJets'), [weights]].sum(), output["TTZdatacard"]))
+    print("TTV \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='TTWJets'), [weights]].sum(), output["TTWdatacard"]))
+    for key in output["keys"]:
+        if not 'signal' in key: continue
+        sProcess = key
+        sDatacard = key+'datacard'
+        print("%s \t\t\t\t %f \t %f" % (sProcess, data_do.loc[(data_do['key']==sProcess), [weights]].sum(), output[sDatacard]))
+
+    
     if 'SUM_HH' in bdtType :
         ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu'] ## Removed TTToHadronic since zero events selected for this sample
         data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]]              *= output["TTdatacard"]/data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]].sum()
@@ -205,17 +270,103 @@ for data_do in order_train :
             #data_do.loc[(data_do['key'].isin(['WW','WZ','ZZ'])), [weights]]       *= output["VVdatacard"]/data_do.loc[(data_do['key'].isin(['WW','WZ','ZZ'])), [weights]].sum() # consider do separatelly
             #data_do.loc[(data_do['key']=='VH'), [weights]]                        *= output["VHdatacard"]/data_do.loc[(data_do['key']=='VH'), [weights]].sum() # consider removing
             #data_do.loc[(data_do['key']=='TTH'), [weights]]                       *= output["TTHdatacard"]/data_do.loc[(data_do['key']=='TTH'), [weights]].sum() # consider removing
-        for mass in range(len(output["masses"])) :
-            data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"].astype(np.int) == int(output["masses"][mass])),[weights]] *= 100000./data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"]== output["masses"][mass]),[weights]].sum()
-            data_do.loc[(data_do[target]==0) & (data_do["gen_mHH"].astype(np.int) == int(output["masses"][mass])),[weights]] *= 100000./data_do.loc[(data_do[target]==0) & (data_do["gen_mHH"]== output["masses"][mass]),[weights]].sum()
+        if "evtLevelSUM_HH_3l_0tau_res" in bdtType :
+            data_do.loc[(data_do['key']=='WZ'), [weights]]                            *= output["WZdatacard"]/data_do.loc[(data_do['key']=='WZ'), [weights]].sum()
+            data_do.loc[(data_do['key']=='TTZJets'), [weights]]                       *= output["TTZdatacard"]/data_do.loc[(data_do['key']=='TTZJets'), [weights]].sum() ## TTZJets
+            data_do.loc[(data_do['key']=='TTWJets'), [weights]]                       *= output["TTWdatacard"]/data_do.loc[(data_do['key']=='TTWJets'), [weights]].sum() ## TTWJets + TTWW
+            if 'ZZ' in output["keys"]:
+                data_do.loc[(data_do['key']=='ZZ'), [weights]]                            *= output["ZZdatacard"]/data_do.loc[(data_do['key']=='ZZ'), [weights]].sum()
+            if 'WW' in output["keys"]:
+                data_do.loc[(data_do['key']=='WW'), [weights]]                            *= output["WWdatacard"]/data_do.loc[(data_do['key']=='WW'), [weights]].sum()                
+            # Normalize various signal as well
+            for key in output["keys"]:
+                if not 'signal' in key: continue
+                sProcess = key
+                sDatacard = key+'datacard'
+                #print("%s: wt: %f, datacard: %f" % (sProcess, data_do.loc[(data_do['key']==sProcess), [weights]].sum(), output[sDatacard]))
+                data_do.loc[(data_do['key']==sProcess), [weights]]                            *= output[sDatacard]/data_do.loc[(data_do['key']==sProcess), [weights]].sum()
+
+                
+            print "\n\ndata %i %s \nEvent table after normalizing:: \n %30s  %10s   %s " % (idx,order_train_name[idx],"Process", "nEvents", "nEventsWeighted")
+            for key in output["keys"]:
+                nEvents = int(len(data_do.loc[(data_do['key']==key)]))
+                nEventsWtg = float(data_do.loc[(data_do['key']==key), [weights]].sum())
+                #print " \n\n",key," sum: ",len(data.loc[(data['key']==key)]),", \t ",data.loc[(data['key']==key), [weights]].sum()
+                print " %30s  %10i  %10.3f" % (key,nEvents,nEventsWtg)
+
+            print("\nnWeighted Events \t\t\t\t\t\t %s \t %s" % ('BDT','Datacards'))
+            ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
+            print("ttbar_samples: %s \t %f \t %f" % (str(ttbar_samples),data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]].sum(),float(output["TTdatacard"])))
+            print("DY \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='DY'), [weights]].sum(), output["DYdatacard"]))
+            print("WZ \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='WZ'), [weights]].sum(), output["WZdatacard"]))
+            print("TTZ \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='TTZJets'), [weights]].sum(), output["TTZdatacard"]))
+            print("TTV \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='TTWJets'), [weights]].sum(), output["TTWdatacard"]))
+            for key in output["keys"]:
+                if not 'signal' in key: continue
+                sProcess = key
+                sDatacard = key+'datacard'
+                print("%s \t\t\t\t %f \t %f" % (sProcess, data_do.loc[(data_do['key']==sProcess), [weights]].sum(), output[sDatacard]))
+
+                
+        if "gen_mHH" in trainVars(False, options.variables, options.bdtType):    
+            for mass in range(len(output["masses"])) :
+                data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"].astype(np.int) == int(output["masses"][mass])),[weights]] *= 100000./data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"]== output["masses"][mass]),[weights]].sum()
+                data_do.loc[(data_do[target]==0) & (data_do["gen_mHH"].astype(np.int) == int(output["masses"][mass])),[weights]] *= 100000./data_do.loc[(data_do[target]==0) & (data_do["gen_mHH"]== output["masses"][mass]),[weights]].sum()
+        else:
+            data_do.loc[data_do['target']==0, [weights]] *= 100000/data_do.loc[data_do['target']==0][weights].sum()
+            data_do.loc[data_do['target']==1, [weights]] *= 100000/data_do.loc[data_do['target']==1][weights].sum() 
+
     else :
         data_do.loc[data_do['target']==0, [weights]] *= 100000/data_do.loc[data_do['target']==0][weights].sum()
         data_do.loc[data_do['target']==1, [weights]] *= 100000/data_do.loc[data_do['target']==1][weights].sum()
 
+    print "\n\ndata %i %s \nEvent table after normalizing and scaling up by 1e5:: \n %30s  %10s   %s " % (idx,order_train_name[idx],"Process", "nEvents", "nEventsWeighted")
+    for key in output["keys"]:
+        nEvents = int(len(data_do.loc[(data_do['key']==key)]))
+        nEventsWtg = float(data_do.loc[(data_do['key']==key), [weights]].sum())
+        #print " \n\n",key," sum: ",len(data.loc[(data['key']==key)]),", \t ",data.loc[(data['key']==key), [weights]].sum()
+        print " %30s  %10i  %10.3f" % (key,nEvents,nEventsWtg)
 
+    print("\nnWeighted Events \t\t\t\t\t\t %s \t %s" % ('BDT','Datacards'))
+    ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
+    print("ttbar_samples: %s \t %f \t %f" % (str(ttbar_samples),data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]].sum(),float(output["TTdatacard"])))
+    print("DY \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='DY'), [weights]].sum(), output["DYdatacard"]))
+    print("WZ \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='WZ'), [weights]].sum(), output["WZdatacard"]))
+    print("TTZ \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='TTZJets'), [weights]].sum(), output["TTZdatacard"]))
+    print("TTV \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='TTWJets'), [weights]].sum(), output["TTWdatacard"]))
+    for key in output["keys"]:
+        if not 'signal' in key: continue
+        sProcess = key
+        sDatacard = key+'datacard'
+        print("%s \t\t\t\t %f \t %f" % (sProcess, data_do.loc[(data_do['key']==sProcess), [weights]].sum(), output[sDatacard]))
+    print("\n")
+    
+    
+    
+print "\n\nData all\nEvent table after normalizing:: \n %30s  %10s   %s " % ("Process", "nEvents", "nEventsWeighted")
+for key in output["keys"]:
+    nEvents = int(len(data.loc[(data['key']==key)]))
+    nEventsWtg = float(data.loc[(data['key']==key), [weights]].sum())
+    #print " \n\n",key," sum: ",len(data.loc[(data['key']==key)]),", \t ",data.loc[(data['key']==key), [weights]].sum()
+    print " %30s  %10i  %10.3f" % (key,nEvents,nEventsWtg)
 
+print("\nnWeighted Events \t\t\t\t\t\t %s \t %s" % ('BDT','Datacards'))
+ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
+print("ttbar_samples: %s \t %f \t %f" % (str(ttbar_samples),data.loc[(data['key'].isin(ttbar_samples)), [weights]].sum(),float(output["TTdatacard"])))
+print("DY \t\t\t\t\t\t\t %f \t %f" % (data.loc[(data['key']=='DY'), [weights]].sum(), output["DYdatacard"]))
+print("WZ \t\t\t\t\t\t\t %f \t %f" % (data.loc[(data['key']=='WZ'), [weights]].sum(), output["WZdatacard"]))
+print("TTZ \t\t\t\t\t\t\t %f \t %f" % (data.loc[(data['key']=='TTZJets'), [weights]].sum(), output["TTZdatacard"]))
+print("TTV \t\t\t\t\t\t\t %f \t %f" % (data.loc[(data['key']=='TTWJets'), [weights]].sum(), output["TTWdatacard"]))
+for key in output["keys"]:
+    if not 'signal' in key: continue
+    sProcess = key
+    sDatacard = key+'datacard'
+    print("%s \t\t\t\t %f \t %f" % (sProcess, data.loc[(data['key']==sProcess), [weights]].sum(), output[sDatacard]))
+
+    
 ## --- Making TProfile plots --- ###
-if 'evtLevelSUM_HH_bb2l_res' not in bdtType :
+#if 'evtLevelSUM_HH_bb2l_res' not in bdtType and 'evtLevelSUM_HH_3l_0tau_res' not in bdtType:
+if 'evtLevelSUM_HH_bb2l_res' in bdtType :
     MakeTProfile(channel, data, "diHiggsMass", 0., 1000.)
     MakeTProfile(channel, data, "tau1_pt", 0., 1000.)
     MakeTProfile(channel, data, "met_LD", 0., 1000.)
@@ -235,6 +386,10 @@ if 'evtLevelSUM_HH_bb2l_res' not in bdtType :
     MakeTProfile(channel, data, "max_tau_eta", -1.0, 1.0)
     MakeTProfile(channel, data, "max_lep_eta", -1.0, 1.0)
     MakeTProfile(channel, data, "nElectron", 0., 3.)
+elif 'evtLevelSUM_HH_3l_0tau_res' not in bdtType:
+    MakeTProfile(channel, data, "diHiggsMass", 0., 1000.)
+    MakeTProfile(channel, data, "diHiggsVisMass", 0., 1000.)
+    
 
 
 roc_test = []
@@ -246,7 +401,12 @@ for dd, data_do in  enumerate(order_train):
     			max_depth = options.treeDeph,
     			min_child_weight = options.mcw,
     			learning_rate = options.lr,
-                nthread = 8
+                        nthread = 8,        
+                        #gamma = 0,
+                        #subsample = 0.5,
+                        #colsample_bytree = 0.5,
+                        #reg_alpha = 100,
+                        #reg_lambda = 100
     			)
 
     cls.fit(
@@ -275,6 +435,7 @@ for dd, data_do in  enumerate(order_train):
     )
     train_auc = auc(fpr, tpr, reorder = True)
     roc_train = roc_train + [ { "fpr":fpr, "tpr":tpr, "train_auc":train_auc }]
+    print('XGBoost train set:: fpr: {},  tpr": {},  threshold: {}'.format(fpr,tpr,thresholds))
     print("XGBoost train set auc - {}".format(train_auc))
 
     proba = cls.predict_proba(order_train[val_data][trainVars(False, options.variables, options.bdtType)].values )
@@ -284,15 +445,28 @@ for dd, data_do in  enumerate(order_train):
     )
     test_auct = auc(fprt, tprt, reorder = True)
     roc_test = roc_test + [ { "fprt":fprt, "tprt":tprt, "test_auct":test_auct }]
+    print('XGBoost test set:: fpr: {},  tpr": {},  threshold: {}'.format(fprt,tprt,thresholds))
     print("XGBoost test set auc - {}".format(test_auct))
     estimator = estimator + [cls]
 
+    print("nVar: {}, var: {}".format(len(trainVars(False, options.variables, options.bdtType)), trainVars(False, options.variables, options.bdtType)))
     ## feature importance plot
+    #fig, ax = plt.subplots()
+    #f_score_dict =cls.booster().get_fscore()
     fig, ax = plt.subplots()
+
+    fscores = cls.booster().get_fscore()
+    importances = np.zeros(len(trainVars(False, options.variables, options.bdtType)))
+    for k, v in fscores.iteritems():
+        importances[int(k[1:])] = v
+        print('k: {}, v: {}, k[1:]: {};\t'.format(k,v,k[1:]))
+    print('importances: len {}:  {},   its sum:{}'.format(len(importances), importances, np.sum(importances)))
+        
+        
     f_score_dict =cls.booster().get_fscore()
-    fig, ax = plt.subplots()
-    f_score_dict =cls.booster().get_fscore()
+    print('f_score_dict 0: len:{}:  {}'.format(len(f_score_dict), f_score_dict))
     f_score_dict = {trainVars(False, options.variables, options.bdtType)[int(k[1:])] : v for k,v in f_score_dict.items()}
+    print('f_score_dict 1: len:{}:  {}'.format(len(f_score_dict), f_score_dict))
     feat_imp = pandas.Series(f_score_dict).sort_values(ascending=True)
     feat_imp.plot(kind='barh', title='Feature Importances')
     fig.tight_layout()
@@ -328,16 +502,25 @@ nameout = "{}/{}_{}_{}_{}_{}_roc.pdf".format(channel,bdtType,trainvar,str(len(tr
 fig.savefig(nameout)
 fig.savefig(nameout.replace(".pdf", ".png"))
 
+
+
 ###############################
 # by mass ROC
 styleline = ['-', '--', '-.', ':']
-colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c', ]
+#colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c', ]
+colors_mass = ['m', 'b', 'k', 'r', 'g',  'y', 'c',
+                           'chocolate','teal', 'pink', 'darkkhaki', 'maroon', 'slategray',
+                           'orange', 'silver', 'aquamarine', 'lavender', 'goldenrod', 'salmon',
+                           'tan', 'lime', 'lightcoral'
+            ]
 fig, ax = plt.subplots(figsize=(6, 6))
 sl = 0
 for mm, mass in enumerate(output["masses_test"]) :
+    print('\tmass: {}'.format(mass))
     for dd, data_do in  enumerate(order_train) :
         if dd == 0 : val_data = 1
         else : val_data = 0
+        print('dd: {}, val_data: {}, order_train_name[dd]: {}'.format(dd,val_data,order_train_name[dd]))
         proba = estimator[dd].predict_proba(
             data_do.loc[(data_do["gen_mHH"].astype(np.int) == int(mass)), trainVars(False, options.variables, options.bdtType)].values
         )
@@ -378,6 +561,7 @@ nameout = "{}/{}_{}_{}_{}_{}_roc_by_mass.pdf".format(channel,bdtType,trainvar,st
 fig.savefig(nameout)
 fig.savefig(nameout.replace(".pdf", ".png"))
 
+
 ###############################
 ## classifier plot by mass
 hist_params = {'normed': True, 'bins': 8 , 'histtype':'step', "lw": 2}
@@ -411,6 +595,7 @@ for mm, mass in enumerate(output["masses_test"]) :
            [y_pred_train, "--", colorcold[dd], order_train_name[dd] + " train " + labelBKG],
            [y_predS_train, "--", colorhot[dd], order_train_name[dd] + " train signal"]
         ]
+        yMax = 1
         for item in dict_plot :
             values1, bins, _ = ax.hist(
                 item[0],
@@ -422,15 +607,95 @@ for mm, mass in enumerate(output["masses_test"]) :
             mid = 0.5*(bins[1:] + bins[:-1])
             err=np.sqrt(values1*normed)/normed # denominator is because plot is normalized
             plt.errorbar(mid, values1, yerr=err, fmt='none', color= item[2], ecolor= item[2], edgecolor=item[2], lw=2)
+            yMax = max(yMax, max(values1))
         #plt.xscale('log')
         #plt.yscale('log')
-    ax.legend(loc='upper center', title="mass = "+str(mass)+" GeV", fontsize = 'small')
+    #ax.legend(loc='upper center', title="mass = "+str(mass)+" GeV", fontsize = 'small')
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5,1.), bbox_transform=fig.transFigure, title="mass = "+str(mass)+" GeV", fontsize = 'small')
+    ax.set_ylim(0, yMax*1.2) # set y-axis range of XGBclassifier
     nameout = channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False, options.variables, options.bdtType)))+'_'+hyppar+'_mass_'+ str(mass)+'_'+(options.tauID)+'_XGBclassifier.pdf'
     fig.savefig(nameout)
     fig.savefig(nameout.replace(".pdf", ".png"))
 
+
 ###############################
-## classifier plot by mass
+## classifier plot 
+'''
+plt.clf()
+colorcold = ['g', 'b']
+colorhot = ['r', 'magenta']
+fig, ax = plt.subplots(figsize=(6, 6))
+for dd, data_do in  enumerate(order_train):
+    if dd == 0 : val_data = 1
+    else : val_data = 0
+    if "gen_mHH" in trainVars(False, options.variables, options.bdtType): 
+        y_pred = estimator[dd].predict_proba(
+            order_train[val_data].loc[(order_train[val_data].target.values == 0) & (order_train[val_data]["gen_mHH"].astype(np.int) == int(mass)),
+                trainVars(False, options.variables, options.bdtType)].values
+        )[:, 1]
+        y_predS = estimator[dd].predict_proba(
+            order_train[val_data].loc[(order_train[val_data].target.values == 1) & (order_train[val_data]["gen_mHH"].astype(np.int) == int(mass)),
+                trainVars(False, options.variables, options.bdtType)].values
+        )[:, 1]
+        y_pred_train = estimator[dd].predict_proba(
+            data_do.ix[(data_do.target.values == 0) & (data_do["gen_mHH"].astype(np.int) == int(mass)),
+                trainVars(False, options.variables, options.bdtType)].values
+        )[:, 1]
+        y_predS_train = estimator[dd].predict_proba(
+            data_do.ix[(data_do.target.values == 1) & (data_do["gen_mHH"].astype(np.int) == int(mass)),
+                trainVars(False, options.variables, options.bdtType)].values
+        )[:, 1]
+    else:
+        y_pred = estimator[dd].predict_proba(
+            order_train[val_data].loc[(order_train[val_data].target.values == 0),
+                trainVars(False, options.variables, options.bdtType)].values
+        )[:, 1]
+        y_predS = estimator[dd].predict_proba(
+            order_train[val_data].loc[(order_train[val_data].target.values == 1),
+                trainVars(False, options.variables, options.bdtType)].values
+        )[:, 1]
+        y_pred_train = estimator[dd].predict_proba(
+            data_do.ix[(data_do.target.values == 0),
+                trainVars(False, options.variables, options.bdtType)].values
+        )[:, 1]
+        y_predS_train = estimator[dd].predict_proba(
+            data_do.ix[(data_do.target.values == 1) & (data_do["gen_mHH"].astype(np.int) == int(mass)),
+                trainVars(False, options.variables, options.bdtType)].values
+        )[:, 1]
+        
+    dict_plot = [
+       [y_pred, "-", colorcold[dd], order_train_name[dd] + " test " + labelBKG],
+       [y_predS, "-", colorhot[dd], order_train_name[dd] + " test signal"],
+       [y_pred_train, "--", colorcold[dd], order_train_name[dd] + " train " + labelBKG],
+       [y_predS_train, "--", colorhot[dd], order_train_name[dd] + " train signal"]
+    ]
+    yMax = 1
+    for item in dict_plot :
+        values1, bins, _ = ax.hist(
+            item[0],
+            ls=item[1], color = item[2],
+            label=item[3],
+            **hist_params
+            )
+        normed = sum(y_pred)
+        mid = 0.5*(bins[1:] + bins[:-1])
+        err=np.sqrt(values1*normed)/normed # denominator is because plot is normalized
+        plt.errorbar(mid, values1, yerr=err, fmt='none', color= item[2], ecolor= item[2], edgecolor=item[2], lw=2)
+        yMax = max(yMax, max(values1))
+        print('\n\t\tvalue1: {},  max:{}'.format(values1, max(values1)))
+    #plt.xscale('log')
+    #plt.yscale('log')
+#ax.legend(loc='upper center', title="all masses", fontsize = 'small')
+ax.legend(loc='upper center', bbox_to_anchor=(0.5,1.), bbox_transform=fig.transFigure, title="all masses", fontsize = 'small')
+ax.set_ylim(0, yMax*1.2) # set y-axis range of XGBclassifier
+nameout = channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False, options.variables, options.bdtType)))+'_'+hyppar+'_AllMass_'+(options.tauID)+'_XGBclassifier.pdf'
+fig.savefig(nameout)
+fig.savefig(nameout.replace(".pdf", ".png"))
+'''
+
+
+'''
+# original
 plt.clf()
 colorcold = ['g', 'b']
 colorhot = ['r', 'magenta']
@@ -460,6 +725,7 @@ for dd, data_do in  enumerate(order_train):
        [y_pred_train, "--", colorcold[dd], order_train_name[dd] + " train " + labelBKG],
        [y_predS_train, "--", colorhot[dd], order_train_name[dd] + " train signal"]
     ]
+    yMax = 1
     for item in dict_plot :
         values1, bins, _ = ax.hist(
             item[0],
@@ -471,12 +737,76 @@ for dd, data_do in  enumerate(order_train):
         mid = 0.5*(bins[1:] + bins[:-1])
         err=np.sqrt(values1*normed)/normed # denominator is because plot is normalized
         plt.errorbar(mid, values1, yerr=err, fmt='none', color= item[2], ecolor= item[2], edgecolor=item[2], lw=2)
+        yMax = max(yMax, max(values1))
+        print('\n\t\tvalue1: {},  max:{}'.format(values1, max(values1)))
     #plt.xscale('log')
     #plt.yscale('log')
-ax.legend(loc='upper center', title="all masses", fontsize = 'small')
+#ax.legend(loc='upper center', title="all masses", fontsize = 'small')
+ax.legend(loc='upper center', bbox_to_anchor=(0.5,1.), bbox_transform=fig.transFigure, title="all masses", fontsize = 'small')
+ax.set_ylim(0, yMax*1.2) # set y-axis range of XGBclassifier
 nameout = channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False, options.variables, options.bdtType)))+'_'+hyppar+'_AllMass_'+(options.tauID)+'_XGBclassifier.pdf'
 fig.savefig(nameout)
 fig.savefig(nameout.replace(".pdf", ".png"))
+'''
+
+plt.clf()
+colorcold = ['g', 'b']
+colorhot = ['r', 'magenta']
+fig, ax = plt.subplots(figsize=(6, 6))
+for dd, data_do in  enumerate(order_train):
+    if dd == 0 : val_data = 1
+    else : val_data = 0
+    y_pred = estimator[dd].predict_proba(
+        order_train[val_data].loc[(order_train[val_data].target.values == 0),
+        trainVars(False, options.variables, options.bdtType)].values
+    )[:, 1]
+    y_predS = estimator[dd].predict_proba(
+        order_train[val_data].loc[(order_train[val_data].target.values == 1),
+        trainVars(False, options.variables, options.bdtType)].values
+    )[:, 1]
+    y_pred_train = estimator[dd].predict_proba(
+        data_do.ix[(data_do.target.values == 0),
+        trainVars(False, options.variables, options.bdtType)].values
+    )[:, 1]
+    y_predS_train = estimator[dd].predict_proba(
+        data_do.ix[(data_do.target.values == 1),
+        trainVars(False, options.variables, options.bdtType)].values
+    )[:, 1]
+    dict_plot = [
+       [y_pred, "-", colorcold[dd], order_train_name[dd] + " test " + labelBKG],
+       [y_predS, "-", colorhot[dd], order_train_name[dd] + " test signal"],
+       [y_pred_train, "--", colorcold[dd], order_train_name[dd] + " train " + labelBKG],
+       [y_predS_train, "--", colorhot[dd], order_train_name[dd] + " train signal"]
+    ]
+    yMax = 1
+    for item in dict_plot :
+        values1, bins, _ = ax.hist(
+            item[0],
+            ls=item[1], color = item[2],
+            label=item[3],
+            **hist_params
+            )
+        normed = sum(y_pred)
+        mid = 0.5*(bins[1:] + bins[:-1])
+        err=np.sqrt(values1*normed)/normed # denominator is because plot is normalized
+        plt.errorbar(mid, values1, yerr=err, fmt='none', color= item[2], ecolor= item[2], edgecolor=item[2], lw=2)
+        yMax = max(yMax, max(values1))
+        print('\n\t\tvalue1: {},  max:{}'.format(values1, max(values1)))
+    #plt.xscale('log')
+    #plt.yscale('log')
+#ax.legend(loc='upper center', title="all masses", fontsize = 'small')
+ax.legend(loc='upper center', bbox_to_anchor=(0.5,1.), bbox_transform=fig.transFigure, title="all masses", fontsize = 'small')
+ax.set_ylim(0, yMax*1.2) # set y-axis range of XGBclassifier
+nameout = channel+'/'+bdtType+'_'+trainvar+'_'+str(len(trainVars(False, options.variables, options.bdtType)))+'_'+hyppar+'_AllMass_'+(options.tauID)+'_XGBclassifier.pdf'
+fig.savefig(nameout)
+fig.savefig(nameout.replace(".pdf", ".png"))
+
+
+
+
+
+
+
 
 ## the correlation matrix we do with all the data
 if options.HypOpt==False :
@@ -505,13 +835,27 @@ if options.HypOpt==False :
 		plt.savefig(nameout.replace(".pdf",".png"))
 		ax.clear()
 
+
+
 if options.ClassErr_vs_epoch==True :
    data = data[trainVars(False, options.variables, options.bdtType)+["target","totalWeight"]] ## pandas dataframe with trainVars, target and totalWeight columns
-   data = data.drop(['target'], axis=1)
+   #data = data.drop(['target'], axis=1)
+   #data_target = data.drop(['target'], axis=1)
+   #data_target = data[target]
+   #data_target = data.loc[[target]]
+   data_target = data[[target]]
+   print('\n\n data: {}'.format(data))
+   print('\n\n data_target: {}'.format(data_target))
 
    # split data into train and test sets -2
    ## (X_train, X_test) are  pandas dataframes while (y_train, y_test) are numpy arrays
    X_train, X_test, y_train, y_test = train_test_split(data[trainVars(False, options.variables, options.bdtType)+["totalWeight"]], data_target, test_size=0.50, random_state=7)
+   #X_train, X_test, y_train, y_test = train_test_split(data[trainVars(False, options.variables, options.bdtType)+["totalWeight"]], test_size=0.50, random_state=7)
+
+   print('\n\n X_train: {}'.format(X_train))
+   print('\n\n X_test: {}'.format(X_test))
+   print('\n\n y_train: {}'.format(y_train))
+   print('\n\n y_test: {}'.format(y_test))
 
    X_train_weight = np.array(X_train['totalWeight'].values, dtype=np.float)
    X_test_weight = np.array(X_test['totalWeight'].values, dtype=np.float)
@@ -527,22 +871,25 @@ if options.ClassErr_vs_epoch==True :
    eval_set = [(X_train, y_train), (X_test, y_test)]
 
 
-   array_ntrees = [10, 100, 1000, 2000, 3000]
+   array_ntrees = [1000, 2000]
    #lr = 10/ntrees ## [1, 0.1, 0.01, 0.005, 0.0033]
    array_depth = [2,3,4]
-   array_mcw = [1,10]
+   array_mcw = [1,5]
+
 
 
    X_label = []
    Acc_label = []
    i = 0
+   file_ = open("{}/{}_{}_{}_GSCV111.log".format(channel,bdtType,trainvar,str(len(trainVars(False, options.variables, options.bdtType)))),"w")
    for ntrees in  array_ntrees:
 	   lr = 10./float(ntrees) ## so that lr*ntrees = 10
 	   for depth in array_depth:
 		   for mcw in array_mcw:
 			   i = i + 1
 			   print('ntrees: %i, lr: %f, depth: %i, mcw: %i' % (ntrees, lr, depth, mcw))
-			   hyppar_test="ntrees_"+str(ntrees)+"_depth_"+str(depth)+"_mcw_"+str(mcw)+lr_to_str(lr)
+			   #hyppar_test="ntrees_"+str(ntrees)+"_depth_"+str(depth)+"_mcw_"+str(mcw)+lr_to_str(lr)
+                           hyppar_test="ntrees_"+str(ntrees)+"_depth_"+str(depth)+"_mcw_"+str(mcw)+"_lr_"+str(lr)
 			   X_label.append(hyppar_test)
 			   print("file label:", hyppar_test)
 			   file_.write('fit %i, %s' % (i, hyppar_test))
@@ -554,6 +901,7 @@ if options.ClassErr_vs_epoch==True :
 				   learning_rate = lr
 				   )
 			   print('Fit started')
+                           '''
 			   model.fit(
 				   X_train, y_train,
 				   sample_weight=X_train_weight,
@@ -564,9 +912,22 @@ if options.ClassErr_vs_epoch==True :
 				   #,early_stopping_rounds=100
 				   #,callbacks=[xgb.callback.print_evaluation(show_stdv=True)] ## Doesn't work here either !!
 				   )
+                           '''
+                           model.fit(
+				   X_train, y_train,
+				   sample_weight=X_train_weight,
+				   eval_set = eval_set,
+			           #sample_weight_eval_set = [X_train_weight, X_test_weight],
+				   eval_metric = ["auc", "error", "logloss"],
+				   verbose=True
+				   #,early_stopping_rounds=100
+				   #,callbacks=[xgb.callback.print_evaluation(show_stdv=True)] ## Doesn't work here either !!
+				   )
 
+                           
 			   # make predictions for test data
 			   y_pred = model.predict(X_test)
+                           print('y_pred: {} \n\ny_test: {}'.format(y_pred,y_test))
 
 			   # evaluate predictions
 			   accuracy = accuracy_score(y_test, y_pred)
@@ -630,3 +991,339 @@ print(datetime.now() - startTime)
 process = psutil.Process(os.getpid())
 print(process.memory_info().rss)
 print(datetime.now() - startTime)
+
+
+if options.gridSearchCV == True:
+    print("\n\nInside gridSearchCV part: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    # Normalize Background and signal processes in data collection
+    test_size = 0.5
+    traindataset1, valdataset1  = train_test_split(data[trainVars(False, options.variables, options.bdtType)+["target","totalWeight","key"]], test_size=test_size, random_state=7)
+    #print('\n\ngridSearchCV:: \ntraindataset1: {}'.format(traindataset1))
+    #print('valdataset1: {}'.format(valdataset1))
+    print("\n Train data fraction: %f,   test data fraction: %f " % ((1-test_size),test_size))
+    
+    
+    print("\n\nCheck how train_test_split data background and signals are normalized::: *****")
+    order_train1 = [traindataset1, valdataset1]
+    order_train1_name = ["train", "test"]
+    for idx, data_do in enumerate(order_train1) :
+        print "\n\ndata %i %s \nEvent table :: \n %30s  %10s   %s " % (idx,order_train1_name[idx],"Process", "nEvents", "nEventsWeighted")
+        for key in output["keys"]:
+            nEvents = int(len(data_do.loc[(data_do['key']==key)]))
+            nEventsWtg = float(data_do.loc[(data_do['key']==key), [weights]].sum())
+            #print " \n\n",key," sum: ",len(data.loc[(data['key']==key)]),", \t ",data.loc[(data['key']==key), [weights]].sum()
+            print " %30s  %10i  %10.3f" % (key,nEvents,nEventsWtg)
+
+        print("\nnWeighted Events \t\t\t\t\t\t %s \t %s \t %s" % ('BDT','Datacards','Datacards*test_size'))
+        ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
+        print("ttbar_samples: %s \t %f \t %f \t %f" % (str(ttbar_samples),data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]].sum(),output["TTdatacard"], output["TTdatacard"]*test_size))
+        print("DY \t\t\t\t\t\t\t %f \t %f \t %f" % (data_do.loc[(data_do['key']=='DY'), [weights]].sum(), output["DYdatacard"], output["DYdatacard"]*test_size))
+        print("WZ \t\t\t\t\t\t\t %f \t %f \t %f" % (data_do.loc[(data_do['key']=='WZ'), [weights]].sum(), output["WZdatacard"], output["WZdatacard"]*test_size))
+        print("TTZ \t\t\t\t\t\t\t %f \t %f \t %f" % (data_do.loc[(data_do['key']=='TTZJets'), [weights]].sum(), output["TTZdatacard"], output["TTZdatacard"]*test_size))
+        print("TTV \t\t\t\t\t\t\t %f \t %f \t %f" % (data_do.loc[(data_do['key']=='TTWJets'), [weights]].sum(), output["TTWdatacard"], output["TTWdatacard"]*test_size))
+        for key in output["keys"]:
+            if not 'signal' in key: continue
+            sProcess = key
+            sDatacard = key+'datacard'
+            print("%s \t\t\t\t %f \t %f \t %f" % (sProcess, data_do.loc[(data_do['key']==sProcess), [weights]].sum(), output[sDatacard], output[sDatacard]*test_size))
+
+
+
+        if 'SUM_HH' in bdtType :
+            ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu'] ## Removed TTToHadronic since zero events selected for this sample
+            data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]]              *= output["TTdatacard"]/data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]].sum()
+            data_do.loc[(data_do['key']=='DY'), [weights]]                            *= output["DYdatacard"]/data_do.loc[(data_do['key']=='DY'), [weights]].sum()
+            if "evtLevelSUM_HH_bb1l_res" in bdtType :
+                data_do.loc[(data_do['key']=='W'), [weights]]                         *= Wdatacard/data_do.loc[(data_do['key']=='W')].sum()
+            if "evtLevelSUM_HH_2l_2tau_res" in bdtType :
+                data_do.loc[(data_do['key']=='TTZJets'), [weights]]                       *= output["TTZdatacard"]/data_do.loc[(data_do['key']=='TTZJets'), [weights]].sum() ## TTZJets
+                data_do.loc[(data_do['key']=='TTWJets'), [weights]]                       *= output["TTWdatacard"]/data_do.loc[(data_do['key']=='TTWJets'), [weights]].sum() ## TTWJets + TTWW
+                data_do.loc[(data_do['key']=='ZZ'), [weights]]                            *= output["ZZdatacard"]/data_do.loc[(data_do['key']=='ZZ'), [weights]].sum() ## ZZ +ZZZ
+                data_do.loc[(data_do['key']=='WZ'), [weights]]                            *= output["WZdatacard"]/data_do.loc[(data_do['key']=='WZ'), [weights]].sum() ## WZ + WZZ_4F
+                data_do.loc[(data_do['key']=='WW'), [weights]]                            *= output["WWdatacard"]/data_do.loc[(data_do['key']=='WW'), [weights]].sum() ## WW + WWZ + WWW_4F
+                #data_do.loc[(data_do['key'].isin(['TTWJets', 'TTZJets'])), [weights]] *= output["TTVdatacard"]/data_do.loc[(data_do['key'].isin(['TTWJets', 'TTZJets'])), [weights]].sum() # consider do separately
+                #data_do.loc[(data_do['key'].isin(['WW','WZ','ZZ'])), [weights]]       *= output["VVdatacard"]/data_do.loc[(data_do['key'].isin(['WW','WZ','ZZ'])), [weights]].sum() # consider do separatelly
+                #data_do.loc[(data_do['key']=='VH'), [weights]]                        *= output["VHdatacard"]/data_do.loc[(data_do['key']=='VH'), [weights]].sum() # consider removing
+                #data_do.loc[(data_do['key']=='TTH'), [weights]]                       *= output["TTHdatacard"]/data_do.loc[(data_do['key']=='TTH'), [weights]].sum() # consider removing
+            if "evtLevelSUM_HH_3l_0tau_res" in bdtType :
+                data_do.loc[(data_do['key']=='WZ'), [weights]]                            *= output["WZdatacard"]/data_do.loc[(data_do['key']=='WZ'), [weights]].sum()
+                data_do.loc[(data_do['key']=='TTZJets'), [weights]]                       *= output["TTZdatacard"]/data_do.loc[(data_do['key']=='TTZJets'), [weights]].sum() ## TTZJets
+                data_do.loc[(data_do['key']=='TTWJets'), [weights]]                       *= output["TTWdatacard"]/data_do.loc[(data_do['key']=='TTWJets'), [weights]].sum() ## TTWJets + TTWW
+                if 'ZZ' in output["keys"]:
+                    data_do.loc[(data_do['key']=='ZZ'), [weights]]                            *= output["ZZdatacard"]/data_do.loc[(data_do['key']=='ZZ'), [weights]].sum()
+                if 'WW' in output["keys"]:
+                    data_do.loc[(data_do['key']=='WW'), [weights]]                            *= output["WWdatacard"]/data_do.loc[(data_do['key']=='WW'), [weights]].sum()
+
+
+                # Normalize various signal as well
+                for key in output["keys"]:
+                    if not 'signal' in key: continue
+                    sProcess = key
+                    sDatacard = key+'datacard'
+                    #print("%s: wt: %f, datacard: %f" % (sProcess, data_do.loc[(data_do['key']==sProcess), [weights]].sum(), output[sDatacard]))
+                    data_do.loc[(data_do['key']==sProcess), [weights]]                            *= output[sDatacard]/data_do.loc[(data_do['key']==sProcess), [weights]].sum()
+
+                
+                print "\n\ndata %i %s \nEvent table after normalizing:: \n %30s  %10s   %s " % (idx,order_train_name[idx],"Process", "nEvents", "nEventsWeighted")
+                for key in output["keys"]:
+                    nEvents = int(len(data_do.loc[(data_do['key']==key)]))
+                    nEventsWtg = float(data_do.loc[(data_do['key']==key), [weights]].sum())
+                    #print " \n\n",key," sum: ",len(data.loc[(data['key']==key)]),", \t ",data.loc[(data['key']==key), [weights]].sum()
+                    print " %30s  %10i  %10.3f" % (key,nEvents,nEventsWtg)
+                    
+                print("\nnWeighted Events \t\t\t\t\t\t %s \t %s" % ('BDT','Datacards'))
+                ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
+                print("ttbar_samples: %s \t %f \t %f" % (str(ttbar_samples),data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]].sum(),float(output["TTdatacard"])))
+                print("DY \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='DY'), [weights]].sum(), output["DYdatacard"]))
+                print("WZ \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='WZ'), [weights]].sum(), output["WZdatacard"]))
+                print("TTZ \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='TTZJets'), [weights]].sum(), output["TTZdatacard"]))
+                print("TTV \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='TTWJets'), [weights]].sum(), output["TTWdatacard"]))
+                for key in output["keys"]:
+                    if not 'signal' in key: continue
+                    sProcess = key
+                    sDatacard = key+'datacard'
+                    print("%s \t\t\t\t %f \t %f" % (sProcess, data_do.loc[(data_do['key']==sProcess), [weights]].sum(), output[sDatacard]))
+
+                        
+            if "gen_mHH" in trainVars(False, options.variables, options.bdtType):    
+                for mass in range(len(output["masses"])) :
+                    data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"].astype(np.int) == int(output["masses"][mass])),[weights]] *= 100000./data_do.loc[(data_do[target]==1) & (data_do["gen_mHH"]== output["masses"][mass]),[weights]].sum()
+                    data_do.loc[(data_do[target]==0) & (data_do["gen_mHH"].astype(np.int) == int(output["masses"][mass])),[weights]] *= 100000./data_do.loc[(data_do[target]==0) & (data_do["gen_mHH"]== output["masses"][mass]),[weights]].sum()
+            else:
+                data_do.loc[data_do['target']==0, [weights]] *= 100000/data_do.loc[data_do['target']==0][weights].sum()
+                data_do.loc[data_do['target']==1, [weights]] *= 100000/data_do.loc[data_do['target']==1][weights].sum() 
+                    
+        else :
+            data_do.loc[data_do['target']==0, [weights]] *= 100000/data_do.loc[data_do['target']==0][weights].sum()
+            data_do.loc[data_do['target']==1, [weights]] *= 100000/data_do.loc[data_do['target']==1][weights].sum()
+                
+
+        print "\n\ndata %i %s \nEvent table after normalizing and scaling up by 1e5:: \n %30s  %10s   %s " % (idx,order_train_name[idx],"Process", "nEvents", "nEventsWeighted")
+        for key in output["keys"]:
+            nEvents = int(len(data_do.loc[(data_do['key']==key)]))
+            nEventsWtg = float(data_do.loc[(data_do['key']==key), [weights]].sum())
+            #print " \n\n",key," sum: ",len(data.loc[(data['key']==key)]),", \t ",data.loc[(data['key']==key), [weights]].sum()
+            print " %30s  %10i  %10.3f" % (key,nEvents,nEventsWtg)
+            
+        print("\nnWeighted Events \t\t\t\t\t\t %s \t %s" % ('BDT','Datacards'))
+        ttbar_samples = ['TTToSemiLeptonic', 'TTTo2L2Nu']
+        print("ttbar_samples: %s \t %f \t %f" % (str(ttbar_samples),data_do.loc[(data_do['key'].isin(ttbar_samples)), [weights]].sum(),float(output["TTdatacard"])))
+        print("DY \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='DY'), [weights]].sum(), output["DYdatacard"]))
+        print("WZ \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='WZ'), [weights]].sum(), output["WZdatacard"]))
+        print("TTZ \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='TTZJets'), [weights]].sum(), output["TTZdatacard"]))
+        print("TTV \t\t\t\t\t\t\t %f \t %f" % (data_do.loc[(data_do['key']=='TTWJets'), [weights]].sum(), output["TTWdatacard"]))
+        for key in output["keys"]:
+            if not 'signal' in key: continue
+            sProcess = key
+            sDatacard = key+'datacard'
+            print("%s \t\t\t\t %f \t %f" % (sProcess, data_do.loc[(data_do['key']==sProcess), [weights]].sum(), output[sDatacard]))
+        print("\n")
+    
+    
+    
+    print('\n\ngridSearchCV::')
+    # http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
+    '''
+    # 1st round tunning    
+    param_grid = { 
+    	'n_estimators': [1000, 1500, 2000],
+        'learning_rate': [0.01, 0.05, 0.001],
+    	'max_depth': [3],
+        'min_child_weight': [1],
+        'gamma': [0],
+        'subsample': [0.8],
+        'colsample_bytree': [0.8],
+        'scale_pos_weight': [1]
+    }
+
+    # searchGrid round 2
+    param_grid = { 
+    	'n_estimators': [1000],
+        'learning_rate': [0.01],
+    	'max_depth': [3],
+        'min_child_weight': [0.5, 1, 3, 5], # 1
+        'gamma': [0],
+        'subsample': [0.8],
+        'colsample_bytree': [0.8],
+        'scale_pos_weight': [1]
+    }
+
+    # searchGrid round 3
+    param_grid = { 
+    	'n_estimators': [1000],
+        'learning_rate': [0.01],
+    	'max_depth': [3], 
+        'min_child_weight': [1],
+        'gamma': [i/10.0 for i in range(0,5)], # 0
+        'subsample': [0.8],
+        'colsample_bytree': [0.8],
+        'scale_pos_weight': [1]
+    }
+
+
+    # searchGrid round 4 
+    param_grid = { 
+    	'n_estimators': [1000],
+        'learning_rate': [0.01],
+    	'max_depth': [3], 
+        'min_child_weight': [1], 
+        'gamma': [0],
+        'subsample': [i/10.0 for i in range(5,10)], # 0.5
+        'colsample_bytree': [i/10.0 for i in range(5,10)], # 0.5
+        'scale_pos_weight': [1]
+    } 
+
+    # searchGrid round 4.1
+    param_grid = { 
+    	'n_estimators': [1000],
+        'learning_rate': [0.01],
+    	'max_depth': [3], 
+        'min_child_weight': [1], 
+        'gamma': [0],
+        'subsample': [i/10.0 for i in range(1,7)], #[i/100.0 for i in range(30,70,5)],  #0.75
+        'colsample_bytree': [i/10.0 for i in range(1,7)], #[i/100.0 for i in range(30,70,5)], # 0.75
+        'scale_pos_weight': [1]
+    }
+
+    # searchGrid round 5 scoring = "precision"
+    param_grid = { 
+    	'n_estimators': [1000],
+        'learning_rate': [0.01],
+    	'max_depth': [3], 
+        'min_child_weight': [1], 
+        'gamma': [0],
+        'subsample': [0.5],
+        'colsample_bytree': [0.5],
+        'scale_pos_weight': [1],
+        'reg_alpha':[1e-5, 1e-2, 0.1, 1, 100] # 100
+    }
+
+    # searchGrid round 5.1 scoring = "precision"
+    param_grid = { 
+    	'n_estimators': [1000],
+        'learning_rate': [0.01],
+    	'max_depth': [3], 
+        'min_child_weight': [1], 
+        'gamma': [0],
+        'subsample': [0.5],
+        'colsample_bytree': [0.5],
+        'scale_pos_weight': [1],
+        'reg_alpha':[1, 10, 30, 50, 80, 100, 150] # 0.5
+    }
+    '''    
+    # searchGrid round 6 scoring = "precision"
+    param_grid = { 
+    	'n_estimators': [1000],
+        'learning_rate': [0.01],
+    	'max_depth': [3], 
+        'min_child_weight': [1], 
+        'gamma': [0],
+        'subsample': [0.5],
+        'colsample_bytree': [0.5],
+        'scale_pos_weight': [1],
+        'reg_alpha':[0.5],
+        'reg_lambda': [0, 1e-5, 1e-2, 0.1, 1, 5, 10, 100] # 1.
+    }
+    '''        
+    # searchGrid round 7.1 scoring = "precision"
+    param_grid = { 
+    	'n_estimators': [1000],
+        'learning_rate': [0.1],
+    	'max_depth': [2], 
+        'min_child_weight': [3], 
+        'gamma': [0],
+        'subsample': [0.75],
+        'colsample_bytree': [0.75],
+        'scale_pos_weight': [1],
+        'reg_alpha':[0.5],
+        'reg_lambda': [0.5, 1, 1.5, 2, 3, 4] # 3
+    }
+
+
+    # searchGrid round 8 scoring = "precision"
+    param_grid = { 
+    	'n_estimators': [1000, 1500, 2000],
+        'learning_rate': [0.1, 0.05, 0.01],
+    	'max_depth': [2], 
+        'min_child_weight': [3], 
+        'gamma': [0],
+        'subsample': [0.75],
+        'colsample_bytree': [0.75],
+        'scale_pos_weight': [1],
+        'reg_alpha':[0.5],
+        'reg_lambda': [3]
+    }
+    '''    
+    
+    #scoring = "roc_auc"
+    #scoring = "accuracy"
+    #scoring = "average_precision"
+    #scoring = "neg_log_loss"
+    scoring = "precision"
+    
+    early_stopping_rounds = 200 # Will train until validation_0-auc hasn't improved in 100 rounds.
+    cv=3
+    objective= 'binary:logistic'
+    cls = xgb.XGBClassifier(objective= objective, nthread = 8, seed=8)
+    fit_params = { "eval_set" : [(valdataset1[trainVars(False, options.variables, options.bdtType)].values,valdataset1[target])],
+                   #"eval_metric" : "auc",
+                   "eval_metric" : "logloss",
+                   "early_stopping_rounds" : early_stopping_rounds,
+		   'sample_weight': valdataset1[weights].values }
+    print("\nGridSearchCV settings:: \nparam_grid: {} \nscoring: {} \nearly_stopping_rounds: {}".format(param_grid, scoring, early_stopping_rounds))
+    print("cv: {} \nobjective: {}\n\n".format(cv, objective))
+    gs = GridSearchCV(cls, param_grid, scoring, fit_params, cv = cv, verbose = 0)
+    gs.fit(traindataset1[trainVars(False, options.variables, options.bdtType)].values,
+	   traindataset1.target.astype(np.bool)
+    )    
+    for i, param in enumerate(gs.cv_results_["params"]):
+	print("params : {} \n    cv auc = {}  +- {} ".format(param,gs.cv_results_["mean_test_score"][i],gs.cv_results_["std_test_score"][i]))
+    print("best parameters",gs.best_params_)
+    print("best score",gs.best_score_)
+    print("grid score: {}".format(gs.grid_scores_))
+    #print("best iteration",gs.best_iteration_)
+    #print("best ntree limit",gs.best_ntree_limit_)
+    file = open("{}/{}_{}_{}_GSCV.log".format(channel,bdtType,trainvar,str(len(trainVars(False, options.variables, options.bdtType)))),"w")
+    file.write(
+	str(trainVars(False, options.variables, options.bdtType))+"\n"+
+	"best parameters"+str(gs.best_params_) + "\n"+
+	"best score"+str(gs.best_score_)+ "\n"
+	#"best iteration"+str(gs.best_iteration_)+ "\n"+
+	#"best ntree limit"+str(gs.best_ntree_limit_)
+    )
+    for i, param in enumerate(gs.cv_results_["params"]):
+	file.write("params : {} \n    cv auc = {}  +- {} {}".format(param,gs.cv_results_["mean_test_score"][i],gs.cv_results_["std_test_score"][i]," \n"))
+    file.close()
+
+    best_param = gs.best_params_
+    print("\n\nBDT with best parameters of gridSearchCV::\nbest parameters: {}".format(best_param))
+    print("max_depth: {};  n_estimators: {};  min_child_weight: {};  learning_rate: {}; ".format(best_param['max_depth'],best_param['n_estimators'],best_param['min_child_weight'],best_param['learning_rate']))
+    #print("max_depth: {}".format(best_param['max_depth']))
+    #print("max_depth: {}".format())
+    cls1 = xgb.XGBClassifier(
+                        n_estimators = best_param['n_estimators'],
+    			max_depth = best_param['max_depth'],
+    			min_child_weight = best_param['min_child_weight'],
+    			learning_rate = best_param['learning_rate'],
+                        nthread = 8
+    )
+    cls1.fit(
+    	traindataset1[trainVars(False, options.variables, options.bdtType)].values,
+    	traindataset1.target.astype(np.bool),
+    	sample_weight=(traindataset1[weights].astype(np.float64))
+    	)
+    proba = cls1.predict_proba(traindataset1[trainVars(False, options.variables, options.bdtType)].values )
+    fpr, tpr, thresholds = roc_curve(
+        traindataset1[target].astype(np.bool), proba[:,1],
+        sample_weight=(traindataset1[weights].astype(np.float64))
+    )
+    train_auc = auc(fpr, tpr, reorder = True)
+    print("XGBoost train set auc - {}".format(train_auc))
+
+    proba = cls1.predict_proba(valdataset1[trainVars(False, options.variables, options.bdtType)].values )
+    fprt, tprt, thresholds = roc_curve(
+        valdataset1[target].astype(np.bool), proba[:,1],
+        sample_weight=(valdataset1[weights].astype(np.float64))
+    )
+    test_auct = auc(fprt, tprt, reorder = True)
+    print("XGBoost test set auc - {}".format(test_auct))

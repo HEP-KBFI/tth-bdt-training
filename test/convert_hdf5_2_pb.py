@@ -1,25 +1,6 @@
 import os
 import argparse
 
-
-#model_3l_ttH_3cat_ttZenrichNoPeak_quasar -- not
-#model_3l_ttH_3cat_ttZenrichNoPeak_noLep3_4mom_quasar -- no
-
-#model_3l_ttH_3cat_no4mom_noSemi_quasar
-#model_3l_ttZ_ttH_3cat_no4mom_noSemi_quasar
-#model_2lss_ttW_ttH_3cat_no4mom_noSemi_quasar
-#model_2lss_ttH_3cat_no4mom_noSemi_quasar
-
-# python convert_hdf5_2_pb.py --input ../jupyter_nb/test_model_3l_ttH_3cat_no4mom_noSemi_quasar.hdf5
-# python convert_hdf5_2_pb.py --input ../jupyter_nb/test_model_3l_ttZ_ttH_3cat_no4mom_noSemi_quasar.hdf5
-# python convert_hdf5_2_pb.py --input ../jupyter_nb/test_model_2lss_ttH_3cat_no4mom_noSemi_quasar.hdf5
-
-# python convert_hdf5_2_pb.py --input ../jupyter_nb/test_model_2lss_ttW_ttH_3cat_no4mom_noSemi.hdf5
-
-#cp /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/jupyter_nb/model_2lss_ttW_ttH_3cat_no4mom_noSemi_classes.log data/NN_14Feb2019
-#cp /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/jupyter_nb/model_2lss_ttW_ttH_3cat_no4mom_noSemi_variables.log data/NN_14Feb2019
-#mv /home/acaan/CMSSW_9_4_0_pre1/src/tth-bdt-training-test/test/test_model_2lss_ttW_ttH_3cat_no4mom_noSemi_quasar.pb data/NN_14Feb2019
-
 parser = argparse.ArgumentParser(description='Deploy keras model.')
 parser.add_argument('--input', required=True, type=str, help="Input Keras model (hdf5)")
 parser.add_argument('--output', required=False, type=str, default=None, help="Output Protocol Buffers file")
