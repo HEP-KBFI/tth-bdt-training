@@ -184,7 +184,10 @@ def load_data_2017(
         if 'TTWW' in folderName :
             sampleName='TTWW'
             target=0
-        if 'evtLevelSUM_HH_bb2l' in bdtType or 'evtLevelSUM_HH_bb1l' in bdtType : #Sawati: take VBF to bb2l, is this still correct?
+        if 'hh' in folderName and 'node'  in folderName :
+            sampleName='signal_ggf_nonresonant_bbvv'
+            target=1
+        elif 'evtLevelSUM_HH_bb2l' in bdtType or 'evtLevelSUM_HH_bb1l' in bdtType : #Sawati: take VBF to bb2l, is this still correct?
             if 'signal_ggf' in folderName :
                 sampleName='signal_ggf_spin0' if "evtLevelSUM_HH_bb2l_res" in bdtType else 'signal_ggf_nonresonant_node'
                 for mass in masses :
