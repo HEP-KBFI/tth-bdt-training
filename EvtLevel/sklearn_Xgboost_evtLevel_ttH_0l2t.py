@@ -582,7 +582,7 @@ if options.doXML==True :
 	print ("saved ",pklpath+".pkl")
 	print ("variables are: ",pklpath+"_pkl.log")
 	# save the model in file 'xgb.model.dump'
-	#model = cls.booster().get_dump(fmap='', with_stats=False) #.get_dump() #pickle.dumps(cls)
+	#model = cls.get_booster().get_dump(fmap='', with_stats=False) #.get_dump() #pickle.dumps(cls)
 	#xmlfile=channel+"/"+channel+"_XGB_"+trainvar+"_"+bdtType+".xml"
 ##################################################
 fig, ax = plt.subplots(figsize=(6, 6))
@@ -602,7 +602,7 @@ fig.savefig("{}/{}_{}_{}_{}_roc.pdf".format(channel,bdtType,trainvar,str(len(tra
 ###########################################################################
 ## feature importance plot
 fig, ax = plt.subplots()
-f_score_dict =cls.booster().get_fscore()
+f_score_dict =cls.get_booster().get_fscore()
 f_score_dict = {trainVars(False)[int(k[1:])] : v for k,v in f_score_dict.items()}
 feat_imp = pandas.Series(f_score_dict).sort_values(ascending=True)
 feat_imp.plot(kind='barh', title='Feature Importances')

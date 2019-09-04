@@ -79,7 +79,7 @@ for ev in trange(0,n_entries0): #, desc="{} ({})".format(key, n_entries0)) :
 	#result = loaded_model.score(data)
 	#print(result)
 	#"""
-	#model = model.booster().get_dump(fmap='', with_stats=False) 
+	#model = model.get_booster().get_dump(fmap='', with_stats=False) 
 	#NTrees = len(model) 
 	#
 	proba = loaded_model.predict_proba(data[trainVars()].values)

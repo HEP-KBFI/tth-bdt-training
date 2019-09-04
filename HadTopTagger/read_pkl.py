@@ -88,10 +88,10 @@ def mul():
 			except :
 				print('Oops!',sys.exc_info()[0],'occured.')
 			else:
-				model = pkldata.booster().get_dump(with_stats=False)
+				model = pkldata.get_booster().get_dump(with_stats=False)
 				print model
 
-				#modeljl = jldata.booster().get_dump(with_stats=False)
+				#modeljl = jldata.get_booster().get_dump(with_stats=False)
 				#print modeljl
 
 				print ('pkl loaded')

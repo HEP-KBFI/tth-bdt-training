@@ -452,10 +452,10 @@ for dd, data_do in  enumerate(order_train):
     print("nVar: {}, var: {}".format(len(trainVars(False, options.variables, options.bdtType)), trainVars(False, options.variables, options.bdtType)))
     ## feature importance plot
     #fig, ax = plt.subplots()
-    #f_score_dict =cls.booster().get_fscore()
+    #f_score_dict =cls.get_booster().get_fscore()
     fig, ax = plt.subplots()
 
-    fscores = cls.booster().get_fscore()
+    fscores = cls.get_booster().get_fscore()
     importances = np.zeros(len(trainVars(False, options.variables, options.bdtType)))
     for k, v in fscores.iteritems():
         importances[int(k[1:])] = v
@@ -463,7 +463,7 @@ for dd, data_do in  enumerate(order_train):
     print('importances: len {}:  {},   its sum:{}'.format(len(importances), importances, np.sum(importances)))
         
         
-    f_score_dict =cls.booster().get_fscore()
+    f_score_dict =cls.get_booster().get_fscore()
     print('f_score_dict 0: len:{}:  {}'.format(len(f_score_dict), f_score_dict))
     f_score_dict = {trainVars(False, options.variables, options.bdtType)[int(k[1:])] : v for k,v in f_score_dict.items()}
     print('f_score_dict 1: len:{}:  {}'.format(len(f_score_dict), f_score_dict))

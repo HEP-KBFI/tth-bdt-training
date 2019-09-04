@@ -422,9 +422,9 @@ for dd, data_do in  enumerate(order_train):
 
     ## feature importance plot
     fig, ax = plt.subplots()
-    f_score_dict =cls.booster().get_fscore()
+    f_score_dict =cls.get_booster().get_fscore()
     fig, ax = plt.subplots()
-    f_score_dict =cls.booster().get_fscore()
+    f_score_dict =cls.get_booster().get_fscore()
     f_score_dict = {trainVars(False, options.variables, options.bdtType)[int(k[1:])] : v for k,v in f_score_dict.items()}
     feat_imp = pandas.Series(f_score_dict).sort_values(ascending=True)
     feat_imp.plot(kind='barh', title='Feature Importances')
