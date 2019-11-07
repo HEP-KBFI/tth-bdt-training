@@ -646,7 +646,7 @@ print("XGBoost test set auc - {}".format(test_auct))
 file_.write("XGBoost_train = %0.8f\n" %train_auc)
 file_.write("XGBoost_test = %0.8f\n" %test_auct)
 fig, ax = plt.subplots()
-f_score_dict =cls.booster().get_fscore()
+f_score_dict =cls.get_booster().get_fscore()
 
 pklpath=channel+"/"+channel+"_XGB_"+trainvar+"_"+bdtType+"_"+str(len(trainVars(False, options.variables, options.bdtType)))+"Var"
 print ("Done  ",pklpath,hyppar)
@@ -812,7 +812,7 @@ fig.savefig(nameout.replace(".pdf", ".png"))
 ###########################################################################
 ## feature importance plot
 fig, ax = plt.subplots()
-f_score_dict =cls.booster().get_fscore()
+f_score_dict =cls.get_booster().get_fscore()
 print("f_score_dict: {}".format(f_score_dict))
 f_score_dict = {trainVars(False, options.variables, options.bdtType)[int(k[1:])] : v for k,v in f_score_dict.items()}
 feat_imp = pandas.Series(f_score_dict).sort_values(ascending=True)

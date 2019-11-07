@@ -465,7 +465,7 @@ fig.savefig("{}/{}_{}_{}_{}_roc.pdf".format(channel,bdtType,trainvar,str(len(tra
 ###########################################################################
 ## feature importance plot
 fig, ax = plt.subplots()
-f_score_dict =cls.booster().get_fscore()
+f_score_dict =cls.get_booster().get_fscore()
 print (len(f_score_dict), len(trainVars(False))  )
 f_score_dict = {trainVars(False)[int(k[1:])] : v for k,v in f_score_dict.items()}
 feat_imp = pandas.Series(f_score_dict).sort_values(ascending=True)

@@ -142,8 +142,13 @@ def xgbtree_to_nodetree(tree):
     """Converts an xgboost tree dump to an internal Tree representation
 
     Args:
+<<<<<<< HEAD
         tree (string): The model dump from xgboost using model.booster().get_dump()[ntree]
 
+=======
+        tree (string): The model dump from xgboost using model.get_booster().get_dump()[ntree]
+
+>>>>>>> 03c33d3b36a11cf014ee60ece90d88e3c7a96ab0
     Returns:
         dict int->Tree: The tree structure
     """

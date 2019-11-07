@@ -1568,7 +1568,7 @@ if options.doBDT == True :
 	fprtfAJ, tprtfAJ, thresholds = roc_curve(dataTightFS["target"], proba[:,1], sample_weight=(dataTightFS[weights].astype(np.float64)) )
 	test_auctfAJ = auc(fprtfAJ, tprtfAJ, reorder = True)
 	print("XGBoost fulsim all auc - {}".format(test_auctfAJ))
-	f_score_dict =cls.booster().get_fscore()
+	f_score_dict =cls.get_booster().get_fscore()
 	f_score_dict = {trainVars[int(k[1:])] : v for k,v in f_score_dict.items()}
 	if "1B" in BDTtype:  print("importance", f_score_dict)
 	###########################################################################

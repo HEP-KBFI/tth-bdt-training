@@ -1,6 +1,18 @@
 import os
 import argparse
 
+## --- This convertor runs with tensorflow backend ------------------------ ##
+## --- if you get error starting with "Using Theano" ---------------------- ##
+## --- or AttributeError: 'module' object has no attribute 'get_session' -- ##
+## --- Open /home/$USER_NAME/.keras/keras.json and change the line ------- ##
+## --- "backend": "theano" to "backend": "tensorflow" --------------------- ##
+## --- and then execute the lines like below  ----------------------------- ##
+
+
+## --- Example -- ##
+## python convert_hdf5_2_pb.py --input <input .hdf5 file name with path> --output <output file name> 
+
+
 parser = argparse.ArgumentParser(description='Deploy keras model.')
 parser.add_argument('--input', required=True, type=str, help="Input Keras model (hdf5)")
 parser.add_argument('--output', required=False, type=str, default=None, help="Output Protocol Buffers file")
@@ -21,7 +33,7 @@ print(model.inputs[0].name)
 print(model.outputs[0].name)
 #raise RuntimeError("stop")
 
-print ("teste", [node.op.name for node in model.outputs])
+#print ("teste", [node.op.name for node in model.outputs])
 input_nodes = [model.inputs[0].name] #"main_input"]#  [model.inputs[0].name]
 output_nodes = [model.outputs[0].name] #"main_output/Softmax"]#["output_node"]
 #input_nodes = ["main_input"]#  [model.inputs[0].name]

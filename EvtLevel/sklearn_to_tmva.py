@@ -178,7 +178,7 @@ def xgbr_to_tmva(cls, evals_result, data, features, outfile_name, **kwargs):
 	)
 	#for itree, t in enumerate(cls.estimators_[:, 0])
 	for itree in range(cls.n_estimators):
-		t=cls.booster().get_dump(fmap='', with_stats=False) #pickle.dumps(cls.booster()) # xgb.dump(cls, 'xgb.model.dump', with_stats = TRUE) #cls.tree #.booster() # cls.get_dump() #cls.evals_result()['validation_0']['logloss'] #cls.evals_result() #predict() # evals_result(cls) #cls.Loss #pickle.dumps(cls)
+		t=cls.get_booster().get_dump(fmap='', with_stats=False) #pickle.dumps(cls.booster()) # xgb.dump(cls, 'xgb.model.dump', with_stats = TRUE) #cls.tree #.booster() # cls.get_dump() #cls.evals_result()['validation_0']['logloss'] #cls.evals_result() #predict() # evals_result(cls) #cls.Loss #pickle.dumps(cls)
 		#xgb.model.dt.tree(agaricus.train$data@Dimnames[[2]], model = cls)
 		outfile.write('<BinaryTree type="DecisionTree" boostWeight="1.0" itree="{0}">\n'.format(itree, cls.learning_rate))
 		#recurse(cls, outfile, t.tree_, coef)

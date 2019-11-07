@@ -336,7 +336,7 @@ if options.evaluateFOM==True :
 	print ("evaluateFOM with kinfit",withKinFit, time.asctime( time.localtime(time.time()) ))
 	## feature importance plot
 	fig, ax = plt.subplots()
-	f_score_dicts =cls.booster().get_fscore()
+	f_score_dicts =cls.get_booster().get_fscore()
 	f_score_dicts = {trainVars(withKinFit)[int(k[1:])] : v for k,v in f_score_dicts.items()}
 	if options.HypOpt==False :
 		feat_imp = pandas.Series(f_score_dicts).sort_values(ascending=True)

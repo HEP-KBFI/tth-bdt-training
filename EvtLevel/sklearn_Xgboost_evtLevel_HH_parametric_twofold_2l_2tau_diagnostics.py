@@ -422,9 +422,9 @@ for dd, data_do in  enumerate(order_train):
 
     ## feature importance plot
     fig, ax = plt.subplots()
-    f_score_dict =cls.booster().get_fscore()
+    f_score_dict =cls.get_booster().get_fscore()
     fig, ax = plt.subplots()
-    f_score_dict =cls.booster().get_fscore()
+    f_score_dict =cls.get_booster().get_fscore()
     f_score_dict = {trainVars(False, options.variables, options.bdtType)[int(k[1:])] : v for k,v in f_score_dict.items()}
     feat_imp = pandas.Series(f_score_dict).sort_values(ascending=True)
     feat_imp.plot(kind='barh', title='Feature Importances')
@@ -645,6 +645,9 @@ for mm, mass in enumerate(test_masses): ## Loop over the test masses
             #valdataset1 = order_train[val_data].loc[~(order_train[val_data]["gen_mHH"]==mass)]  ## Testing for all masses except the one under study
             valdataset1 = order_train[val_data].loc[(order_train[val_data]["gen_mHH"]==mass)] ## Testing on only the mass under study
 
+        print("traindataset1", traindataset1)
+        print("valdataset1", valdataset1)
+
         if(mass == 300):
             if(TrainMode == 0):
                 masses1 = [250,260,270,280,350,400,450,500,550,600,650,700,750,800,850,900,1000] ## All masses except 300
@@ -713,11 +716,11 @@ for mm, mass in enumerate(test_masses): ## Loop over the test masses
         ## --- ROC curve ----##                                                                                                                                                                       
         proba = cls2.predict_proba(valdataset1[trainVars(False, options.variables, options.bdtType)].values )
         #proba = cls2.predict_proba(valdataset1[BDTvariables_wo_gen_mHH].values )
-        fprt, tprt, thresholds = roc_curve(valdataset1[target], proba[:,1], sample_weight=(valdataset1[weights].astype(np.float64))  )                                                                  
+        fprt, tprt, thresholds = roc_curve(valdataset1[target].astype(np.bool), proba[:,1], sample_weight=(valdataset1[weights].astype(np.float64))  )                                                                  
         test_auct = auc(fprt, tprt, reorder = True)                                                                                                                                                  
  
         proba = cls2.predict_proba(traindataset1[trainVars(False, options.variables, options.bdtType)].values )                                                                               
-        fpr, tpr, thresholds = roc_curve(traindataset1[target], proba[:,1],sample_weight=(traindataset1[weights].astype(np.float64)) )                                                                  
+        fpr, tpr, thresholds = roc_curve(traindataset1[target].astype(np.bool), proba[:,1], sample_weight=(traindataset1[weights].astype(np.float64)) )                                                                  
         train_auc = auc(fpr, tpr, reorder = True)                                                                                                                                                     
 
         ## ---- BDT Output Distributions ----- ###
@@ -804,11 +807,11 @@ for mm, mass in enumerate(test_masses): ## Loop over the test masses
 
         ## --- ROC curve ----##
         proba_a = cls2a.predict_proba(valdataset1[BDTvariables_wo_gen_mHH].values )
-        fprt_a, tprt_a, thresholds = roc_curve(valdataset1[target], proba_a[:,1], sample_weight=(valdataset1[weights].astype(np.float64))  )                                                                  
+        fprt_a, tprt_a, thresholds = roc_curve(valdataset1[target].astype(np.bool), proba_a[:,1], sample_weight=(valdataset1[weights].astype(np.float64))  )                                                                  
         test_auct_a = auc(fprt_a, tprt_a, reorder = True)
 
         proba_a = cls2a.predict_proba(traindataset1[BDTvariables_wo_gen_mHH].values )                                                                               
-        fpr_a, tpr_a, thresholds = roc_curve(traindataset1[target], proba_a[:,1], sample_weight=(traindataset1[weights].astype(np.float64)) )                                                                  
+        fpr_a, tpr_a, thresholds = roc_curve(traindataset1[target].astype(np.bool), proba_a[:,1], sample_weight=(traindataset1[weights].astype(np.float64)) )                                                                  
         train_auc_a = auc(fpr_a, tpr_a, reorder = True)                                                                                                                                                     
 
         ## ---- BDT Output Distributions ----- ###
@@ -929,14 +932,14 @@ for mm, mass in enumerate(test_masses): ## Loop over the test masses
 
         #proba = cls3.predict_proba(valdataset2[trainVars(False, options.variables, options.bdtType)].values )
         proba = cls3.predict_proba(valdataset2[BDTvariables_wo_gen_mHH].values ) ## Since we are doing single mass train no need for gen_mHH  
-        fprt, tprt, thresholds = roc_curve(valdataset2[target], proba[:,1], sample_weight=(valdataset2[weights].astype(np.float64))  )                                                                  
+        fprt, tprt, thresholds = roc_curve(valdataset2[target].astype(np.bool), proba[:,1], sample_weight=(valdataset2[weights].astype(np.float64))  )                                                                  
         print("fprt", fprt)
         print("tprt", tprt)
         test_auct = auc(fprt, tprt, reorder = True)                                                                                                                                                   
 
         #proba = cls3.predict_proba(traindataset2[trainVars(False, options.variables, options.bdtType)].values )
         proba = cls3.predict_proba(traindataset2[BDTvariables_wo_gen_mHH].values ) ## Since we are doing single mass train no need for gen_mHH  
-        fpr, tpr, thresholds = roc_curve(traindataset2[target], proba[:,1],sample_weight=(traindataset2[weights].astype(np.float64)) )                                                                  
+        fpr, tpr, thresholds = roc_curve(traindataset2[target].astype(np.bool), proba[:,1], sample_weight=(traindataset2[weights].astype(np.float64)) )                                                                  
         train_auc = auc(fpr, tpr, reorder = True)                                                                                                                                                     
 
         ## ---- BDT Output Distributions ----- ###  
