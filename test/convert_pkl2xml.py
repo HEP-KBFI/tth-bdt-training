@@ -24,7 +24,7 @@ inputFile = options.inputFile
 outputFile = inputFile.replace(".pkl", ".xml")
 
 file = open(options.InputVarsFile, "r")
-features = file.readline().replace("[","").replace("]","").replace("'","").replace("\n","").split(",")
+features = file.readline().replace("[","").replace("]","").replace("'","").replace("\"","").replace(" ","").replace("\n","").split(",")
 
 print("features: ", features)
 
