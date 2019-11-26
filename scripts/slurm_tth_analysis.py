@@ -53,8 +53,7 @@ def main():
         global_settings['nthread'], value_dicts, pso_settings['sample_size'])
     print("\n============ Starting hyperparameter optimization ==========\n")
     result_dict = pm.run_pso(
-        global_settings, pso_settings, data_dict,
-        value_dicts, sm.run_iteration, parameter_dicts
+        data_dict, value_dicts, sm.run_iteration, parameter_dicts
     )
     print("\n============ Saving results ================\n")
     universal.save_results(result_dict, output_dir)
