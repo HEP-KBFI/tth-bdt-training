@@ -56,7 +56,7 @@ def main():
         data_dict, value_dicts, sm.run_iteration, parameter_dicts
     )
     print("\n============ Saving results ================\n")
-    universal.save_results(result_dict, output_dir)
+    universal.save_results(result_dict, output_dir, plot_extras=True)
 
 
 

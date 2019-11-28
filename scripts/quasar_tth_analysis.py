@@ -53,7 +53,7 @@ def main():
         data_dict, value_dicts, xt.ensemble_fitnesses, parameter_dicts
     )
     print("\n============ Saving results ================\n")
-    universal.save_results(result_dict, output_dir)
+    universal.save_results(result_dict, output_dir, plot_extras=True)
 
 
 
