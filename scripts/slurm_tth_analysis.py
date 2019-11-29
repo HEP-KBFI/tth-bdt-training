@@ -57,6 +57,7 @@ def main():
     )
     print("\n============ Saving results ================\n")
     universal.save_results(result_dict, output_dir, plot_extras=True)
+    sm.clear_from_files(global_settings)
 
 
 
