@@ -3,6 +3,7 @@ import json
 import os
 import numpy as np
 import xgboost as xgb
+import pandas
 from sklearn.cross_validation import train_test_split
 np.random.seed(1)
 import warnings
@@ -34,7 +35,7 @@ def getParameters(parameters_path):
 def tth_analysis_main(
     channel, bdtType, nthread,
     outputDir, trainvar,
-    cf
+    cf, all_years=True
 ):
     cmssw_base_path = os.path.expandvars('$CMSSW_BASE')
     datacard_dir = os.path.join(
@@ -54,17 +55,32 @@ def tth_analysis_main(
     parameters = getParameters(parameters_path)
     output = cf.read_from()
     print('::::::: Loading data :::::::')
-    data = dl.load_data_2017(
-        parameters['inputPath'],
-        parameters['channelInTree'],
-        trainVars, # kus on kasutatud tavaline 'variables'?
-        bdtType,
-        channel,
-        output['keys'],
-        os.path.join(datacard_dir, 'ttH')
-    )
+    if all_years:
+        total_data = pandas.DataFrame({})
+        yearly_paths = ['inputPath16', 'inputPath17', 'inputPath18']
+        for path in yearly_paths:
+            data = dl.load_data(
+                parameters[path],
+                parameters['channelInTree'],
+                trainVars, # kus on kasutatud tavaline 'variables'?
+                bdtType,
+                channel,
+                output['keys'],
+                os.path.join(datacard_dir, 'ttH')
+            )
+            total_data.append(data)
+    else:
+        total_data = dl.load_data(
+            parameters['inputPath18'],
+            parameters['channelInTree'],
+            trainVars, # kus on kasutatud tavaline 'variables'?
+            bdtType,
+            channel,
+            output['keys'],
+            os.path.join(datacard_dir, 'ttH')
+        )
     print_info(data)
-    return data, trainVars
+    return total_data, trainVars
 
 
 def print_info(data):

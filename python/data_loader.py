@@ -11,7 +11,7 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 
-def load_data_2017(
+def load_data(
     inputPath,
     channelInTree,
     variables,
