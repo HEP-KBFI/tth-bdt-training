@@ -68,7 +68,7 @@ def tth_analysis_main(
                 output['keys'],
                 os.path.join(datacard_dir, 'ttH')
             )
-            total_data.append(data, ignore_index=True)
+            total_data = total_data.append(data, ignore_index=True)
     else:
         total_data = dl.load_data(
             parameters['inputPath18'],
