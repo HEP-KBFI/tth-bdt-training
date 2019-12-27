@@ -9,6 +9,7 @@ from tthAnalysis.bdtTraining import xgb_tth as ttHxt
 import glob
 import os
 
+
 def write_new_trainvar_list(trainvars, out_file):
     '''Writes new trainvars to be tested into a file
 
@@ -140,19 +141,15 @@ def data_related_trainvars(trainvars):
         for false_trainvar in false_trainvars:
             if false_trainvar in trainvar:
                 do_not_include += 1
-        if do_not_include > 0:
+        if do_not_include == 0:
             true_trainvars.append(trainvar)
     return true_trainvars
 
 
 def access_ttree(single_root_file, inputTree):
     trainvars = []
-    print(single_root_file)
-    print(inputTree)
     tfile = ROOT.TFile(single_root_file)
-    print(tfile)
     ttree = tfile.Get(inputTree)
-    print(ttree)
     branches = ttree.GetListOfBranches()
     for branch in branches:
         trainvars.append(branch.GetName())
