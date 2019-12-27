@@ -27,7 +27,7 @@ def write_new_trainvar_list(trainvars, out_file):
     with open(out_file, 'w') as file:
         for trainvar in trainvars[:-1]:
             file.write(str(trainvar) + '\n')
-        file.write(str(trainvar))
+        file.write(str(trainvars[-1]))
 
 
 def choose_trainVar(datacard_dir, channel, trainvar, bdt_type):

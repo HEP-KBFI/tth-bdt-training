@@ -1,8 +1,11 @@
 import os
+
 from tthAnalysis.bdtTraining import trainvar_choice as tc
 dir_path = os.path.dirname(os.path.realpath(__file__))
 resources_dir = os.path.join(dir_path, 'resources')
 tmp_dir = os.path.join(resources_dir, 'tmp')
+if not os.path.exists(tmp_dir):
+    os.makedirs(tmp_dir)
 
 def test_write_new_trainvar_list():
     trainvars = ['foo', 'bar', 'baz']
@@ -22,3 +25,8 @@ def test_data_related_trainvars():
     testing_trainvars = ['genTrainvar', 'genWeight', 'trainVar']
     true_trainvars = tc.data_related_trainvars(testing_trainvars)
     assert len(true_trainvars) == 1
+
+
+def test_dummy_delete_files():
+    if os.path.exists(tmp_folder):
+        shutil.rmtree(tmp_folder)
