@@ -1,9 +1,11 @@
 '''
-XGBoost for stuff.
+Find optimal training variables for different channels for XGBoost.
 Call with 'python'
 
-Usage: quasar_tth_analysis.py
+Usage: find_trainvars.py
 '''
+
+
 import importlib
 import numpy as np
 import os
@@ -11,6 +13,7 @@ from tthAnalysis.bdtTraining import xgb_tth as ttHxt
 from tthAnalysis.bdtHyperparameterOptimization import universal
 from tthAnalysis.bdtHyperparameterOptimization import pso_main as pm
 from tthAnalysis.bdtHyperparameterOptimization import xgb_tools as xt
+from tthAnalysis.bdtHyperparameterOptimization import slurm_main as sm
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -49,13 +52,12 @@ def main():
         value_dicts, pso_settings['sample_size'])
     print("\n============ Starting hyperparameter optimization ==========\n")
     result_dict = pm.run_pso(
-        data_dict, value_dicts, xt.ensemble_fitnesses, parameter_dicts
+        data_dict, value_dicts, sm.run_iteration, parameter_dicts
     )
     print("\n============ Saving results ================\n")
     universal.save_results(result_dict, output_dir, plot_extras=True)
     sm.clear_from_files(global_settings)
     print("Results saved to " + str(output_dir))
-
 
 
 if __name__ == '__main__':
