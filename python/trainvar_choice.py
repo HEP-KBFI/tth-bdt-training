@@ -6,6 +6,8 @@ import ROOT
 from tthAnalysis.bdtHyperparameterOptimization import universal
 from tthAnalysis.bdtTraining import data_loader as dl
 from tthAnalysis.bdtTraining import xgb_tth as ttHxt
+from tthAnalysis.bdtHyperparameterOptimization import pso_main as pm
+from tthAnalysis.bdtHyperparameterOptimization import xgb_tools as xt
 import glob
 import os
 
