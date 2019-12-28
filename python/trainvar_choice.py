@@ -58,7 +58,7 @@ def choose_trainVar(datacard_dir, channel, trainvar, bdt_type):
         'optimization_trainvars.txt'
     )
     try:
-        trainvars = xt.read_trainVars(trainvars_path)
+        trainvars = ttHxt.read_trainVars(trainvars_path)
     except:
         print('Could not find trainvars')
         trainvars = ''
