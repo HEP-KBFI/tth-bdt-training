@@ -60,7 +60,7 @@ def choose_trainVar(datacard_dir, channel, trainvar, bdt_type):
     try:
         trainvars = xt.read_trainVars(trainvars_path)
     except:
-        print("Could not find trainvars")
+        print('Could not find trainvars')
         trainvars = ''
     return trainvars
 

@@ -24,12 +24,18 @@ def test_choose_trainVar():
     main_dir = os.path.join(
         cmssw_base_path,
         'src',
-        'tthAnalysis',
+        'tthAnalysis'
+    )
+    hyper_data = os.path.join(
+        main_dir,
         'bdtHyperparameterOptimization'
     )
+    test_settings = os.path.join(
+        main_dir,
+        'bdtTraining')
     global_settings_path = os.path.join(
-        main_dir, 'data', 'global_settings.json')
-    test_global_settings_path = os.path.join(
+        hyper_data, 'data', 'global_settings.json')
+    test_settings = os.path.join(
         main_dir, 'test', 'resources', 'global_settings.json')
     os.rename(global_settings_path, global_settings_path + '_')
     shutil.copy(test_global_settings_path, global_settings_path)
