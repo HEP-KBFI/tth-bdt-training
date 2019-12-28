@@ -241,7 +241,7 @@ def run_trainvar_optimization():
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
     trainvars = initialize_trainvars(channel)
-    write_new_trainvar_list(trainvars, out_dir)
+    write_new_trainvar_list(trainvars, output_dir)
     while len(trainvars) > 10:
         data, trainVars = ttHxt.tth_analysis_main(
             channel, bdtType, nthread,
@@ -260,7 +260,7 @@ def run_trainvar_optimization():
             feature_importances, trainvars)
         if len(trainvars) > 10:
             trainvars = drop_worst_parameters(named_feature_importances)
-        write_new_trainvar_list(trainvars, out_dir)
+        write_new_trainvar_list(trainvars, output_dir)
     print("\n============ Saving results ================\n")
     universal.save_results(result_dict, output_dir, plot_extras=True)
     sm.clear_from_files(global_settings)
