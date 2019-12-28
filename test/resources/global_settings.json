@@ -1,0 +1,10 @@
+{"sample_dir": "/foo/bar"}
+{"optimization_algo": "pso"}
+{"nthread": 28}
+{"output_dir": "$CMSSW_BASE/src/tthAnalysis/bdtTraining/data/resources/tmp"}
+{"sample_type": "tth"}
+{"num_classes": 2}
+{"bdtType": "evtLevelTT_TTH"}
+{"trainvar": "noHTT"}
+{"channel": "3l_1tau"}
+{"fitness_fn": "test_auc"}

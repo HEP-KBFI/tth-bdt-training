@@ -10,7 +10,7 @@ import glob
 import os
 
 
-def write_new_trainvar_list(trainvars, out_file):
+def write_new_trainvar_list(trainvars, out_dir):
     '''Writes new trainvars to be tested into a file
 
     Parameters:
@@ -24,6 +24,7 @@ def write_new_trainvar_list(trainvars, out_file):
     -------
     Nothing
     '''
+    out_file = os.path.join(out_dir, 'optimization_trainvars.txt')
     with open(out_file, 'w') as file:
         for trainvar in trainvars[:-1]:
             file.write(str(trainvar) + '\n')
@@ -50,13 +51,9 @@ def choose_trainVar(datacard_dir, channel, trainvar, bdt_type):
     trainvars : list
         list of trainvars that are to be used in the optimization.
     '''
-    cmssw_base_path = os.path.expandvars('$CMSSW_BASE')
+    global_settings = universal.read_settings('global')
     trainvars_path = os.path.join(
-        cmssw_base_path,
-        'src',
-        'tthAnalysis',
-        'bdtTraining',
-        'data',
+        global_settings['output_dir'],
         'optimization_trainvars.txt'
     )
     try:
@@ -147,6 +144,20 @@ def data_related_trainvars(trainvars):
 
 
 def access_ttree(single_root_file, inputTree):
+    '''Accesses the TTree and gets all trainvars from the branches
+
+    Parameters:
+    ----------
+    single_root_file : str
+        Path to the .root file the TTree is located in
+    inputTree : str
+        Path of the TTree
+
+    Returns:
+    -------
+    trainvars : list
+        List of all branch names in the .root file
+    '''
     trainvars = []
     tfile = ROOT.TFile(single_root_file)
     ttree = tfile.Get(inputTree)
@@ -206,6 +217,10 @@ def drop_worst_parameters(named_feature_importances):
     return trainvars
 
 
+def run_trainvar_optimization():
+    global_settings = universal.read_settings('global')
+    channel = global_settings['channel']
+    trainvars = initialize_trainvars(channel)
 
 
 # Write what sample with what path was used and which trainvars were the optimal
