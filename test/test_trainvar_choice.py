@@ -15,7 +15,7 @@ def test_write_new_trainvar_list():
     assert count == 3
 
 
-def test_choose_trainVar()
+def test_choose_trainVar():
     datacard_dir = 'dummy'
     channel = 'dummy'
     trainvar = 'dummy'
@@ -25,7 +25,7 @@ def test_choose_trainVar()
         cmssw_base_path,
         'src',
         'tthAnalysis',
-        'bdtTraining'
+        'bdtHyperparameterOptimization'
     )
     global_settings_path = os.path.join(
         main_dir, 'data', 'global_settings.json')
