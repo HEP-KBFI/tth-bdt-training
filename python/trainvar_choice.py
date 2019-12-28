@@ -52,8 +52,9 @@ def choose_trainVar(datacard_dir, channel, trainvar, bdt_type):
         list of trainvars that are to be used in the optimization.
     '''
     global_settings = universal.read_settings('global')
+    out_dir = os.path.expandvars(global_settings['output_dir'])
     trainvars_path = os.path.join(
-        global_settings['output_dir'],
+        out_dir,
         'optimization_trainvars.txt'
     )
     try:
