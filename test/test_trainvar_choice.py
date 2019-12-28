@@ -1,5 +1,5 @@
 import os
-
+import shutil
 from tthAnalysis.bdtTraining import trainvar_choice as tc
 dir_path = os.path.dirname(os.path.realpath(__file__))
 resources_dir = os.path.join(dir_path, 'resources')
