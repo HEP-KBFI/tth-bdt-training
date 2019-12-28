@@ -2,6 +2,9 @@ from tthAnalysis.bdtTraining import trainvar_choice as tc
 from tthAnalysis.bdtHyperparameterOptimization import pso_main as pm
 from tthAnalysis.bdtHyperparameterOptimization import universal
 from tthAnalysis.bdtHyperparameterOptimization import xgb_tools as xt
+from tthAnalysis.bdtHyperparameterOptimization import slurm_main as sm
+from tthAnalysis.bdtTraining import xgb_tth as ttHxt
+import os
 
 def main():
     global_settings = universal.read_settings('global')
