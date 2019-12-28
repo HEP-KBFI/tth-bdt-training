@@ -216,3 +216,11 @@ def drop_worst_parameters(named_feature_importances):
     index = trainvars.index(worst_performing_feature)
     del trainvars[index]
     return trainvars
+
+
+def read_from(): # think better solution -> read from file?
+    keys = ['ttH', 'TTWJets', 'TTZ', 'TTTo2L2Nu', 'TTToSemiLeptonic']
+    output = {
+        'keys': keys
+    }
+    return output
