@@ -28,7 +28,7 @@ def main():
         os.makedirs(output_dir)
     trainvars = tc.initialize_trainvars(channel)
     tc.write_new_trainvar_list(trainvars, output_dir)
-    while len(trainvars) > 10:
+    while len(trainvars) < 10:
         data, trainVars = ttHxt.tth_analysis_main(
             channel, bdtType, nthread,
             output_dir, trainvar, tc
