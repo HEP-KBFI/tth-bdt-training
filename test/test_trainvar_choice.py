@@ -35,8 +35,8 @@ def test_choose_trainVar():
         'bdtTraining')
     global_settings_path = os.path.join(
         hyper_data, 'data', 'global_settings.json')
-    test_settings = os.path.join(
-        main_dir, 'test', 'resources', 'global_settings.json')
+    test_global_settings_path = os.path.join(
+        test_settings, 'test', 'resources', 'global_settings.json')
     os.rename(global_settings_path, global_settings_path + '_')
     shutil.copy(test_global_settings_path, global_settings_path)
     trainvars = tc.choose_trainVar(datacard_dir, channel, trainvar, bdt_type)
