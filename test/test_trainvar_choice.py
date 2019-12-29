@@ -56,6 +56,24 @@ def test_data_related_trainvars():
     assert len(true_trainvars) == 1
 
 
+def test_drop_worst_parameters():
+    named_feature_importances = {
+        'lep1_pt': 15.5,
+        'lep1_conePt': 10,
+        'lep1_eta': 50,
+        'mT_lep1': 300,
+        'met_LD': 100,
+        'htmiss': 0.4,
+        'lumiScale': 0.1
+    }
+    expected = [
+        'lep1_pt', 'lep1_conePt', 'lep1_eta',
+        'mT_lep1','met_LD', 'htmiss'
+    ]
+    trainvars = tc.drop_worst_parameters(named_feature_importances)
+    assert trainvars == expected
+
+
 def test_dummy_delete_files():
     if os.path.exists(tmp_dir):
         shutil.rmtree(tmp_dir)

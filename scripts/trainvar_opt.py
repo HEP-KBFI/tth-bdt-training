@@ -46,8 +46,8 @@ def main():
             feature_importances, trainvars)
         if len(trainvars) > 10:
             trainvars = tc.drop_worst_parameters(named_feature_importances)
+            sm.clear_from_files(global_settings)
         tc.write_new_trainvar_list(trainvars, output_dir)
-        sm.clear_from_files(global_settings)
     print("\n============ Saving results ================\n")
     universal.save_results(result_dict, output_dir, plot_extras=True)
     sm.clear_from_files(global_settings)
