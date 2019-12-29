@@ -35,7 +35,7 @@ def getParameters(parameters_path):
 def tth_analysis_main(
     channel, bdtType, nthread,
     outputDir, trainvar,
-    cf, all_years=True
+    cf, all_years=True, verbose=False
 ):
     cmssw_base_path = os.path.expandvars('$CMSSW_BASE')
     datacard_dir = os.path.join(
@@ -79,7 +79,8 @@ def tth_analysis_main(
             output['keys'],
             os.path.join(datacard_dir, 'ttH')
         )
-    print_info(data)
+    if verbose:
+        print_info(data)
     return total_data, trainVars
 
 
