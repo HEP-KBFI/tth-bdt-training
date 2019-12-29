@@ -66,12 +66,12 @@ def test_drop_worst_parameters():
         'htmiss': 0.4,
         'lumiScale': 0.1
     }
-    expected = [
+    expected = sorted([
         'lep1_pt', 'lep1_conePt', 'lep1_eta',
         'mT_lep1','met_LD', 'htmiss'
-    ]
+    ])
     trainvars = tc.drop_worst_parameters(named_feature_importances)
-    assert trainvars == expected
+    assert sorted(trainvars) == expected
 
 
 def test_dummy_delete_files():
