@@ -47,6 +47,7 @@ def main():
         if len(trainvars) > 10:
             sm.clear_from_files(global_settings)
         tc.write_new_trainvar_list(trainvars, output_dir)
+        universal.save_feature_importances(result_dict, output_dir)
     print("\n============ Saving results ================\n")
     universal.save_results(result_dict, output_dir, plot_extras=True)
     sm.clear_from_files(global_settings)
