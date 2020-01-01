@@ -129,13 +129,13 @@ def createDataSet(data, trainVars, nthread):
         traindataset,
         label=training_labels,
         nthread=nthread,
-        feature_names=data.keys()
+        feature_names=trainVars
     )
     dtest = xgb.DMatrix(
         testdataset,
         label=testing_labels,
         nthread=nthread,
-        feature_names=data.keys()
+        feature_names=trainVars
     )
     data_dict = {
         'dtrain': dtrain,

@@ -42,10 +42,8 @@ def main():
             data_dict, value_dicts, sm.run_iteration, parameter_dicts
         )
         feature_importances = result_dict['feature_importances']
-        named_feature_importances = tc.relate_trainvar_name_and_number(
-            feature_importances, trainvars)
         if len(trainvars) > 10:
-            trainvars = tc.drop_worst_parameters(named_feature_importances)
+            trainvars = tc.drop_worst_parameters(feature_importances)
         if len(trainvars) > 10:
             sm.clear_from_files(global_settings)
         tc.write_new_trainvar_list(trainvars, output_dir)
