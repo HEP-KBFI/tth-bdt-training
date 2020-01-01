@@ -132,7 +132,7 @@ def data_related_trainvars(trainvars):
     true_trainvars : list
         Updated trainvar list, that contains only data-related trainvars
     '''
-    false_trainvars = ['gen', 'Weight']
+    false_trainvars = ['gen', 'Weight', 'weight', 'lumi', 'event']
     true_trainvars = []
     for trainvar in trainvars:
         do_not_include = 0
@@ -166,30 +166,6 @@ def access_ttree(single_root_file, inputTree):
     for branch in branches:
         trainvars.append(branch.GetName())
     return trainvars
-
-
-def relate_trainvar_name_and_number(feature_importances, trainvars):
-    '''Relates the trainvar number and the name
-
-    Parameters:
-    ----------
-    feature_importances : dict
-        Dictionary containing the feature importances with f{int} as key name
-        and the importance as the key value.
-    trainvars : list
-        List of trainvars
-
-    Returns:
-    -------
-    named_dict : dict
-        Dictionary with assinged names for the feature_importances
-    '''
-    named_dict = {}
-    for key in feature_importances:
-        feature_nr = int(str(key).strip('f'))
-        var_name = trainvars[feature_nr]
-        named_dict[var_name] = feature_importances[key]
-    return named_dict
 
 
 def drop_worst_parameters(named_feature_importances):
