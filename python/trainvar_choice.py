@@ -132,7 +132,7 @@ def data_related_trainvars(trainvars):
     true_trainvars : list
         Updated trainvar list, that contains only data-related trainvars
     '''
-    false_trainvars = ['gen', 'Weight', 'weight', 'lumi', 'event']
+    false_trainvars = ['gen', 'Weight', 'weight', 'lumi', 'event', 'mva']
     true_trainvars = []
     for trainvar in trainvars:
         do_not_include = 0
