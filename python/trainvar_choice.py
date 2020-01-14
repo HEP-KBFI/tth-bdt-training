@@ -8,6 +8,7 @@ from tthAnalysis.bdtTraining import data_loader as dl
 from tthAnalysis.bdtTraining import xgb_tth as ttHxt
 import glob
 import os
+import pandas
 
 
 def write_new_trainvar_list(trainvars, out_dir):
@@ -132,7 +133,10 @@ def data_related_trainvars(trainvars):
     true_trainvars : list
         Updated trainvar list, that contains only data-related trainvars
     '''
-    false_trainvars = ['gen', 'Weight', 'weight', 'lumi', 'event', 'mva']
+    false_trainvars = [
+        'gen', 'Weight', 'weight', 'lumi', 'event', 'mva',
+        'lep1_pt', 'lep2_pt', 'lep3_pt', 'htmiss', 'massL_FO', '_eta',
+        'decayMode', 'DecayMode', '_isTight', 'run', 'Raw', 'ID']
     true_trainvars = []
     for trainvar in trainvars:
         do_not_include = 0
@@ -192,6 +196,17 @@ def drop_worst_parameters(named_feature_importances):
     index = trainvars.index(worst_performing_feature)
     del trainvars[index]
     return trainvars
+
+
+def plot_feature_importances(feature_importances, output_dir):
+    output_path = os.path.join(output_dir, 'feature_importances.png')
+    histogram_plot = pandas.Series(
+        feature_importances,
+        index=feature_importances.keys()
+    ).sort_values().plot(kind='barh')
+    histogram_plot.figure.savefig(
+        output_path, bbox_inches='tight')
+
 
 
 def read_from(): # think better solution -> read from file?

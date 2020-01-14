@@ -49,6 +49,7 @@ def main():
         tc.write_new_trainvar_list(trainvars, output_dir)
         universal.save_feature_importances(result_dict, output_dir)
     print("\n============ Saving results ================\n")
+    tc.plot_feature_importances(feature_importances, output_dir)
     universal.save_results(result_dict, output_dir, plot_extras=True)
     sm.clear_from_files(global_settings)
     print("Results saved to " + str(output_dir))
