@@ -136,7 +136,7 @@ def data_related_trainvars(trainvars):
     false_trainvars = [
         'gen', 'Weight', 'weight', 'lumi', 'event', 'mva', 'tau1_pt',
         'lep1_pt', 'lep2_pt', 'lep3_pt', 'htmiss', 'massL_FO',
-        'decayMode', 'DecayMode', '_isTight', 'run', 'Raw', 'ID']
+        'decayMode', 'DecayMode', '_isTight', 'run', 'Raw', 'ID', 'ptmiss']
     true_trainvars = []
     for trainvar in trainvars:
         do_not_include = 0
