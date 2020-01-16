@@ -117,11 +117,6 @@ def createDataSet(data, trainVars, nthread):
     for addition in additions:
         if not addition in variables:
             variables = variables + [addition]
-    for column in data.columns:
-        if 'eta' in column:
-            data[column] = abs(data[column])
-        if 'Jet' in column:
-            data[column] = data[column].astype(int)
     train, test = train_test_split(
         data[variables],
         test_size=0.2, random_state=1
@@ -153,3 +148,12 @@ def createDataSet(data, trainVars, nthread):
         'testing_processes': testing_processes
     }
     return data_dict
+
+
+def convert_data_to_correct_format(data):
+    for column in data.columns:
+        if 'eta' in column:
+            data[column] = abs(data[column])
+        if 'Jet' in column:
+            data[column] = data[column].astype(int)
+    return data

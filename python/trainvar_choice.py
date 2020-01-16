@@ -233,8 +233,9 @@ def plot_auc_vs_nr_trainvars(auc_values, nr_trainvars, output_dir):
     plt.savefig(output_path)
 
 
-def plot_data_correlation(data, output_dir):
+def plot_data_correlation(data, trainvars, output_dir):
     output_path = os.path.join(output_dir, 'data_correlation.png')
+    data = data[trainvars]
     plt.figure(figsize=(20, 15))
     plt.matshow(data.corr(), fignum=1, aspect='auto', cmap='inferno')
     plt.xticks(range(data.shape[1]), data.columns, rotation=90, fontsize=10)
@@ -316,5 +317,36 @@ def plot_distribution(result_dict, output_dir, nr_bins=70):
     ax.xaxis.set_ticks_position('bottom')
     plt.savefig(train_path)
     plt.close('all')
+
+
+def plot_each_trainvar_distributions(data, trainvars, output_dir, bins=70):
+    different_processes = list(set(data['process']))
+    alpha_value = 1. / (len(different_processes))
+    trainvars_distribution_dir = os.path.join(
+        output_dir, 'trainvar_distributions')
+    if not os.path.exists(trainvars_distribution_dir):
+        os.makedirs(trainvars_distribution_dir)
+    for trainvar in trainvars:
+        out_path = os.path.join(trainvars_distribution_dir, trainvar + '.png')
+        bins = plt.hist(data[trainvar])[1]
+        plt.close('all')
+        for process in different_processes:
+            plt.hist(
+                data.loc[data['process'] == process, trainvar],
+                histtype='bar',
+                label=process,
+                alpha=alpha_value,
+                bins=bins
+            )
+        ax = plt.gca()
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+        plt.legend()
+        plt.title(trainvar)
+        plt.savefig(out_path)
+        plt.close('all')
+
 
 # plot_distribution(result_dict, "/home/laurits")

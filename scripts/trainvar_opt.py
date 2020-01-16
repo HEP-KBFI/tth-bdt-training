@@ -6,6 +6,7 @@ from tthAnalysis.bdtHyperparameterOptimization import slurm_main as sm
 from tthAnalysis.bdtTraining import xgb_tth as ttHxt
 import os
 
+
 def main():
     global_settings = universal.read_settings('global')
     channel = global_settings['channel']
@@ -37,6 +38,7 @@ def main():
             channel, bdtType, nthread,
             output_dir, trainvar, tc
         )
+        data = ttHxt.convert_data_to_correct_format(data)
         if plot_correlation:
             tc.plot_data_correlation(data, output_dir)
         data_dict = ttHxt.createDataSet(data, trainVars, nthread)
