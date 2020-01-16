@@ -28,11 +28,17 @@ def main():
         os.makedirs(output_dir)
     trainvars = tc.initialize_trainvars(channel)
     tc.write_new_trainvar_list(trainvars, output_dir)
+    auc_values = []
+    nr_trainvars = []
+    plot_correlation = True
+    worst_performing_features = []
     while len(trainvars) > 10:
         data, trainVars = ttHxt.tth_analysis_main(
             channel, bdtType, nthread,
             output_dir, trainvar, tc
         )
+        if plot_correlation:
+            tc.plot_data_correlation(data, output_dir)
         data_dict = ttHxt.createDataSet(data, trainVars, nthread)
         print("::::::: Reading parameters :::::::")
         parameter_dicts = xt.prepare_run_params(
@@ -41,17 +47,25 @@ def main():
         result_dict = pm.run_pso(
             data_dict, value_dicts, sm.run_iteration, parameter_dicts
         )
+        auc_values.append(result_dict['test_auc'])
+        nr_trainvars.append(len(trainvars))
         feature_importances = result_dict['feature_importances']
         if len(trainvars) > 10:
-            trainvars = tc.drop_worst_parameters(feature_importances)
+            trainvars, worst_performing_feature = tc.drop_worst_parameters(
+                feature_importances)
+            worst_performing_features.append(worst_performing_feature)
         if len(trainvars) > 10:
             sm.clear_from_files(global_settings)
         tc.write_new_trainvar_list(trainvars, output_dir)
         universal.save_feature_importances(result_dict, output_dir)
+        plot_correlation = False
     print("\n============ Saving results ================\n")
+    tc.plot_auc_vs_nr_trainvars(auc_values, nr_trainvars, output_dir)
     tc.plot_feature_importances(feature_importances, output_dir)
     universal.save_results(result_dict, output_dir, plot_extras=True)
     sm.clear_from_files(global_settings)
+    tc.write_worst_performing_features_to_file(
+        worst_performing_features, output_dir)
     print("Results saved to " + str(output_dir))
 
 

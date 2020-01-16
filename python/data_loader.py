@@ -132,7 +132,7 @@ def get_chunkDF(
             chunk_df = pandas.DataFrame(
                 chunk_arr, columns=newVariables)
             tfile.Close()
-            chunk_df['proces'] = sampleName
+            chunk_df['process'] = sampleName
             chunk_df['key'] = folderName
             chunk_df['target'] = target
             chunk_df['totalWeight'] = chunk_df['evtWeight']

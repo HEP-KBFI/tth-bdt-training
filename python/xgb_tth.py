@@ -112,17 +112,24 @@ def print_info(data):
 
 def createDataSet(data, trainVars, nthread):
     print('::::::: Create datasets ::::::::')
-    additions = ['target', "totalWeight"]
+    additions = ['target', 'totalWeight', 'process']
     variables = trainVars
     for addition in additions:
         if not addition in variables:
             variables = variables + [addition]
+    for column in data.columns:
+        if 'eta' in column:
+            data[column] = abs(data[column])
+        if 'Jet' in column:
+            data[column] = data[column].astype(int)
     train, test = train_test_split(
         data[variables],
         test_size=0.2, random_state=1
     )
     training_labels = train['target'].astype(int)
     testing_labels = test['target'].astype(int)
+    training_processes = train['proces']
+    testing_processes = test['proces']
     traindataset = np.array(train[trainVars].values)
     testdataset = np.array(test[trainVars].values)
     dtrain = xgb.DMatrix(
@@ -141,6 +148,8 @@ def createDataSet(data, trainVars, nthread):
         'dtrain': dtrain,
         'dtest': dtest,
         'training_labels': training_labels,
-        'testing_labels': testing_labels
+        'testing_labels': testing_labels,
+        'training_processes': training_processes,
+        'testing_processes': testing_processes
     }
     return data_dict

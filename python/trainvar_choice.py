@@ -6,9 +6,11 @@ import ROOT
 from tthAnalysis.bdtHyperparameterOptimization import universal
 from tthAnalysis.bdtTraining import data_loader as dl
 from tthAnalysis.bdtTraining import xgb_tth as ttHxt
+import matplotlib.pyplot as plt
 import glob
 import os
 import pandas
+import csv
 
 
 def write_new_trainvar_list(trainvars, out_dir):
@@ -195,7 +197,7 @@ def drop_worst_parameters(named_feature_importances):
     trainvars = named_feature_importances.keys()
     index = trainvars.index(worst_performing_feature)
     del trainvars[index]
-    return trainvars
+    return trainvars, worst_performing_feature
 
 
 def plot_feature_importances(feature_importances, output_dir):
@@ -208,10 +210,76 @@ def plot_feature_importances(feature_importances, output_dir):
         output_path, bbox_inches='tight')
 
 
-
 def read_from(): # think better solution -> read from file?
     keys = ['ttH', 'TTWJets', 'TTZ', 'TTTo2L2Nu', 'TTToSemiLeptonic']
     output = {
         'keys': keys
     }
     return output
+
+
+def plot_auc_vs_nr_trainvars(auc_values, nr_trainvars, output_dir):
+    plt.plot(nr_trainvars, auc_values)
+    plt.ylabel('auc')
+    plt.xlabel('nr_trainvars')
+    plt.gca().invert_xaxis()
+    plt.ylim(0.5, 1.0)
+    plt.minorticks_on()
+    plt.grid(b=True, which='major')
+    plt.grid(b=True, which='minor', color='lightgray', linestyle='--')
+    plt.title('AUC vs nr_trainvars')
+    out_path = os.path.join(output_dir, 'auc_vs_nr_trainvars.png')
+    plt.savefig(output_path)
+
+
+def plot_data_correlation(data, output_dir):
+    output_path = os.path.join(output_dir, 'data_correlation.png')
+    plt.figure(figsize=(20, 15))
+    plt.matshow(data.corr(), fignum=1, aspect='auto', cmap='inferno')
+    plt.xticks(range(data.shape[1]), data.columns, rotation=90, fontsize=10)
+    plt.yticks(range(data.shape[1]), data.columns, fontsize=10)
+    cb = plt.colorbar()
+    cb.ax.tick_params(labelsize=14)
+    plt.savefig(output_path, bbox_inches='tight')
+
+
+def write_worst_performing_features_to_file(
+        worst_performing_features,
+        output_dir
+):
+    output_path = os.path.join(output_dir, 'worst_performing_features.txt')
+    with open(output_path, 'wt') as file:
+        writer = csv.writer(file)
+        writer.writerows(worst_performing_features)
+
+
+def plot_distribution(result_dict, output_dir):
+    data_dict = result_dict['data_dict']
+    testing_processes = data_dict['testing_processes']
+    training_processes = data_dict['training_processes']
+    pred_train = result_dict['pred_train']
+    pred_test = result_dict['pred_test']
+    different_processes = list(set(training_processes))
+    test_signal_probabilities = [item[1] for item in pred_test]
+    train_signal_probabilities = [item[1] for item in pred_train]
+    test_df = pandas.DataFrame(
+        {
+        'value': test_signal_probabilities,
+        'process': testing_processes
+        }
+    )
+    train_df = pandas.DataFrame(
+        {
+        'value': train_signal_probabilities,
+        'process': training_processes
+        }
+    )
+    alpha_value = 1 / (len(different_processes))
+    for process in different_processes:
+        plt.hist(
+            df.loc[df['process'] == process, 'value'],
+            label=process,
+            alpha=alpha_value,
+            histtype='bar'
+        )
+
