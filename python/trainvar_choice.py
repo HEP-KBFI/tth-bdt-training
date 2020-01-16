@@ -250,7 +250,7 @@ def write_worst_performing_features_to_file(
         worst_performing_features,
         output_dir
 ):
-''' In the order of the drop'''
+    ''' In the order of the drop'''
     output_path = os.path.join(output_dir, 'worst_performing_features.txt')
     with open(output_path, 'wt') as file:
         writer = csv.writer(file)
