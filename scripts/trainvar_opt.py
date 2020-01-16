@@ -40,7 +40,7 @@ def main():
         )
         data = ttHxt.convert_data_to_correct_format(data)
         if plot_correlation:
-            tc.plot_data_correlation(data, output_dir)
+            tc.plot_data_correlation(data, trainVars, output_dir)
         data_dict = ttHxt.createDataSet(data, trainVars, nthread)
         print("::::::: Reading parameters :::::::")
         parameter_dicts = xt.prepare_run_params(
