@@ -4,7 +4,7 @@ import os
 import numpy as np
 import xgboost as xgb
 import pandas
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 np.random.seed(1)
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -89,10 +89,10 @@ def print_info(data):
         data.loc[data['target']==0]['totalWeight'].sum()))
     data.loc[
         data['target']==0, ['totalWeight']
-    ] *= 100000/data.loc[data['target']==0]['totalWeight'].sum()
+    ] *= 100000./data.loc[data['target']==0]['totalWeight'].sum()
     data.loc[
         data['target']==1, ['totalWeight']
-    ] *= 100000/data.loc[data['target']==1]['totalWeight'].sum()
+    ] *= 100000./data.loc[data['target']==1]['totalWeight'].sum()
     print('Norm:')
     print(
         '\tBackground: '
@@ -128,8 +128,8 @@ def createDataSet(data, trainVars, nthread):
     )
     training_labels = train['target'].astype(int)
     testing_labels = test['target'].astype(int)
-    training_processes = train['proces']
-    testing_processes = test['proces']
+    training_processes = train['process']
+    testing_processes = test['process']
     traindataset = np.array(train[trainVars].values)
     testdataset = np.array(test[trainVars].values)
     dtrain = xgb.DMatrix(

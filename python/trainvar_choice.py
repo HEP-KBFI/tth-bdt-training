@@ -11,6 +11,7 @@ import glob
 import os
 import pandas
 import csv
+import numpy as np
 
 
 def write_new_trainvar_list(trainvars, out_dir):
@@ -253,7 +254,7 @@ def write_worst_performing_features_to_file(
         writer.writerows(worst_performing_features)
 
 
-def plot_distribution(result_dict, output_dir):
+def plot_distribution(result_dict, output_dir, nr_bins=70):
     data_dict = result_dict['data_dict']
     testing_processes = data_dict['testing_processes']
     training_processes = data_dict['training_processes']
@@ -274,12 +275,46 @@ def plot_distribution(result_dict, output_dir):
         'process': training_processes
         }
     )
-    alpha_value = 1 / (len(different_processes))
+    step = 1. / nr_bins
+    bins = np.arange(start=0, stop=1, step=step)
+    test_path = os.path.join(output_dir, 'test_set_distribution.png')
+    train_path = os.path.join(output_dir, 'train_set_distribution.png')
+    alpha_value = 1. / (len(different_processes))
     for process in different_processes:
         plt.hist(
-            df.loc[df['process'] == process, 'value'],
+            test_df.loc[test_df['process'] == process, 'value'],
             label=process,
             alpha=alpha_value,
-            histtype='bar'
+            histtype='bar',
+            bins=bins
         )
+    plt.legend()
+    plt.xlabel('Signal probability')
+    plt.ylabel('Count')
+    ax = plt.gca()
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    plt.savefig(test_path)
+    plt.close('all')
+    for process in different_processes:
+        plt.hist(
+            train_df.loc[train_df['process'] == process, 'value'],
+            label=process,
+            alpha=alpha_value,
+            histtype='bar',
+            bins=bins
+        )
+    plt.legend()
+    plt.xlabel('Signal probability')
+    plt.ylabel('Count')
+    ax = plt.gca()
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+    plt.savefig(train_path)
+    plt.close('all')
 
+# plot_distribution(result_dict, "/home/laurits")

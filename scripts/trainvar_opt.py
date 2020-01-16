@@ -62,6 +62,7 @@ def main():
     print("\n============ Saving results ================\n")
     tc.plot_auc_vs_nr_trainvars(auc_values, nr_trainvars, output_dir)
     tc.plot_feature_importances(feature_importances, output_dir)
+    tc.plot_distribution(result_dict, output_dir)
     universal.save_results(result_dict, output_dir, plot_extras=True)
     sm.clear_from_files(global_settings)
     tc.write_worst_performing_features_to_file(
