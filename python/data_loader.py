@@ -27,7 +27,7 @@ def load_data(
         inputPath, channelInTree, variables,
         bdtType, channel, keys, masses, mass_randomization
     )
-    my_cols_list = variables + ['proces', 'key', 'target', "totalWeight"]
+    my_cols_list = variables + ['process', 'key', 'target', "totalWeight"]
     data = pandas.DataFrame(columns=my_cols_list)
     sampleParameters1 = os.path.join(dataDir, 'sampleParameters_dm1.json')
     sampleParameters2 = os.path.join(dataDir, 'sampleParameters_dm2.json')
