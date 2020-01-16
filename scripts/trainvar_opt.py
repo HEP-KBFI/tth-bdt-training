@@ -62,6 +62,7 @@ def main():
         universal.save_feature_importances(result_dict, output_dir)
         plot_correlation = False
     print("\n============ Saving results ================\n")
+    tc.write_new_trainvar_list(trainvars, output_dir)
     tc.plot_auc_vs_nr_trainvars(auc_values, nr_trainvars, output_dir)
     tc.plot_feature_importances(feature_importances, output_dir)
     tc.plot_distribution(result_dict, output_dir)

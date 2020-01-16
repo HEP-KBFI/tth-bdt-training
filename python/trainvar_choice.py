@@ -236,19 +236,21 @@ def plot_auc_vs_nr_trainvars(auc_values, nr_trainvars, output_dir):
 def plot_data_correlation(data, trainvars, output_dir):
     output_path = os.path.join(output_dir, 'data_correlation.png')
     data = data[trainvars]
-    plt.figure(figsize=(20, 15))
+    plt.figure(figsize=(21, 16))
     plt.matshow(data.corr(), fignum=1, aspect='auto', cmap='inferno')
     plt.xticks(range(data.shape[1]), data.columns, rotation=90, fontsize=10)
     plt.yticks(range(data.shape[1]), data.columns, fontsize=10)
     cb = plt.colorbar()
     cb.ax.tick_params(labelsize=14)
     plt.savefig(output_path, bbox_inches='tight')
+    plt.close('all')
 
 
 def write_worst_performing_features_to_file(
         worst_performing_features,
         output_dir
 ):
+''' In the order of the drop'''
     output_path = os.path.join(output_dir, 'worst_performing_features.txt')
     with open(output_path, 'wt') as file:
         writer = csv.writer(file)
