@@ -49,7 +49,7 @@ def main():
         result_dict = pm.run_pso(
             data_dict, value_dicts, sm.run_iteration, parameter_dicts
         )
-        auc_values.append(result_dict['test_auc'])
+        auc_values.append(result_dict['best_test_auc'])
         nr_trainvars.append(len(trainvars))
         feature_importances = result_dict['feature_importances']
         if len(trainvars) > 10:
