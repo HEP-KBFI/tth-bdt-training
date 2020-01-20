@@ -38,6 +38,8 @@ def main():
             channel, bdtType, nthread,
             output_dir, trainvar, tc
         )
+        print("Number trainvars:" + str(len(trainvars)))
+        print("Trainvars: " + str(trainvars))
         data = ttHxt.convert_data_to_correct_format(data)
         if plot_correlation:
             tc.plot_data_correlation(data, trainvars, output_dir)
@@ -66,6 +68,7 @@ def main():
             + str(len(trainvars)) 
             +  " ..........................."
         )
+        print("Trainvars: " + str(trainvars))
     print("\n============ Saving results ================\n")
     tc.write_new_trainvar_list(trainvars, output_dir)
     tc.plot_auc_vs_nr_trainvars(auc_values, nr_trainvars, output_dir)
