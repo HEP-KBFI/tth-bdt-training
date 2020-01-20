@@ -151,6 +151,8 @@ def createDataSet(data, trainVars, nthread):
 
 
 def convert_data_to_correct_format(data):
+    ''' Converts the necessary trainingvariables into the correct numeric type
+    '''
     for column in data.columns:
         if 'eta' in column:
             data[column] = abs(data[column])

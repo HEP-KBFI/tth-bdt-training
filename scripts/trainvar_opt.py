@@ -34,14 +34,14 @@ def main():
     plot_correlation = True
     worst_performing_features = []
     while len(trainvars) > 10:
-        data, trainVars = ttHxt.tth_analysis_main(
+        data, trainvars = ttHxt.tth_analysis_main(
             channel, bdtType, nthread,
             output_dir, trainvar, tc
         )
         data = ttHxt.convert_data_to_correct_format(data)
         if plot_correlation:
-            tc.plot_data_correlation(data, trainVars, output_dir)
-        data_dict = ttHxt.createDataSet(data, trainVars, nthread)
+            tc.plot_data_correlation(data, trainvars, output_dir)
+        data_dict = ttHxt.createDataSet(data, trainvars, nthread)
         print("::::::: Reading parameters :::::::")
         parameter_dicts = xt.prepare_run_params(
             value_dicts, pso_settings['sample_size'])
@@ -61,6 +61,11 @@ def main():
         tc.write_new_trainvar_list(trainvars, output_dir)
         universal.save_feature_importances(result_dict, output_dir)
         plot_correlation = False
+        print(
+            "................. Number trainvars: "
+            + str(len(trainvars)) 
+            +  " ..........................."
+        )
     print("\n============ Saving results ================\n")
     tc.write_new_trainvar_list(trainvars, output_dir)
     tc.plot_auc_vs_nr_trainvars(auc_values, nr_trainvars, output_dir)

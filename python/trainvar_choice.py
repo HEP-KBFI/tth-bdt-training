@@ -46,7 +46,7 @@ def choose_trainVar(datacard_dir, channel, trainvar, bdt_type):
     channel : dummy argument
         Needed for compability with the other trainvars loading
     trainvar : dummy argument
-        Needed for compability with the other trainvars loading
+        Needed for compability with texpandvarshe other trainvars loading
     bdt_type : dummy argument
         Needed for compability with the other trainvars loading
 
