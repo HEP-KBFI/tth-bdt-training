@@ -230,7 +230,7 @@ def plot_auc_vs_nr_trainvars(auc_values, nr_trainvars, output_dir):
     plt.grid(b=True, which='minor', color='lightgray', linestyle='--')
     plt.title('AUC vs nr_trainvars')
     out_path = os.path.join(output_dir, 'auc_vs_nr_trainvars.png')
-    plt.savefig(output_path)
+    plt.savefig(out_path)
 
 
 def plot_data_correlation(data, trainvars, output_dir):
