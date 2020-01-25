@@ -2,6 +2,8 @@ import os
 from tthAnalysis.bdtHyperparameterOptimization import universal
 from tthAnalysis.bdtTraining import xgb_tth as ttHxt
 from tthAnalysis.bdtHyperparameterOptimization import nn_tools as nnt
+from tthAnalysis.bdtHyperparameterOptimization import pso_main as pm
+
 
 def main():
     global_settings = universal.read_settings('global')
