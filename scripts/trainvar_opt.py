@@ -8,23 +8,27 @@ import os
 
 
 def main():
-    global_settings = universal.read_settings('global')
+    cmssw_base_path = os.path.expandvars('$CMSSW_BASE')
+    main_dir = os.path.join(
+        cmssw_base_path,
+        'src',
+        'tthAnalysis',
+        'bdtHyperparameterOptimization'
+    )
+    settings_dir = os.path.join(
+        main_dir, 'data')
+    global_settings = universal.read_settings(settings_dir, 'global')
     channel = global_settings['channel']
     nthread = global_settings['nthread']
     bdtType = global_settings['bdtType']
     trainvar = global_settings['trainvar']
     output_dir = os.path.expandvars(global_settings['output_dir'])
-    cmssw_base_path = os.path.expandvars('$CMSSW_BASE')
     param_file = os.path.join(
-        cmssw_base_path,
-        'src',
-        'tthAnalysis',
-        'bdtHyperparameterOptimization',
-        'data',
+        settings_dir
         'xgb_parameters.json'
     )
     value_dicts = universal.read_parameters(param_file)
-    pso_settings = pm.read_weights()
+    pso_settings = pm.read_weights(settings_dir)
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
     trainvars = tc.initialize_trainvars(channel)

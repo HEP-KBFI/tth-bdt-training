@@ -17,7 +17,16 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 def main():
-    global_settings = universal.read_settings('global')
+    cmssw_base_path = os.path.expandvars('$CMSSW_BASE')
+    main_dir = os.path.join(
+        cmssw_base_path,
+        'src',
+        'tthAnalysis',
+        'bdtHyperparameterOptimization'
+    )
+    settings_dir = os.path.join(
+        main_dir, 'data')
+    global_settings = universal.read_settings(settings_dir, 'global')
     channel = global_settings['channel']
     bdtType = global_settings['bdtType']
     trainvar = global_settings['trainvar']
@@ -34,22 +43,18 @@ def main():
     )
     data_dict = ttHxt.create_xgb_data_dict(data, trainVars, nthread)
     print("::::::: Reading parameters :::::::")
-    cmssw_base_path = os.path.expandvars('$CMSSW_BASE')
     param_file = os.path.join(
-        cmssw_base_path,
-        'src',
-        'tthAnalysis',
-        'bdtHyperparameterOptimization',
-        'data',
+        settings_dir
         'xgb_parameters.json'
     )
     value_dicts = universal.read_parameters(param_file)
-    pso_settings = pm.read_weights()
+    pso_settings = pm.read_weights(settings_dir)
     parameter_dicts = xt.prepare_run_params(
         value_dicts, pso_settings['sample_size'])
     print("\n============ Starting hyperparameter optimization ==========\n")
     result_dict = pm.run_pso(
-        data_dict, value_dicts, xt.ensemble_fitnesses, parameter_dicts
+        data_dict, value_dicts, xt.ensemble_fitnesses, parameter_dicts,
+        output_dir
     )
     print("\n============ Saving results ================\n")
     universal.save_results(result_dict, output_dir, plot_extras=True)

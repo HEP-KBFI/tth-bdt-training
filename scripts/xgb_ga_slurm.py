@@ -16,20 +16,25 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 def main():
-    print('::::::: Reading GA settings & XGBoost parameters :::::::')
-    global_settings = universal.read_settings('global')
-    output_dir = os.path.expandvars(global_settings['output_dir'])
-    if not os.path.isdir(output_dir):
-        os.makedirs(output_dir)
-    settings_dict = universal.read_settings('ga')
-    settings_dict.update(global_settings)
     cmssw_base_path = os.path.expandvars('$CMSSW_BASE')
-    param_file = os.path.join(
+    main_dir = os.path.join(
         cmssw_base_path,
         'src',
         'tthAnalysis',
-        'bdtHyperparameterOptimization',
-        'data',
+        'bdtHyperparameterOptimization'
+    )
+    settings_dir = os.path.join(
+        main_dir, 'data')
+    print('::::::: Reading GA settings & XGBoost parameters :::::::')
+    global_settings = universal.read_settings(settings_dir, 'global')
+    output_dir = os.path.expandvars(global_settings['output_dir'])
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
+    settings_dict = universal.read_settings(settings_dir, 'ga')
+    settings_dict.update(global_settings)
+    cmssw_base_path = os.path.expandvars('$CMSSW_BASE')
+    param_file = os.path.join(
+        settings_dir,
         'xgb_parameters.json'
     )
     param_dict = universal.read_parameters(param_file)
