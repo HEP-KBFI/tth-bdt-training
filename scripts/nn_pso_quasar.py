@@ -1,6 +1,6 @@
 import os
 from tthAnalysis.bdtHyperparameterOptimization import universal
-from tthAnalysis.bdtTraining import xgb_tth as ttHxt
+from tthAnalysis.bdtTraining import tth_data_handler as ttHxt
 from tthAnalysis.bdtHyperparameterOptimization import nn_tools as nnt
 from tthAnalysis.bdtHyperparameterOptimization import pso_main as pm
 
@@ -37,16 +37,15 @@ def main():
         channel, bdtType, nthread,
         output_dir, trainvar, cf
     )
-    data_dict = nnt.create_data_dict(data, trainvars)
+    data_dict = ttHxt.create_nn_data_dict(data, trainvars)
     pso_settings = pm.read_weights()
 
     print("\n============ Starting hyperparameter optimization ==========\n")
     result_dict = pm.run_pso(
-        data_dict, value_dicts, nnt.ensemble_fitness, parameter_dicts
+        data_dict, value_dicts, nnt.ensemble_fitnesses, nn_hyperparameters
     )
     print("\n============ Saving results ================\n")
     universal.save_results(result_dict, output_dir, plot_extras=True)
-    sm.clear_from_files(global_settings)
     print("Results saved to " + str(output_dir))
 
 

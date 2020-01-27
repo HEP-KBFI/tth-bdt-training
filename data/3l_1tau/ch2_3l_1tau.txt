@@ -1,9 +1,0 @@
-mTauTauVis2
-mTauTauVis1
-massL
-tau1_pt
-met_LD
-lep1_conePt
-has_SFOS
-lep2_conePt
-lep3_conePt

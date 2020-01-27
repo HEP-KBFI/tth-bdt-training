@@ -6,7 +6,7 @@ Usage: ga_slurm_tth_analysis.py
 '''
 import os
 import warnings
-from tthAnalysis.bdtTraining import xgb_tth as ttHxt
+from tthAnalysis.bdtTraining import tth_data_handler as ttHxt
 from tthAnalysis.bdtHyperparameterOptimization import universal
 from tthAnalysis.bdtHyperparameterOptimization import ga_main as gm
 from tthAnalysis.bdtHyperparameterOptimization import xgb_tools as xt
@@ -46,7 +46,7 @@ def main():
         channel, bdtType, nthread,
         output_dir, trainvar, cf
     )
-    data_dict = ttHxt.createDataSet(data, trainVars, nthread)
+    data_dict = ttHxt.create_xgb_data_dict(data, trainVars, nthread)
 
     print("\n============ Starting hyperparameter optimization ==========\n")
     result_dict = gm.evolution(

@@ -110,7 +110,8 @@ def print_info(data):
     print('\tBackground: ' + str(nB))
 
 
-def createDataSet(data, trainVars, nthread):
+def create_xgb_data_dict(data, trainVars, nthread):
+    data = convert_data_to_correct_format(data)
     print('::::::: Create datasets ::::::::')
     additions = ['target', 'totalWeight', 'process']
     variables = trainVars
@@ -159,3 +160,48 @@ def convert_data_to_correct_format(data):
         if 'Jet' in column:
             data[column] = data[column].astype(int)
     return data
+
+
+
+def create_nn_data_dict(data, trainvars):
+    '''Creates the data_dict to be used by the Neural Network
+
+    Parameters:
+    ----------
+    data : pandas dataframe
+        Dataframe containing the data
+    trainvars : list
+        List of names of the training variables
+
+    Returns:
+    -------
+    data_dict : dict
+        Dictionary containing training and testing labels
+    '''
+    data = convert_data_to_correct_format(data)
+    print('::::::: Create datasets ::::::::')
+    additions = ['target', 'totalWeight', 'process']
+    variables = trainvars
+    for addition in additions:
+        if not addition in variables:
+            variables = variables + [addition]
+    train, test = train_test_split(
+        data[variables],
+        test_size=0.2, random_state=1
+    )
+    training_labels = np.array(train['target'].astype(int))
+    testing_labels = np.array(test['target'].astype(int))
+    training_processes = train['process']
+    testing_processes = test['process']
+    traindataset = np.array(train[trainvars].values)
+    testdataset = np.array(test[trainvars].values)
+    data_dict = {
+        'train': traindataset,
+        'test': testdataset,
+        'training_labels': training_labels,
+        'testing_labels': testing_labels,
+        'training_processes': training_processes,
+        'testing_processes': testing_processes,
+        'trainvars': trainvars
+    }
+    return data_dict

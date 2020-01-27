@@ -3,7 +3,7 @@ from tthAnalysis.bdtHyperparameterOptimization import pso_main as pm
 from tthAnalysis.bdtHyperparameterOptimization import universal
 from tthAnalysis.bdtHyperparameterOptimization import xgb_tools as xt
 from tthAnalysis.bdtHyperparameterOptimization import slurm_main as sm
-from tthAnalysis.bdtTraining import xgb_tth as ttHxt
+from tthAnalysis.bdtTraining import tth_data_handler as ttHxt
 import os
 
 
