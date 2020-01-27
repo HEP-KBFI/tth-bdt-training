@@ -36,7 +36,7 @@ def main():
         channel, bdtType, nthread,
         output_dir, trainvar, cf
     )
-    data_dict = ttHxt.create_nn_data_dict(data, trainVars, nthread)
+    data_dict = ttHxt.create_nn_data_dict(data, trainVars)
     print("::::::: Reading parameters :::::::")
     cmssw_base_path = os.path.expandvars('$CMSSW_BASE')
     param_file = os.path.join(
