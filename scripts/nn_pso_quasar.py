@@ -41,6 +41,7 @@ def main():
         value_dicts, pso_settings['sample_size'])
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
+    universal.save_run_settings(output_dir)
     data, trainvars = ttHxt.tth_analysis_main(
         channel, bdtType, nthread,
         output_dir, trainvar, cf

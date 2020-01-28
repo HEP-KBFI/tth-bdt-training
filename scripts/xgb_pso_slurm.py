@@ -41,6 +41,7 @@ def main():
     output_dir = os.path.expandvars(global_settings['output_dir'])
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
+    universal.save_run_settings(output_dir)
     data, trainVars = ttHxt.tth_analysis_main(
         channel, bdtType, nthread,
         output_dir, trainvar, cf

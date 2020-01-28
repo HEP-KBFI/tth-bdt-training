@@ -31,6 +31,7 @@ def main():
     pso_settings = pm.read_weights(settings_dir)
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
+    universal.save_run_settings(output_dir)
     trainvars = tc.initialize_trainvars(channel)
     tc.write_new_trainvar_list(trainvars, output_dir)
     auc_values = []

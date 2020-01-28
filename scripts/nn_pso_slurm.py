@@ -41,6 +41,7 @@ def main():
     output_dir = os.path.expandvars(global_settings['output_dir'])
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
+    universal.save_run_settings(output_dir)
     data, trainVars = ttHxt.tth_analysis_main(
         channel, bdtType, nthread,
         output_dir, trainvar, cf
@@ -48,7 +49,7 @@ def main():
     data_dict = ttHxt.create_nn_data_dict(data, trainVars)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
-        settings_dir
+        settings_dir,
         'nn_parameters.json'
     )
     value_dicts = universal.read_parameters(param_file)
