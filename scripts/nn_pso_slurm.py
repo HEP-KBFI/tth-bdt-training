@@ -14,10 +14,6 @@ from tthAnalysis.bdtHyperparameterOptimization import universal
 from tthAnalysis.bdtHyperparameterOptimization import pso_main as pm
 from tthAnalysis.bdtHyperparameterOptimization import nn_tools as nnt
 from tthAnalysis.bdtHyperparameterOptimization import slurm_main as sm
-import warnings
-warnings.filterwarnings('ignore', category=DeprecationWarning)
-warnings.filterwarnings('ignore', category=FutureWarning)
-
 
 
 def main():
@@ -63,7 +59,6 @@ def main():
     )
     print("\n============ Saving results ================\n")
     universal.save_results(result_dict, output_dir)
-    sm.clear_from_files(global_settings)
     print("Results saved to " + str(output_dir))
 
 
