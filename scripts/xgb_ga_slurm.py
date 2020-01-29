@@ -50,7 +50,7 @@ def main():
         channel, bdtType, nthread,
         output_dir, trainvar, cf
     )
-    data_dict = ttHxt.create_xgb_data_dict(data, trainVars, nthread)
+    data_dict = ttHxt.create_xgb_data_dict(data, trainVars, global_settings)
 
     print("\n============ Starting hyperparameter optimization ==========\n")
     result_dict = gm.evolution(

@@ -110,7 +110,11 @@ def print_info(data):
     print('\tBackground: ' + str(nB))
 
 
-def create_xgb_data_dict(data, trainVars, nthread):
+def create_xgb_data_dict(data, trainVars, global_settings):
+    output_dir = os.path.expandvars(global_settings['output_dir'])
+    info_dir = os.path.join(output_dir, 'previous_files', 'data_dict')
+    if not os.path.exists(info_dir):
+        os.makedirs(info_dir)
     data = convert_data_to_correct_format(data)
     print('::::::: Create datasets ::::::::')
     additions = ['target', 'totalWeight', 'process']
@@ -131,13 +135,13 @@ def create_xgb_data_dict(data, trainVars, nthread):
     dtrain = xgb.DMatrix(
         traindataset,
         label=training_labels,
-        nthread=nthread,
+        nthread=global_settings['nthread'],
         feature_names=trainVars
     )
     dtest = xgb.DMatrix(
         testdataset,
         label=testing_labels,
-        nthread=nthread,
+        nthread=global_settings['nthread'],
         feature_names=trainVars
     )
     data_dict = {
@@ -148,6 +152,7 @@ def create_xgb_data_dict(data, trainVars, nthread):
         'training_processes': training_processes,
         'testing_processes': testing_processes
     }
+    write_data_dict_info(info_dir, data_dict)
     return data_dict
 
 
@@ -162,8 +167,7 @@ def convert_data_to_correct_format(data):
     return data
 
 
-
-def create_nn_data_dict(data, trainvars):
+def create_nn_data_dict(data, trainvars, global_settings):
     '''Creates the data_dict to be used by the Neural Network
 
     Parameters:
@@ -178,6 +182,10 @@ def create_nn_data_dict(data, trainvars):
     data_dict : dict
         Dictionary containing training and testing labels
     '''
+    output_dir = os.path.expandvars(global_settings['output_dir'])
+    info_dir = os.path.join(output_dir, 'previous_files', 'data_dict')
+    if not os.path.exists(info_dir):
+        os.makedirs(info_dir)
     data = convert_data_to_correct_format(data)
     print('::::::: Create datasets ::::::::')
     additions = ['target', 'totalWeight', 'process']
@@ -204,4 +212,5 @@ def create_nn_data_dict(data, trainvars):
         'testing_processes': testing_processes,
         'trainvars': trainvars
     }
+    write_data_dict_info(info_dir, data_dict)
     return data_dict

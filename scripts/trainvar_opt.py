@@ -48,7 +48,7 @@ def main():
         data = ttHxt.convert_data_to_correct_format(data)
         if plot_correlation:
             tc.plot_data_correlation(data, trainvars, output_dir)
-        data_dict = ttHxt.createDataSet(data, trainvars, nthread)
+        data_dict = ttHxt.createDataSet(data, trainvars, global_settings)
         print("::::::: Reading parameters :::::::")
         parameter_dicts = xt.prepare_run_params(
             value_dicts, pso_settings['sample_size'])

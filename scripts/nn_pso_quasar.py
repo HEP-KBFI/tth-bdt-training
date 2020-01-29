@@ -46,7 +46,7 @@ def main():
         channel, bdtType, nthread,
         output_dir, trainvar, cf
     )
-    data_dict = ttHxt.create_nn_data_dict(data, trainvars)
+    data_dict = ttHxt.create_nn_data_dict(data, trainvars, global_settings)
     pso_settings = pm.read_weights(settings_dir)
 
     print("\n============ Starting hyperparameter optimization ==========\n")

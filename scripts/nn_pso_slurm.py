@@ -42,7 +42,7 @@ def main():
         channel, bdtType, nthread,
         output_dir, trainvar, cf
     )
-    data_dict = ttHxt.create_nn_data_dict(data, trainVars)
+    data_dict = ttHxt.create_nn_data_dict(data, trainVars, global_settings)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
         settings_dir,

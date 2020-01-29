@@ -11,9 +11,6 @@ from tthAnalysis.bdtTraining import tth_data_handler as ttHxt
 from tthAnalysis.bdtHyperparameterOptimization import universal
 from tthAnalysis.bdtHyperparameterOptimization import pso_main as pm
 from tthAnalysis.bdtHyperparameterOptimization import xgb_tools as xt
-import warnings
-warnings.filterwarnings('ignore', category=DeprecationWarning)
-warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 def main():
@@ -42,7 +39,7 @@ def main():
         channel, bdtType, nthread,
         output_dir, trainvar, cf
     )
-    data_dict = ttHxt.create_xgb_data_dict(data, trainVars, nthread)
+    data_dict = ttHxt.create_xgb_data_dict(data, trainVars, global_settings)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
         settings_dir
