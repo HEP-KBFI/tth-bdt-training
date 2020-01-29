@@ -152,7 +152,7 @@ def create_xgb_data_dict(data, trainVars, global_settings):
         'training_processes': training_processes,
         'testing_processes': testing_processes
     }
-    write_data_dict_info(info_dir, data_dict)
+    universal.write_data_dict_info(info_dir, data_dict)
     return data_dict
 
 
@@ -212,5 +212,5 @@ def create_nn_data_dict(data, trainvars, global_settings):
         'testing_processes': testing_processes,
         'trainvars': trainvars
     }
-    write_data_dict_info(info_dir, data_dict)
+    universal.write_data_dict_info(info_dir, data_dict)
     return data_dict
