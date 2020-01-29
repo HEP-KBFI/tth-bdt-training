@@ -49,16 +49,17 @@ def main():
     data_dict = ttHxt.create_xgb_data_dict(data, trainVars, nthread)
     print("::::::: Reading parameters :::::::")
     param_file = os.path.join(
-        settings_dir
+        settings_dir,
         'xgb_parameters.json'
     )
     value_dicts = universal.read_parameters(param_file)
-    pso_settings = pm.read_weights()
+    pso_settings = pm.read_weights(settings_dir)
     parameter_dicts = xt.prepare_run_params(
         value_dicts, pso_settings['sample_size'])
     print("\n============ Starting hyperparameter optimization ==========\n")
     result_dict = pm.run_pso(
-        data_dict, value_dicts, sm.run_iteration, parameter_dicts
+        data_dict, value_dicts, sm.run_iteration, parameter_dicts,
+        output_dir
     )
     print("\n============ Saving results ================\n")
     universal.save_results(result_dict, output_dir, plot_extras=True)
