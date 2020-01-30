@@ -10,6 +10,7 @@ Options:
 import importlib
 import numpy as np
 import os
+import docopt
 from tthAnalysis.bdtTraining import tth_data_handler as ttHxt
 from tthAnalysis.bdtHyperparameterOptimization import universal
 from tthAnalysis.bdtHyperparameterOptimization import nn_tools as nnt
