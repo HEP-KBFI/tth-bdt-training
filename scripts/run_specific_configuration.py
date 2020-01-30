@@ -65,9 +65,9 @@ def main(parameter_file):
         print('Unknown ml_method chosen in global_settings')
     print("\n============ Saving results ================\n")
     auc_info = universal.calculate_auc(
-        result_dict['data_dict'],
-        result_dict['pred_train'],
-        result_dict['pred_test']
+        data_dict,
+        pred_train,
+        pred_test
     )[-1]
     universal.plot_roc_curve(output_dir, auc_info)
     universal.save_feature_importances(result_dict, output_dir)
