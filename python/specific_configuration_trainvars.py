@@ -40,7 +40,7 @@ def choose_trainVar(datacard_dir, channel, trainvar, bdt_type):
     settings_dir = os.path.join(
         main_dir, 'data')
     trainvars_path = os.path.join(
-        main_dir,
+        settings_dir,
         'specific_configuration_trainvars.txt'
     )
     try:
