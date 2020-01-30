@@ -35,7 +35,7 @@ def choose_trainVar(datacard_dir, channel, trainvar, bdt_type):
         cmssw_base_path,
         'src',
         'tthAnalysis',
-        'bdtHyperparameterOptimization'
+        'bdtTraining'
     )
     settings_dir = os.path.join(
         main_dir, 'data')
