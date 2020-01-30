@@ -1,11 +1,10 @@
 '''
 Call with 'python'
 
-Usage: run_specific_configuration.py --parameter_file=PTH --output_dir=DIR
+Usage: run_specific_configuration.py --parameter_file=PTH
 
 Options:
     -p --parameter_file=PTH      Path to parameters to be run
-    --output_dir=DIR             Directory of the output
 
 '''
 import importlib
@@ -19,7 +18,7 @@ from tthAnalysis.bdtHyperparameterOptimization import specific_configuration_tra
 from tthAnalysis.bdtTraining import trainvar_choice as tc
 
 
-def main():
+def main(parameter_file):
     cmssw_base_path = os.path.expandvars('$CMSSW_BASE')
     main_dir = os.path.join(
         cmssw_base_path,
@@ -83,6 +82,6 @@ if __name__ == '__main__':
         arguments = docopt.docopt(__doc__)
         parameter_file = arguments['--parameter_file']
         output_dir = arguments['--output_dir']
-        main(parameter_file, output_dir)
+        main(parameter_file)
     except docopt.DocoptExit as e:
         print(e)
