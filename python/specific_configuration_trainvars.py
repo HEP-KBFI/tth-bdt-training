@@ -2,6 +2,14 @@ from tthAnalysis.bdtTraining import xgb_tth as ttHxt
 import os
 
 
+def read_from(): # think better solution -> read from file?
+    keys = ['ttH', 'TTWJets', 'TTZ', 'TTTo2L2Nu', 'TTToSemiLeptonic']
+    output = {
+        'keys': keys
+    }
+    return output
+
+
 def choose_trainVar(datacard_dir, channel, trainvar, bdt_type):
     '''Reads the training variables from the data folder from file 
     'optimization_trainvars.txt'. Is used for the xgb_tth cf function.
