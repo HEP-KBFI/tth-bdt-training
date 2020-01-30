@@ -14,7 +14,7 @@ from tthAnalysis.bdtTraining import tth_data_handler as ttHxt
 from tthAnalysis.bdtHyperparameterOptimization import universal
 from tthAnalysis.bdtHyperparameterOptimization import nn_tools as nnt
 from tthAnalysis.bdtHyperparameterOptimization import xgb_tools as xt
-from tthAnalysis.bdtHyperparameterOptimization import specific_configuration_trainvars as sct
+from tthAnalysis.bdtTraining import specific_configuration_trainvars as sct
 from tthAnalysis.bdtTraining import trainvar_choice as tc
 
 
