@@ -50,7 +50,7 @@ def main(parameter_file):
             parameter_dict,
             data_dict,
             global_settings['nthread'],
-            global_sttings['num_class']
+            global_settings['num_class']
         )
     elif global_settings['ml_method'] == 'nn':
         data_dict = ttHxt.create_nn_data_dict(data, trainVars, global_settings)
