@@ -69,6 +69,7 @@ def main(parameter_file):
         pred_train,
         pred_test
     )[-1]
+    result_dict = {'feature_importances': feature_importance}
     universal.plot_roc_curve(output_dir, auc_info)
     universal.save_feature_importances(result_dict, output_dir)
     universal.best_to_file(score_dict, output_dir, {})
