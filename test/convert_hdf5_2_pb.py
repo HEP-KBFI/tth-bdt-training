@@ -48,12 +48,12 @@ with K.get_session() as sess:
     # final_graph = const_graph
     final_graph = const_graph
 
-
     #for node in model.outputs :
     #    shapes = node.op.attr[model.outputs[0].name]
     #    print (shapes.list.shape[0].dim[0].size)
     #shape = final_graph.get_tensor_by_name(model.outputs[0].name) #.node(0) #final_graph.node(0).attr().at("shape").shape();
     #print ("read input layer shape  " , shape) #shape.dim_size() , graphDef.node(0).name())
+
 
 if args.output is None:
     input_base = os.path.basename(args.input)
@@ -61,4 +61,7 @@ if args.output is None:
     out_file = os.path.splitext(input_base)[0] + ".pb"
 else:
     out_dir, out_file = os.path.split(args.output)
+
+
+
 write_graph(final_graph, out_dir, out_file, as_text=False)
