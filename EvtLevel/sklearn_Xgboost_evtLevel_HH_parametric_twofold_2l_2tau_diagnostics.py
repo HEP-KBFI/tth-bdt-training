@@ -40,7 +40,7 @@ import copy
 
 
 ##--- Example as to how to run the code for 2l_2tau channel ----- ###
-##python sklearn_Xgboost_evtLevel_HH_parametric_twofold_2l_2tau_diagnostics.py --channel "2l_2tau" --bdtType "evtLevelSUM_HH_2l_2tau_res" --variables $VAR --tauID dR03mvaVLoose --Bkg_mass_rand oversampling --TrainMode 0 --BDT_Diagnostics_2l_2tau True  --ReweightVars True --doXML True  
+##python sklearn_Xgboost_evtLevel_HH_parametric_twofold_2l_2tau_diagnostics.py --channel "2l_2tau" --bdtType "evtLevelSUM_HH_2l_2tau_res" --variables finalVars_allMasses --tauID dR03mvaVLoose --Bkg_mass_rand oversampling --TrainMode 0 --BDT_Diagnostics_2l_2tau True  --ReweightVars True --doXML True  
 
 
 def lr_to_str(lr):

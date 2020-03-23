@@ -6,7 +6,7 @@ import numpy as np
 #from root_numpy import root2array, stretch
 from numpy.lib.recfunctions import append_fields
 from itertools import product
-from ROOT.Math import PtEtaPhiEVector,VectorUtil
+#from ROOT.Math import PtEtaPhiEVector,VectorUtil ## COMMENTED OUT BY ME !!!
 from math import sqrt, sin, cos, tan, exp
 import ROOT
 import math , array
@@ -15,6 +15,11 @@ import pandas
 import glob
 from root_numpy import tree2array
 import matplotlib
+import matplotlib.pyplot as plt
+
+
+weights="totalWeight"
+target='target'
 
 
 def load_ttHGen() :
